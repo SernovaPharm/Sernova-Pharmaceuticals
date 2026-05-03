@@ -823,8 +823,7 @@
                         <i class="fas fa-chart-bar"></i> التقارير
                     </a>
                     <a class="nav-link" data-page="customers" href="#">
-                        <i class="fas fa-users"></i> العملاء والموردين
-                    </a>
+                        <i class="fas fa-users"></i> العملاء والموردين                    </a>
                     <a class="nav-link" data-page="sales" href="#">
                         <i class="fas fa-shopping-cart"></i> فواتير البيع
                     </a>
@@ -1092,7 +1091,7 @@
         let isSyncing = false;
         let reportsFilter = { searchTerm: '', type: 'all', dateFrom: '', dateTo: '', status: 'all',
             employeeId: null, customerId: null, selectedInvoiceId: null, selectedCustomerId: null,
-            selectedProductId: null, expenseTypeFilter: 'all' };
+            selectedProductId: null, expenseTypeFilter: 'all', productFilterId: null };
         let currentReportTab = 'overview';
 
         function ensureDataStructure(data) {
@@ -1119,6 +1118,8 @@
             data.expenses.forEach(e => {
                 if (!e.expenseType) e.expenseType = 'مصروفات تشغيلية';
                 if (!e.quantity) e.quantity = 0;
+                if (!e.productId) e.productId = null;
+                if (!e.unit) e.unit = 'kg';
             });
             if (!data.factoryBalances) data.factoryBalances = [];
             data.factoryBalances.forEach(b => { if (!b.unit) b.unit = 'kg'; });
@@ -1458,6 +1459,7 @@
 
         function renderCustomers() {
             const lang = currentLang;
+            const sortedCustomers = [...appData.customers].sort((a, b) => b.id - a.id);
             const html = `
             <div class="d-flex justify-content-between mb-4 flex-wrap gap-2">
                 <h5 style="color: #ffffff;">👥 ${t('customers')}</h5>
@@ -1466,7 +1468,7 @@
             <div class="search-box"><i class="fas fa-search" style="color: #b0b0b0;"></i><input type="text" class="form-control" id="customerSearch" placeholder="${lang === 'ar' ? 'بحث بالاسم أو الكود أو الهاتف...' : 'Search by name, code or phone...'}" onkeyup="filterTableContains('customersTable', 'customerSearch')"></div>
             <div class="table-card">
                 <div class="d-flex justify-content-end mb-3"><button class="btn btn-success rounded-pill" onclick="exportCustomersToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button></div>
-                <div class="table-responsive"><table class="table table-hover align-middle" id="customersTable"><thead><tr><th>${lang === 'ar' ? 'النوع' : 'Type'}</th><th>${lang === 'ar' ? 'الكود' : 'Code'}</th><th>${lang === 'ar' ? 'الاسم' : 'Name'}</th><th>${t('phone')}</th><th>${t('address')}</th><th>${lang === 'ar' ? 'المشتريات' : 'Purchases'}</th><th>${t('paid')}</th><th>${t('due')}</th><th>${t('actions')}</th></tr></thead><tbody>${appData.customers.map(c => `<tr data-search="${c.name} ${c.code} ${c.phone} ${c.address||''}"><td><span class="badge ${c.type==='supplier'?'bg-warning':'bg-info'} badge-status">${c.type==='supplier'?t('supplier'):t('customer')}</span></td><td><strong>${c.code}</strong></td><td><strong>${c.name}</strong></td><td>${c.phone}</td><td>${c.address||'-'}</td><td>${formatCurrency(getCustomerTotal(c.id))}</td><td>${formatCurrency(getCustomerPaid(c.id))}</td><td class="fw-bold" style="color: #e94560;">${formatCurrency(getCustomerDue(c.id))}</td><td><div class="action-btns-group"><button class="btn btn-sm btn-info rounded-pill" onclick="editCustomer(${c.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger rounded-pill" onclick="deleteCustomerRequest(${c.id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('')}</tbody></table></div>
+                <div class="table-responsive"><table class="table table-hover align-middle" id="customersTable"><thead><tr><th>${lang === 'ar' ? 'النوع' : 'Type'}</th><th>${lang === 'ar' ? 'الكود' : 'Code'}</th><th>${lang === 'ar' ? 'الاسم' : 'Name'}</th><th>${t('phone')}</th><th>${t('address')}</th><th>${lang === 'ar' ? 'المشتريات' : 'Purchases'}</th><th>${t('paid')}</th><th>${t('due')}</th><th>${t('actions')}</th></tr></thead><tbody>${sortedCustomers.map(c => `<tr data-search="${c.name} ${c.code} ${c.phone} ${c.address||''}"><td><span class="badge ${c.type==='supplier'?'bg-warning':'bg-info'} badge-status">${c.type==='supplier'?t('supplier'):t('customer')}</span></td><td><strong>${c.code}</strong></td><td><strong>${c.name}</strong></td><td>${c.phone}</td><td>${c.address||'-'}</td><td>${formatCurrency(getCustomerTotal(c.id))}</td><td>${formatCurrency(getCustomerPaid(c.id))}</td><td class="fw-bold" style="color: #e94560;">${formatCurrency(getCustomerDue(c.id))}</td><td><div class="action-btns-group"><button class="btn btn-sm btn-info rounded-pill" onclick="editCustomer(${c.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger rounded-pill" onclick="deleteCustomerRequest(${c.id})"><i class="fas fa-trash"></i></button></div></td></tr>`).join('')}</tbody></table></div>
             </div>`;
             document.getElementById('pageContent').innerHTML = html;
             document.getElementById('pageTitle').innerHTML = '👥 ' + t('customers');
@@ -1499,13 +1501,33 @@
 
         function renderProducts() {
             const lang = currentLang;
+            const sortedProducts = [...appData.products].sort((a, b) => b.id - a.id);
             const html = `
             <div class="d-flex justify-content-between mb-4"><h5>📦 ${t('products')}</h5><button class="btn btn-primary" onclick="showProductModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'إضافة منتج':'Add Product'}</button></div>
             <div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-control" id="productSearch" placeholder="${lang==='ar'?'بحث بالاسم أو رقم التشغيلة...':'Search by name or batch number...'}" onkeyup="filterTableContains('productsTable', 'productSearch')"></div>
             <div class="table-card"><div class="d-flex justify-content-end mb-3"><button class="btn btn-success rounded-pill" onclick="exportProductsToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button></div>
-            <div class="table-responsive"><table class="table" id="productsTable"><thead><tr><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th><th>${lang==='ar'?'سعر البيع':'Sell Price'}</th><th>${lang==='ar'?'الكمية':'Quantity'}</th><th>${lang==='ar'?'الحالة':'Status'}</th><th>${t('actions')}</th></tr></thead><tbody>${appData.products.map(p=>`<tr data-search="${p.name} ${p.batchNumber}"><td><strong>${p.name}</strong></td><td><span class="badge bg-secondary">${p.batchNumber||'-'}</span></td><td>${formatCurrency(p.sellPrice)}</td><td>${p.quantity}</td><td>${p.quantity<=0?`<span class="badge bg-danger">${lang==='ar'?'نفذ':'Out'}</span>`:`<span class="badge bg-success">${lang==='ar'?'متوفر':'Available'}</span>`}</td><td><button class="btn btn-sm btn-info" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteProductRequest(${p.id})"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+            <div class="table-responsive"><table class="table" id="productsTable"><thead><tr><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th><th>${lang==='ar'?'سعر البيع':'Sell Price'}</th><th>${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</th><th>${lang==='ar'?'المخزون الحالي':'Current Stock'}</th><th>${lang==='ar'?'الحالة':'Status'}</th><th>${t('actions')}</th></tr></thead><tbody>${sortedProducts.map(p=>`<tr data-search="${p.name} ${p.batchNumber}"><td><strong>${p.name}</strong></td><td><span class="badge bg-secondary">${p.batchNumber||'-'}</span></td><td>${formatCurrency(p.sellPrice)}</td><td><input type="number" class="form-control form-control-sm" style="width:80px;display:inline-block;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" value="${p.initialQuantity||p.quantity}" onchange="updateProductInitialQuantity(${p.id}, this.value)"></td><td><input type="number" class="form-control form-control-sm" style="width:80px;display:inline-block;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" value="${p.quantity}" onchange="updateProductQuantity(${p.id}, this.value)"></td><td>${p.quantity<=0?`<span class="badge bg-danger">${lang==='ar'?'نفذ':'Out'}</span>`:`<span class="badge bg-success">${lang==='ar'?'متوفر':'Available'}</span>`}</td><td><button class="btn btn-sm btn-info" onclick="editProduct(${p.id})"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteProductRequest(${p.id})"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
             document.getElementById('pageContent').innerHTML = html;
             document.getElementById('pageTitle').innerHTML = '📦 ' + t('products');
+        }
+
+        function updateProductInitialQuantity(productId, newValue) {
+            const qty = parseFloat(newValue) || 0;
+            const prod = appData.products.find(p => p.id === productId);
+            if (prod) {
+                prod.initialQuantity = qty;
+                saveData();
+            }
+        }
+
+        function updateProductQuantity(productId, newValue) {
+            const qty = parseFloat(newValue) || 0;
+            const prod = appData.products.find(p => p.id === productId);
+            if (prod) {
+                prod.quantity = qty;
+                saveData();
+                renderProducts();
+            }
         }
 
         function exportProductsToExcel() {
@@ -1516,11 +1538,11 @@
                 [lang === 'ar' ? 'تقرير المنتجات' : 'Products Report'],
                 [''],
                 [lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ?
-                    'سعر البيع' : 'Sell Price', lang === 'ar' ? 'الكمية' : 'Quantity', lang === 'ar' ? 'الحالة' :
+                    'سعر البيع' : 'Sell Price', lang === 'ar' ? 'المخزون الابتدائي' : 'Initial Stock', lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', lang === 'ar' ? 'الحالة' :
                     'Status'
                 ]
             ];
-            appData.products.forEach(p => { wsData.push([p.name, p.batchNumber || '-', p.sellPrice, p.quantity, p
+            appData.products.forEach(p => { wsData.push([p.name, p.batchNumber || '-', p.sellPrice, p.initialQuantity || p.quantity, p.quantity, p
                     .quantity <= 0 ? (lang === 'ar' ? 'نفذ' : 'Out') : (lang === 'ar' ? 'متوفر' : 'Available')
                 ]); });
             const ws = XLSX.utils.aoa_to_sheet(wsData);
@@ -1537,7 +1559,7 @@
             <div class="d-flex justify-content-between mb-4"><h5>🧾 ${t('sales')}</h5><button class="btn btn-primary" onclick="showSaleInvoiceModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'فاتورة جديدة':'New Invoice'}</button></div>
             <div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-control" id="saleSearch" placeholder="${lang==='ar'?'بحث...':'Search...'}" onkeyup="filterTableContains('salesTable', 'saleSearch')"></div>
             <div class="table-card"><div class="d-flex justify-content-end mb-3"><button class="btn btn-success rounded-pill" onclick="exportSalesInvoicesToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button></div>
-            <div class="table-responsive"><table class="table" id="salesTable"><thead><tr><th>${lang==='ar'?'رقم الفاتورة':'Invoice #'}</th><th>${lang==='ar'?'العميل':'Customer'}</th><th>${t('date')}</th><th>${t('total')}</th><th>${t('paid')}</th><th>${t('due')}</th><th>Sales Manager</th><th>${t('status')}</th><th>${t('actions')}</th></tr></thead><tbody>${sortedInvoices.map(inv=>{const c=appData.customers.find(c=>c.id===inv.customerId);return`<tr data-search="${inv.invoiceNumber} ${c?.name} ${c?.address||''} ${inv.salesManager||''}"><td><strong>${inv.invoiceNumber}</strong></td><td>${c?.name}</td><td>${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</td><td>${formatCurrency(inv.total)}</td><td>${formatCurrency(inv.paid)}</td><td class="text-danger">${formatCurrency(inv.due)}</td><td>${inv.salesManager||'-'}</td><td>${inv.due===0?`<span class="badge bg-success">${lang==='ar'?'مسددة':'Paid'}</span>`:`<span class="badge bg-warning">${lang==='ar'?'غير مسددة':'Unpaid'}</span>`}</td><td><div class="action-btns-group"><button class="btn btn-sm btn-outline-info" onclick="editSaleInvoice(${inv.id})" title="${t('edit')}"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-secondary" onclick="printInvoice(${inv.id})" title="${t('print')}"><i class="fas fa-print"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="deleteInvoiceRequest('sales',${inv.id})" title="${t('delete')}"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('')}</tbody></table></div></div>`;
+            <div class="table-responsive"><table class="table" id="salesTable"><thead><tr><th>${lang==='ar'?'رقم الفاتورة':'Invoice #'}</th><th>${lang==='ar'?'العميل':'Customer'}</th><th>${t('date')}</th><th>${lang==='ar'?'الكمية':'Qty'}</th><th>${t('total')}</th><th>${t('paid')}</th><th>${t('due')}</th><th>Sales Manager</th><th>${t('status')}</th><th>${t('actions')}</th></tr></thead><tbody>${sortedInvoices.map(inv=>{const c=appData.customers.find(c=>c.id===inv.customerId);const totalQty=inv.items.reduce((s,item)=>s+item.quantity,0);return`<tr data-search="${inv.invoiceNumber} ${c?.name} ${c?.address||''} ${inv.salesManager||''}"><td><strong>${inv.invoiceNumber}</strong></td><td>${c?.name}</td><td>${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</td><td>${totalQty}</td><td>${formatCurrency(inv.total)}</td><td>${formatCurrency(inv.paid)}</td><td class="text-danger">${formatCurrency(inv.due)}</td><td>${inv.salesManager||'-'}</td><td>${inv.due===0?`<span class="badge bg-success">${lang==='ar'?'مسددة':'Paid'}</span>`:`<span class="badge bg-warning">${lang==='ar'?'غير مسددة':'Unpaid'}</span>`}</td><td><div class="action-btns-group"><button class="btn btn-sm btn-outline-info" onclick="editSaleInvoice(${inv.id})" title="${t('edit')}"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-secondary" onclick="printInvoice(${inv.id})" title="${t('print')}"><i class="fas fa-print"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="deleteInvoiceRequest('sales',${inv.id})" title="${t('delete')}"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('')}</tbody></table></div></div>`;
             document.getElementById('pageContent').innerHTML = html;
             document.getElementById('pageTitle').innerHTML = '🧾 ' + t('sales');
         }
@@ -1549,13 +1571,36 @@
                 [company],
                 [lang === 'ar' ? 'تقرير فواتير البيع' : 'Sales Invoice Report'],
                 [''],
-                [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', t('date'), t(
-                    'total'), t('paid'), t('due'), 'Sales Manager', t('status')]
+                [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', t('date'), lang === 'ar' ? 'الكمية' : 'Qty', t('total'), t('paid'), t('due'), 'Sales Manager', t('status'), lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'كمية المنتج' : 'Item Qty', lang === 'ar' ? 'السعر' : 'Price', lang === 'ar' ? 'خصم %' : 'Disc %', lang === 'ar' ? 'بعد الخصم' : 'After Disc']
             ];
-            appData.salesInvoices.forEach(inv => { const c = appData.customers.find(c => c.id === inv.customerId);
-                wsData.push([inv.invoiceNumber, c?.name || '', inv.date, inv.total, inv.paid, inv.due, inv
-                    .salesManager || '', inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ?
-                        'غير مسددة' : 'Unpaid')]); });
+            appData.salesInvoices.forEach(inv => { 
+                const c = appData.customers.find(c => c.id === inv.customerId);
+                const totalQty = inv.items.reduce((s,item) => s + item.quantity, 0);
+                if (inv.items.length > 0) {
+                    inv.items.forEach(item => {
+                        const p = appData.products.find(pr => pr.id === item.productId);
+                        wsData.push([
+                            inv.invoiceNumber, 
+                            c?.name || '', 
+                            inv.date, 
+                            totalQty,
+                            inv.total, 
+                            inv.paid, 
+                            inv.due, 
+                            inv.salesManager || '', 
+                            inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'),
+                            p?.name || '-',
+                            p?.batchNumber || '-',
+                            item.quantity,
+                            item.price,
+                            item.discountPercent || 0,
+                            item.totalAfterDiscount || item.total
+                        ]);
+                    });
+                } else {
+                    wsData.push([inv.invoiceNumber, c?.name || '', inv.date, 0, inv.total, inv.paid, inv.due, inv.salesManager || '', inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'), '-', '-', '-', '-', '-', '-']);
+                }
+            });
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, lang === 'ar' ? 'فواتير_البيع' : 'Sales_Invoices');
@@ -1564,13 +1609,13 @@
         }
 
         function renderExpenses() {
-            const expenses = appData.expenses || [];
+            const expenses = (appData.expenses || []).sort((a, b) => new Date(b.date) - new Date(a.date));
             const lang = currentLang;
             const html = `
             <div class="d-flex justify-content-between mb-4"><h5>💰 ${t('purchases')}</h5><button class="btn btn-primary" onclick="showExpenseModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'مصروف جديد':'New Expense'}</button></div>
             <div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-control" id="expenseSearch" placeholder="${lang==='ar'?'بحث...':'Search...'}" onkeyup="filterTableContains('expensesTable', 'expenseSearch')"></div>
             <div class="table-card"><div class="d-flex justify-content-end mb-3"><button class="btn btn-success rounded-pill" onclick="exportExpensesToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button></div>
-            <div class="table-responsive"><table class="table" id="expensesTable"><thead><tr><th>${lang==='ar'?'رقم المصروف':'Expense #'}</th><th>${lang==='ar'?'النوع':'Type'}</th><th>${lang==='ar'?'البيان':'Description'}</th><th>${lang==='ar'?'الكمية':'Qty'}</th><th>${t('date')}</th><th>${lang==='ar'?'التكلفة':'Cost'}</th><th>${t('paid')}</th><th>${t('due')}</th><th>${lang==='ar'?'ملاحظات':'Notes'}</th><th>${t('actions')}</th></tr></thead><tbody>${expenses.map(exp=>{return`<tr data-search="${exp.description||''} ${exp.notes||''} ${exp.expenseNumber||''} ${exp.expenseType||''}"><td><strong>${exp.expenseNumber||'-'}</strong></td><td><span class="badge bg-secondary">${exp.expenseType||'مصروفات تشغيلية'}</span></td><td>${exp.description||'-'}</td><td>${exp.quantity||0}</td><td>${exp.date?new Date(exp.date).toLocaleDateString(lang==='ar'?'ar':'en'):'-'}</td><td>${formatCurrency(exp.amount||0)}</td><td style="color:#10b981;">${formatCurrency(exp.paid||0)}</td><td style="color:#e94560;">${formatCurrency(exp.due||0)}</td><td>${exp.notes||'-'}</td><td><div class="action-btns-group"><button class="btn btn-sm btn-outline-info" onclick="editExpense(${exp.id})" title="${t('edit')}"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="deleteExpenseRequest(${exp.id})" title="${t('delete')}"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('')||`<tr><td colspan="10" class="text-center py-4">${lang==='ar'?'لا توجد مصروفات':'No expenses'}</td></tr>`}</tbody></table></div></div>`;
+            <div class="table-responsive"><table class="table" id="expensesTable"><thead><tr><th>${lang==='ar'?'رقم المصروف':'Expense #'}</th><th>${lang==='ar'?'النوع':'Type'}</th><th>${lang==='ar'?'الصنف':'Product'}</th><th>${lang==='ar'?'البيان':'Description'}</th><th>${lang==='ar'?'الكمية':'Qty'}</th><th>${lang==='ar'?'الوحدة':'Unit'}</th><th>${t('date')}</th><th>${lang==='ar'?'التكلفة':'Cost'}</th><th>${t('paid')}</th><th>${t('due')}</th><th>${lang==='ar'?'ملاحظات':'Notes'}</th><th>${t('actions')}</th></tr></thead><tbody>${expenses.map(exp=>{const p=exp.productId?appData.products.find(pr=>pr.id===exp.productId):null;return`<tr data-search="${exp.description||''} ${exp.notes||''} ${exp.expenseNumber||''} ${exp.expenseType||''} ${p?.name||''}"><td><strong>${exp.expenseNumber||'-'}</strong></td><td><span class="badge bg-secondary">${exp.expenseType||'مصروفات تشغيلية'}</span></td><td>${p?p.name:'-'}</td><td>${exp.description||'-'}</td><td>${exp.quantity||0}</td><td><span class="badge bg-info">${exp.unit||'kg'}</span></td><td>${exp.date?new Date(exp.date).toLocaleDateString(lang==='ar'?'ar':'en'):'-'}</td><td>${formatCurrency(exp.amount||0)}</td><td style="color:#10b981;">${formatCurrency(exp.paid||0)}</td><td style="color:#e94560;">${formatCurrency(exp.due||0)}</td><td>${exp.notes||'-'}</td><td><div class="action-btns-group"><button class="btn btn-sm btn-outline-info" onclick="editExpense(${exp.id})" title="${t('edit')}"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger" onclick="deleteExpenseRequest(${exp.id})" title="${t('delete')}"><i class="fas fa-trash"></i></button></div></td></tr>`;}).join('')||`<tr><td colspan="12" class="text-center py-4">${lang==='ar'?'لا توجد مصروفات':'No expenses'}</td></tr>`}</tbody></table></div></div>`;
             document.getElementById('pageContent').innerHTML = html;
             document.getElementById('pageTitle').innerHTML = '💰 ' + t('purchases');
         }
@@ -1582,14 +1627,11 @@
                 [company],
                 [lang === 'ar' ? 'تقرير المصروفات' : 'Expenses Report'],
                 [''],
-                [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ?
-                    'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty',
-                    t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due'), lang === 'ar' ? 'ملاحظات' :
-                    'Notes'
-                ]
+                [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'الصنف' : 'Product', lang === 'ar' ? 'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty', lang === 'ar' ? 'الوحدة' : 'Unit', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due'), lang === 'ar' ? 'ملاحظات' : 'Notes']
             ];
             (appData.expenses || []).forEach(exp => {
-                wsData.push([exp.expenseNumber || '-', exp.expenseType || 'مصروفات تشغيلية', exp.description || '-', exp.quantity || 0, exp.date || '', exp.amount || 0, exp.paid || 0, exp.due || 0, exp.notes || '-']);
+                const p = exp.productId ? appData.products.find(pr => pr.id === exp.productId) : null;
+                wsData.push([exp.expenseNumber || '-', exp.expenseType || 'مصروفات تشغيلية', p ? p.name : '-', exp.description || '-', exp.quantity || 0, exp.unit || 'kg', exp.date || '', exp.amount || 0, exp.paid || 0, exp.due || 0, exp.notes || '-']);
             });
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const wb = XLSX.utils.book_new();
@@ -1599,7 +1641,7 @@
         }
 
         function renderFactoryBalances() {
-            const balances = appData.factoryBalances || [];
+            const balances = (appData.factoryBalances || []).sort((a, b) => b.id - a.id);
             const lang = currentLang;
             const html = `
             <div class="d-flex justify-content-between mb-4"><h5>🏭 ${t('factory_balances')}</h5><button class="btn btn-primary" onclick="showFactoryBalanceModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'إضافة رصيد':'Add Balance'}</button></div>
@@ -1633,7 +1675,7 @@
 
         function showFactoryBalanceModal(id = null) {
             const bal = id ? (appData.factoryBalances || []).find(b => b.id === id) : null;
-            const units = ['kg', 'gm', 'mg', 'unit'];
+            const units = ['kg', 'gm', 'mg', 'unit', 'بدون'];
             const lang = currentLang;
             const modalHtml = `
             <div class="modal fade" id="factoryBalanceModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5><i class="fas fa-industry"></i> ${bal?(lang==='ar'?'تعديل رصيد':'Edit Balance'):(lang==='ar'?'رصيد جديد':'New Balance')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="factoryBalanceId" value="${bal?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المادة الفعالة':'Active Ingredient'}</label><input id="factoryActiveIngredient" class="form-control" value="${bal?.activeIngredient||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'الرصيد':'Balance'}</label><input id="factoryBalance" type="number" class="form-control" value="${bal?.balance||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'وحدة القياس':'Unit'}</label><select id="factoryUnit" class="form-control">${units.map(u=>`<option value="${u}" ${(bal?.unit||'kg')===u?'selected':''}>${u}</option>`).join('')}</select></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</label><input id="factoryExpiryDate" type="date" class="form-control" value="${bal?.expiryDate||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'تاريخ الجرد':'Inventory Date'}</label><input id="factoryInventoryDate" type="date" class="form-control" value="${bal?.inventoryDate||''}"></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="saveFactoryBalance()">${t('save')}</button></div></div></div></div>`;
@@ -1668,7 +1710,7 @@
                 renderFactoryBalances(); }); }
 
         function renderEmployees() {
-            const employees = appData.employees || [];
+            const employees = (appData.employees || []).sort((a, b) => b.id - a.id);
             const lang = currentLang;
             const html = `
             <div class="d-flex justify-content-between mb-4"><h5>👔 ${t('employees')}</h5><button class="btn btn-primary" onclick="showEmployeeModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'إضافة موظف':'Add Employee'}</button></div>
@@ -1683,7 +1725,7 @@
             const emp = (appData.employees || []).find(e => e.id === empId);
             if (!emp) return;
             const lang = currentLang;
-            const empInvoices = appData.salesInvoices.filter(inv => inv.salesManager === emp.name);
+            const empInvoices = appData.salesInvoices.filter(inv => inv.salesManager === emp.name).sort((a, b) => new Date(b.date) - new Date(a.date));
             const totalSales = empInvoices.reduce((s, inv) => s + inv.total, 0);
             const totalPaid = empInvoices.reduce((s, inv) => s + inv.paid, 0);
             const totalDue = empInvoices.reduce((s, inv) => s + inv.due, 0);
@@ -1754,7 +1796,7 @@
                 renderEmployees(); }); }
 
         function renderPaymentsScreen() {
-            const customers = appData.customers.filter(c => c.type === 'customer' || !c.type);
+            const customers = appData.customers.filter(c => c.type === 'customer' || !c.type).sort((a, b) => b.id - a.id);
             const lang = currentLang;
             let html = `
             <h5 class="mb-4">💵 ${t('payments_screen')}</h5>
@@ -1974,14 +2016,41 @@
         function showExpenseModal(id = null) {
             const exp = id ? (appData.expenses || []).find(e => e.id === id) : null;
             const lang = currentLang;
-            const expenseTypes = ['مصروفات الانتاج والتصنيع', 'مصروفات تشغيلية', 'مصروفات تسويقية', 'مصروفات تمويلية'];
+            const expenseTypes = ['مصروفات الانتاج والتصنيع', 'مصروفات تشغيلية', 'مصروفات تسويقية', 'مصروفات تمويلية', 'بدون'];
             const typeOptions = expenseTypes.map(et =>
                 `<option value="${et}" ${(exp?.expenseType||'مصروفات تشغيلية')===et?'selected':''}>${et}</option>`).join(
                 '');
+            const units = ['kg', 'gm', 'mg', 'unit', 'بدون'];
+            const productOptions = appData.products && appData.products.length > 0 
+    ? appData.products.map(p => `<option value="${p.id}" ${(exp && exp.productId === p.id) ? 'selected' : ''}>${p.name}${p.batchNumber ? ' - ' + p.batchNumber : ''}</option>`).join('')
+    : '';
             const modalHtml = `
-            <div class="modal fade" id="expenseModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5><i class="fas fa-money-bill-wave"></i> ${exp?(lang==='ar'?'تعديل مصروف':'Edit Expense'):(lang==='ar'?'مصروف جديد':'New Expense')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="expenseId" value="${exp?.id||''}"><div class="row g-3 mb-4"><div class="col-md-6"><label class="fw-bold mb-2"><i class="fas fa-tag"></i> ${lang==='ar'?'نوع المصروف':'Expense Type'}</label><select class="form-control" id="expenseTypeSelect" style="border-radius:12px;">${typeOptions}</select></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-calendar"></i> ${t('date')}</label><input type="date" class="form-control" id="expenseDate" value="${exp?.date||new Date().toISOString().split('T')[0]}" style="border-radius:12px;"></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-cubes"></i> ${lang==='ar'?'الكمية':'Quantity'}</label><input type="number" class="form-control" id="expenseQuantity" value="${exp?.quantity||0}" step="0.01" style="border-radius:12px;"></div></div><div class="row g-3 mb-4"><div class="col-md-12"><label class="fw-bold mb-2"><i class="fas fa-file-alt"></i> ${lang==='ar'?'البيان':'Description'}</label><input type="text" class="form-control" id="expenseDescription" value="${exp?.description||''}" placeholder="${lang==='ar'?'أدخل بيان المصروف':'Enter expense description'}" style="border-radius:12px;"></div></div><div class="row g-3 mb-4"><div class="col-md-4"><label class="fw-bold mb-2"><i class="fas fa-dollar-sign"></i> ${lang==='ar'?'التكلفة':'Cost'}</label><input type="number" class="form-control" id="expenseAmount" value="${exp?.amount||0}" step="0.01" style="border-radius:12px;" onchange="calculateExpenseDue()"></div><div class="col-md-4"><label class="fw-bold mb-2"><i class="fas fa-hand-holding-usd"></i> ${t('paid')}</label><input type="number" class="form-control" id="expensePaid" value="${exp?.paid||0}" step="0.01" style="border-radius:12px;" onchange="calculateExpenseDue()"></div><div class="col-md-4"><label class="fw-bold mb-2"><i class="fas fa-calculator"></i> ${t('due')}</label><input type="text" class="form-control" id="expenseDue" value="${exp?.due||0}" readonly style="background:rgba(233,69,96,0.2);border-radius:12px;color:#e94560;font-weight:bold;"></div></div><div class="row g-3 mb-4"><div class="col-md-12"><label class="fw-bold mb-2"><i class="fas fa-sticky-note"></i> ${lang==='ar'?'ملاحظات':'Notes'}</label><input type="text" class="form-control" id="expenseNotes" value="${exp?.notes||''}" placeholder="${lang==='ar'?'ملاحظات إضافية':'Additional notes'}" style="border-radius:12px;"></div></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="saveExpense()"><i class="fas fa-save"></i> ${lang==='ar'?'حفظ المصروف':'Save Expense'}</button></div></div></div></div>`;
+            <div class="modal fade" id="expenseModal" tabindex="-1"><div class="modal-dialog modal-lg"><div class="modal-content"><div class="modal-header"><h5><i class="fas fa-money-bill-wave"></i> ${exp?(lang==='ar'?'تعديل مصروف':'Edit Expense'):(lang==='ar'?'مصروف جديد':'New Expense')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="expenseId" value="${exp?.id||''}"><div class="row g-3 mb-4"><div class="col-md-4"><label class="fw-bold mb-2"><i class="fas fa-tag"></i> ${lang==='ar'?'نوع المصروف':'Expense Type'}</label><select class="form-control" id="expenseTypeSelect" style="border-radius:12px;">${typeOptions}</select></div><div class="col-md-4"><label class="fw-bold mb-2"><i class="fas fa-box"></i> ${lang==='ar'?'الصنف':'Product'}</label><select class="form-control select2-search" id="expenseProductSelect" data-placeholder="${lang==='ar'?'اختر منتج...':'Select product...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر منتج':'Select Product'} --</option><option value="0">بدون</option>${productOptions || ''}</select></div><div class="col-md-2"><label class="fw-bold mb-2"><i class="fas fa-calendar"></i> ${t('date')}</label><input type="date" class="form-control" id="expenseDate" value="${exp?.date||new Date().toISOString().split('T')[0]}" style="border-radius:12px;"></div></div><div class="row g-3 mb-4"><div class="col-md-12"><label class="fw-bold mb-2"><i class="fas fa-file-alt"></i> ${lang==='ar'?'البيان':'Description'}</label><input type="text" class="form-control" id="expenseDescription" value="${exp?.description||''}" placeholder="${lang==='ar'?'أدخل بيان المصروف':'Enter expense description'}" style="border-radius:12px;"></div></div><div class="row g-3 mb-4"><div class="col-md-2"><label class="fw-bold mb-2"><i class="fas fa-cubes"></i> ${lang==='ar'?'الكمية':'Quantity'}</label><input type="number" class="form-control" id="expenseQuantity" value="${exp?.quantity||0}" step="0.01" style="border-radius:12px;"></div><div class="col-md-2"><label class="fw-bold mb-2"><i class="fas fa-weight-hanging"></i> ${lang==='ar'?'وحدة القياس':'Unit'}</label><select class="form-control" id="expenseUnit" style="border-radius:12px;">${units.map(u=>`<option value="${u}" ${(exp?.unit||'kg')===u?'selected':''}>${u}</option>`).join('')}</select></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-dollar-sign"></i> ${lang==='ar'?'التكلفة':'Cost'}</label><input type="number" class="form-control" id="expenseAmount" value="${exp?.amount||0}" step="0.01" style="border-radius:12px;" onchange="calculateExpenseDue()"></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-hand-holding-usd"></i> ${t('paid')}</label><input type="number" class="form-control" id="expensePaid" value="${exp?.paid||0}" step="0.01" style="border-radius:12px;" onchange="calculateExpenseDue()"></div><div class="col-md-2"><label class="fw-bold mb-2"><i class="fas fa-calculator"></i> ${t('due')}</label><input type="text" class="form-control" id="expenseDue" value="${exp?.due||0}" readonly style="background:rgba(233,69,96,0.2);border-radius:12px;color:#e94560;font-weight:bold;"></div></div><div class="row g-3 mb-4"><div class="col-md-12"><label class="fw-bold mb-2"><i class="fas fa-sticky-note"></i> ${lang==='ar'?'ملاحظات':'Notes'}</label><input type="text" class="form-control" id="expenseNotes" value="${exp?.notes||''}" placeholder="${lang==='ar'?'ملاحظات إضافية':'Additional notes'}" style="border-radius:12px;"></div></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="saveExpense()"><i class="fas fa-save"></i> ${lang==='ar'?'حفظ المصروف':'Save Expense'}</button></div></div></div></div>`;
             showModal(modalHtml, 'expenseModal');
-            setTimeout(() => calculateExpenseDue(), 100);
+            setTimeout(() => { 
+                calculateExpenseDue();
+                setTimeout(function() {
+    var $select = $('#expenseProductSelect');
+    if ($select.length) {
+        if ($select.hasClass('select2-hidden-accessible')) {
+            $select.select2('destroy');
+        }
+        $select.select2({
+            dropdownParent: $('#expenseModal'),
+            placeholder: lang === 'ar' ? 'اختر منتج...' : 'Select product...',
+            allowClear: true,
+            width: '100%',
+            dir: currentLang === 'ar' ? 'rtl' : 'ltr',
+            minimumInputLength: 0,
+            language: {
+                noResults: function() { 
+                    return lang === 'ar' ? 'لا توجد نتائج' : 'No results found'; 
+                }
+            }
+        });
+    }
+}, 300);
+            }, 100);
         }
 
         function calculateExpenseDue() {
@@ -2002,6 +2071,9 @@
             const notes = document.getElementById('expenseNotes').value.trim();
             const date = document.getElementById('expenseDate').value;
             const expenseType = document.getElementById('expenseTypeSelect').value || 'مصروفات تشغيلية';
+            const productIdRaw = document.getElementById('expenseProductSelect').value;
+            const productId = (productIdRaw && productIdRaw !== '0') ? parseInt(productIdRaw) : null;
+            const unit = document.getElementById('expenseUnit').value || 'kg';
             const lang = currentLang;
             if (!description) { alert(lang === 'ar' ? 'الرجاء إدخال البيان' : 'Please enter description'); return; }
             if (amount <= 0) { alert(lang === 'ar' ? 'الرجاء إدخال التكلفة' : 'Please enter cost'); return; }
@@ -2016,7 +2088,9 @@
                 due: due,
                 notes: notes,
                 date: date,
-                expenseType: expenseType
+                expenseType: expenseType,
+                productId: productId,
+                unit: unit
             };
             if (!appData.expenses) appData.expenses = [];
             if (id) { const idx = appData.expenses.findIndex(e => e.id === parseInt(id)); if (idx !== -1) { expenseData
@@ -2054,9 +2128,9 @@
             const customers = appData.customers.filter(c => c.type === 'customer' || !c.type);
             const employees = appData.employees || [];
             const lang = currentLang;
-            const customerOptions = customers.map(c =>
+            const customerOptions = '<option value="0">بدون</option>' + customers.map(c =>
                 `<option value="${c.id}" data-discount="${c.discountPercent}">${c.name} (${c.code})</option>`).join('');
-            const employeeOptions = employees.map(emp =>
+            const employeeOptions = '<option value="0">بدون</option>' + employees.map(emp =>
                 `<option value="${emp.id}">${emp.name} (${emp.code}) - ${emp.position}</option>`).join('');
             const modalHtml = `
             <div class="modal fade" id="saleModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5><i class="fas fa-file-invoice"></i> ${lang==='ar'?'فاتورة بيع جديدة':'New Sales Invoice'}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row g-3 mb-4"><div class="col-md-4"><label class="fw-bold mb-2"><i class="fas fa-user"></i> ${lang==='ar'?'العميل':'Customer'}</label><select class="form-control select2-search" id="customerSelect" data-placeholder="${lang==='ar'?'ابحث عن عميل بالاسم أو الكود...':'Search customer by name or code...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر عميل':'Select Customer'} --</option>${customerOptions}</select></div><div class="col-md-2"><label class="fw-bold mb-2"><i class="fas fa-calendar"></i> ${t('date')}</label><input type="date" class="form-control" id="invoiceDate" value="${new Date().toISOString().split('T')[0]}" style="border-radius:12px;"></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-user-tie"></i> Sales Manager</label><select class="form-control select2-search" id="salesManagerSelect" data-placeholder="${lang==='ar'?'ابحث عن مندوب...':'Search Sales Rep...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر مندوب':'Select Sales Rep'} --</option>${employeeOptions}</select></div></div><div class="invoice-items-header"><div class="row align-items-center"><div class="col-md-3"><strong>${lang==='ar'?'المنتج':'Product'}</strong></div><div class="col-md-1"><strong>${lang==='ar'?'الكمية':'Qty'}</strong></div><div class="col-md-2"><strong>${lang==='ar'?'سعر الوحدة':'Unit Price'}</strong></div><div class="col-md-2"><strong>${t('total')}</strong></div><div class="col-md-1"><strong>${lang==='ar'?'خصم %':'Disc %'}</strong></div><div class="col-md-2"><strong>${lang==='ar'?'بعد الخصم':'After Disc'}</strong></div><div class="col-md-1"><strong>${t('delete')}</strong></div></div></div><div id="itemsContainer"></div><button class="btn btn-outline-light mt-3 rounded-pill" onclick="addInvoiceItemRow()" style="border:2px dashed rgba(255,255,255,0.3);"><i class="fas fa-plus-circle"></i> ${lang==='ar'?'إضافة منتج آخر':'Add Another Product'}</button><hr style="border-color:rgba(255,255,255,0.1);"><div class="row"><div class="col-md-5 offset-md-7"><div class="card bg-transparent border-light p-3 rounded-4" style="background:rgba(0,0,0,0.3)!important;border:1px solid rgba(255,255,255,0.2)!important;"><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${lang==='ar'?'الإجمالي قبل الخصم':'Subtotal'}:</span><input type="text" class="form-control w-50 text-end summary-input-white" id="invoiceSubtotal" readonly></div><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${lang==='ar'?'الإجمالي بعد الخصم':'Total After Discount'}:</span><input type="text" class="form-control w-50 text-end summary-input-green" id="invoiceTotal" readonly></div><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${t('paid')}:</span><input type="number" class="form-control w-50 text-end" id="invoicePaid" value="0" onchange="calculateDue()" style="border-radius:8px;background:rgba(255,255,255,0.1);color:#ffffff;"></div><div class="d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${t('due')}:</span><input type="text" class="form-control w-50 text-end summary-input-red" id="invoiceDue" readonly></div></div></div></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="saveSaleInvoice()"><i class="fas fa-save"></i> ${lang==='ar'?'حفظ الفاتورة':'Save Invoice'}</button></div></div></div></div>`;
@@ -2115,11 +2189,12 @@
             const paid = parseFloat(document.getElementById('invoicePaid')?.value) || 0;
             document.getElementById('invoiceDue').value = (total - paid).toFixed(2); }
 
-        function saveSaleInvoice() { const customerId = parseInt($('#customerSelect').val());
-            const lang = currentLang; if (!customerId) { alert(lang === 'ar' ? 'اختر عميل' : 'Select Customer'); return; }
-            const salesManagerId = $('#salesManagerSelect').val();
-            let salesManagerName = ''; if (salesManagerId) { const emp = (appData.employees || []).find(e => e.id ===
-                    parseInt(salesManagerId)); if (emp) salesManagerName = emp.name; } const items = window
+        function saveSaleInvoice() { const customerIdRaw = $('#customerSelect').val();
+            const customerId = (customerIdRaw && customerIdRaw !== '0') ? parseInt(customerIdRaw) : null;
+            const lang = currentLang;
+            const salesManagerIdRaw = $('#salesManagerSelect').val();
+            let salesManagerName = ''; if (salesManagerIdRaw && salesManagerIdRaw !== '0') { const emp = (appData.employees || []).find(e => e.id ===
+                    parseInt(salesManagerIdRaw)); if (emp) salesManagerName = emp.name; } const items = window
                 .invoiceItemsList.filter(i => i.productId).map(i => ({ productId: i.productId, quantity: i.quantity,
                     price: i.price, total: i.total, discountPercent: i.discountPercent, totalAfterDiscount: i
                     .totalAfterDiscount, batchNumber: i.batchNumber })); for (let item of items) { const prod = appData
@@ -2146,8 +2221,12 @@
             const lang = currentLang;
             const customers = appData.customers.filter(c => c.type === 'customer' || !c.type);
             const employees = appData.employees || [];
+            const customerOptions = '<option value="0" ' + (!inv.customerId ? 'selected' : '') + '>بدون</option>' + customers.map(c =>
+                `<option value="${c.id}" ${c.id===inv.customerId?'selected':''}>${c.name} (${c.code})</option>`).join('');
+            const employeeOptions = '<option value="0" ' + (!inv.salesManager ? 'selected' : '') + '>بدون</option>' + employees.map(emp =>
+                `<option value="${emp.id}" ${emp.name===inv.salesManager?'selected':''}>${emp.name} (${emp.code}) - ${emp.position}</option>`).join('');
             const modalHtml = `
-            <div class="modal fade" id="editSaleModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5>${lang==='ar'?'تعديل فاتورة البيع':'Edit Sales Invoice'} ${inv.invoiceNumber}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row g-3 mb-4"><div class="col-md-4"><label class="fw-bold mb-2">${lang==='ar'?'العميل':'Customer'}</label><select class="form-control select2-search" id="editCustomerSelect" data-placeholder="${lang==='ar'?'ابحث عن عميل...':'Search Customer...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر عميل':'Select Customer'} --</option>${customers.map(c=>`<option value="${c.id}" ${c.id===inv.customerId?'selected':''}>${c.name} (${c.code})</option>`).join('')}</select></div><div class="col-md-2"><label class="fw-bold mb-2">${t('date')}</label><input type="date" class="form-control" id="editInvoiceDate" value="${inv.date}" style="border-radius:12px;"></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-user-tie"></i> Sales Manager</label><select class="form-control select2-search" id="editSalesManagerSelect" data-placeholder="${lang==='ar'?'ابحث عن مندوب...':'Search Sales Rep...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر مندوب':'Select Sales Rep'} --</option>${employees.map(emp=>`<option value="${emp.id}" ${emp.name===inv.salesManager?'selected':''}>${emp.name} (${emp.code}) - ${emp.position}</option>`).join('')}</select></div></div><div class="invoice-items-header"><div class="row align-items-center"><div class="col-md-3"><strong>${lang==='ar'?'المنتج':'Product'}</strong></div><div class="col-md-1"><strong>${lang==='ar'?'الكمية':'Qty'}</strong></div><div class="col-md-2"><strong>${lang==='ar'?'سعر الوحدة':'Unit Price'}</strong></div><div class="col-md-2"><strong>${t('total')}</strong></div><div class="col-md-1"><strong>${lang==='ar'?'خصم %':'Disc %'}</strong></div><div class="col-md-2"><strong>${lang==='ar'?'بعد الخصم':'After Disc'}</strong></div><div class="col-md-1"><strong>${t('delete')}</strong></div></div></div><div id="editItemsContainer"></div><button class="btn btn-outline-light mt-3 rounded-pill" onclick="addEditInvoiceItemRow()" style="border:2px dashed rgba(255,255,255,0.3);"><i class="fas fa-plus-circle"></i> ${lang==='ar'?'إضافة منتج':'Add Product'}</button><hr style="border-color:rgba(255,255,255,0.1);"><div class="row"><div class="col-md-5 offset-md-7"><div class="card bg-transparent border-light p-3 rounded-4" style="background:rgba(0,0,0,0.3)!important;border:1px solid rgba(255,255,255,0.2)!important;"><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${lang==='ar'?'الإجمالي قبل الخصم':'Subtotal'}:</span><input type="text" class="form-control w-50 text-end summary-input-white" id="editInvoiceSubtotal" readonly></div><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${lang==='ar'?'الإجمالي بعد الخصم':'Total After Discount'}:</span><input type="text" class="form-control w-50 text-end summary-input-green" id="editInvoiceTotal" readonly></div><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${t('paid')}:</span><input type="number" class="form-control w-50 text-end" id="editInvoicePaid" value="${inv.paid}" onchange="calculateEditDue()" style="border-radius:8px;background:rgba(255,255,255,0.1);color:#ffffff;"></div><div class="d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${t('due')}:</span><input type="text" class="form-control w-50 text-end summary-input-red" id="editInvoiceDue" readonly></div></div></div></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="updateSaleInvoice(${id})">${lang==='ar'?'تحديث':'Update'}</button></div></div></div></div>`;
+            <div class="modal fade" id="editSaleModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5>${lang==='ar'?'تعديل فاتورة البيع':'Edit Sales Invoice'} ${inv.invoiceNumber}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="row g-3 mb-4"><div class="col-md-4"><label class="fw-bold mb-2">${lang==='ar'?'العميل':'Customer'}</label><select class="form-control select2-search" id="editCustomerSelect" data-placeholder="${lang==='ar'?'ابحث عن عميل...':'Search Customer...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر عميل':'Select Customer'} --</option>${customerOptions}</select></div><div class="col-md-2"><label class="fw-bold mb-2">${t('date')}</label><input type="date" class="form-control" id="editInvoiceDate" value="${inv.date}" style="border-radius:12px;"></div><div class="col-md-3"><label class="fw-bold mb-2"><i class="fas fa-user-tie"></i> Sales Manager</label><select class="form-control select2-search" id="editSalesManagerSelect" data-placeholder="${lang==='ar'?'ابحث عن مندوب...':'Search Sales Rep...'}" style="width:100%;border-radius:12px;"><option value="">-- ${lang==='ar'?'اختر مندوب':'Select Sales Rep'} --</option>${employeeOptions}</select></div></div><div class="invoice-items-header"><div class="row align-items-center"><div class="col-md-3"><strong>${lang==='ar'?'المنتج':'Product'}</strong></div><div class="col-md-1"><strong>${lang==='ar'?'الكمية':'Qty'}</strong></div><div class="col-md-2"><strong>${lang==='ar'?'سعر الوحدة':'Unit Price'}</strong></div><div class="col-md-2"><strong>${t('total')}</strong></div><div class="col-md-1"><strong>${lang==='ar'?'خصم %':'Disc %'}</strong></div><div class="col-md-2"><strong>${lang==='ar'?'بعد الخصم':'After Disc'}</strong></div><div class="col-md-1"><strong>${t('delete')}</strong></div></div></div><div id="editItemsContainer"></div><button class="btn btn-outline-light mt-3 rounded-pill" onclick="addEditInvoiceItemRow()" style="border:2px dashed rgba(255,255,255,0.3);"><i class="fas fa-plus-circle"></i> ${lang==='ar'?'إضافة منتج':'Add Product'}</button><hr style="border-color:rgba(255,255,255,0.1);"><div class="row"><div class="col-md-5 offset-md-7"><div class="card bg-transparent border-light p-3 rounded-4" style="background:rgba(0,0,0,0.3)!important;border:1px solid rgba(255,255,255,0.2)!important;"><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${lang==='ar'?'الإجمالي قبل الخصم':'Subtotal'}:</span><input type="text" class="form-control w-50 text-end summary-input-white" id="editInvoiceSubtotal" readonly></div><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${lang==='ar'?'الإجمالي بعد الخصم':'Total After Discount'}:</span><input type="text" class="form-control w-50 text-end summary-input-green" id="editInvoiceTotal" readonly></div><div class="mb-3 d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${t('paid')}:</span><input type="number" class="form-control w-50 text-end" id="editInvoicePaid" value="${inv.paid}" onchange="calculateEditDue()" style="border-radius:8px;background:rgba(255,255,255,0.1);color:#ffffff;"></div><div class="d-flex justify-content-between align-items-center"><span style="color:#ffffff;">${t('due')}:</span><input type="text" class="form-control w-50 text-end summary-input-red" id="editInvoiceDue" readonly></div></div></div></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="updateSaleInvoice(${id})">${lang==='ar'?'تحديث':'Update'}</button></div></div></div></div>`;
             showModal(modalHtml, 'editSaleModal');
             window.editInvoiceItemsList = inv.items.map(item => ({ ...item }));
             const container = document.getElementById('editItemsContainer');
@@ -2214,10 +2293,10 @@
         function updateSaleInvoice(id) { const inv = appData.salesInvoices.find(i => i.id === id); if (!inv) return;
             const lang = currentLang;
             const items = window.editInvoiceItemsList.filter(i => i.productId); if (items.length === 0) { alert(lang ===
-                    'ar' ? 'أضف منتج' : 'Add Product'); return; } const salesManagerId = $('#editSalesManagerSelect')
+                    'ar' ? 'أضف منتج' : 'Add Product'); return; } const salesManagerIdRaw = $('#editSalesManagerSelect')
                 .val();
-            let salesManagerName = ''; if (salesManagerId) { const emp = (appData.employees || []).find(e => e.id ===
-                    parseInt(salesManagerId)); if (emp) salesManagerName = emp.name; }
+            let salesManagerName = ''; if (salesManagerIdRaw && salesManagerIdRaw !== '0') { const emp = (appData.employees || []).find(e => e.id ===
+                    parseInt(salesManagerIdRaw)); if (emp) salesManagerName = emp.name; }
             inv.items.forEach(item => { const prod = appData.products.find(p => p.id === item.productId); if (prod) prod
                     .quantity += item.quantity; }); for (let item of items) { const prod = appData.products.find(p => p
                     .id === item.productId); if (prod && item.quantity > prod.quantity) { alert(
@@ -2229,7 +2308,8 @@
             const total = parseFloat(document.getElementById('editInvoiceTotal').value);
             const paid = parseFloat(document.getElementById('editInvoicePaid').value);
             const due = total - paid;
-            inv.customerId = parseInt($('#editCustomerSelect').val());
+            const customerIdRaw = $('#editCustomerSelect').val();
+            inv.customerId = (customerIdRaw && customerIdRaw !== '0') ? parseInt(customerIdRaw) : null;
             inv.date = document.getElementById('editInvoiceDate').value;
             inv.salesManager = salesManagerName;
             inv.items = items;
@@ -2274,16 +2354,16 @@
         function showProductModal(id = null) { const p = id ? appData.products.find(p => p.id === id) : null;
             const lang = currentLang;
             const html = `
-            <div class="modal fade" id="productModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>${p?(lang==='ar'?'تعديل منتج':'Edit Product'):(lang==='ar'?'إضافة منتج':'Add Product')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="productId" value="${p?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'اسم المنتج':'Product Name'}</label><input id="productName" class="form-control" value="${p?.name||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'رقم التشغيلة':'Batch Number'}</label><input id="productBatch" class="form-control" value="${p?.batchNumber||''}" placeholder="${lang==='ar'?'أدخل رقم التشغيلة يدوياً':'Enter batch number manually'}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'سعر البيع':'Sell Price'}</label><input id="productSellPrice" type="number" class="form-control" value="${p?.sellPrice||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'الكمية':'Quantity'}</label><input id="productQuantity" type="number" class="form-control" value="${p?.quantity||0}"></div></div><div class="modal-footer"><button class="btn btn-primary rounded-pill" onclick="saveProduct()">${t('save')}</button><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button></div></div></div></div>`;
+            <div class="modal fade" id="productModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>${p?(lang==='ar'?'تعديل منتج':'Edit Product'):(lang==='ar'?'إضافة منتج':'Add Product')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="productId" value="${p?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'اسم المنتج':'Product Name'}</label><input id="productName" class="form-control" value="${p?.name||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'رقم التشغيلة':'Batch Number'}</label><input id="productBatch" class="form-control" value="${p?.batchNumber||''}" placeholder="${lang==='ar'?'أدخل رقم التشغيلة يدوياً':'Enter batch number manually'}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'سعر البيع':'Sell Price'}</label><input id="productSellPrice" type="number" class="form-control" value="${p?.sellPrice||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</label><input id="productInitialQuantity" type="number" class="form-control" value="${p?.initialQuantity||p?.quantity||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الحالي':'Current Stock'}</label><input id="productQuantity" type="number" class="form-control" value="${p?.quantity||0}"></div></div><div class="modal-footer"><button class="btn btn-primary rounded-pill" onclick="saveProduct()">${t('save')}</button><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button></div></div></div></div>`;
             showModal(html, 'productModal'); }
 
         function saveProduct() { const id = document.getElementById('productId').value;
             const sell = parseFloat(document.getElementById('productSellPrice').value) || 0;
             let batchNumber = document.getElementById('productBatch').value.trim();
+            const initialQty = parseFloat(document.getElementById('productInitialQuantity').value) || 0;
             const qty = parseFloat(document.getElementById('productQuantity').value) || 0;
             const data = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('productName').value,
-                batchNumber: batchNumber, sellPrice: sell, quantity: qty, initialQuantity: id ? (appData.products
-                    .find(p => p.id === parseInt(id))?.initialQuantity || qty) : qty };
+                batchNumber: batchNumber, sellPrice: sell, quantity: qty, initialQuantity: initialQty };
             const lang = currentLang; if (!data.name) return alert(lang === 'ar' ? 'أدخل الاسم' : 'Enter name'); if (
             id) { const idx = appData.products.findIndex(p => p.id === parseInt(id)); if (idx !== -1) appData.products[
                     idx] = data; } else { appData.products.push(data); }
@@ -2299,7 +2379,7 @@
                 employeeData: [], paymentsData: [] };
             filter = filter || { searchTerm: '', dateFrom: '', dateTo: '', status: 'all', employeeId: null,
                 customerId: null, selectedInvoiceId: null, selectedCustomerId: null, selectedProductId: null,
-                expenseTypeFilter: 'all' };
+                expenseTypeFilter: 'all', productFilterId: null };
             const lang = currentLang;
 
             switch (tabType) {
@@ -2313,6 +2393,9 @@
                     if (filter.dateTo) filteredSales = filteredSales.filter(inv => inv.date <= filter.dateTo);
                     if (filter.status === 'paid') filteredSales = filteredSales.filter(inv => inv.due === 0);
                     if (filter.status === 'unpaid') filteredSales = filteredSales.filter(inv => inv.due > 0);
+                    if (filter.selectedProductId) {
+                        filteredSales = filteredSales.filter(inv => inv.items.some(item => item.productId == filter.selectedProductId));
+                    }
                     const totalSoldQty = filteredSales.reduce((s, inv) => s + inv.items.reduce((si, item) => si + item.quantity, 0), 0);
                     const totalSales = filteredSales.reduce((s, inv) => s + inv.total, 0);
                     const totalSalesPaid = filteredSales.reduce((s, inv) => s + inv.paid, 0);
@@ -2324,10 +2407,13 @@
                         { icon: 'fa-check-circle', color: '#10b981', label: t('paid'), value: formatReportCurrency(totalSalesPaid), type: 'salesPaid', filteredData: filteredSales },
                         { icon: 'fa-credit-card', color: '#e94560', label: t('due'), value: formatReportCurrency(totalSalesDue), type: 'salesDue', filteredData: filteredSales }
                     ];
-                    data.tableHeaders = [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), t('total'), t('paid'), t('due'), t('status'), lang === 'ar' ? 'تفاصيل' : 'Details'];
-                    data.tableRows = filteredSales.map(inv => { const c = appData.customers.find(c => c.id === inv.customerId); return [inv.invoiceNumber, c?.name || '-', inv.salesManager || '-', new Date(inv.date).toLocaleDateString(lang === 'ar' ? 'ar' : 'en'), formatCurrency(inv.total), formatCurrency(inv.paid), `<span style="color:#e94560;font-weight:bold;">${formatCurrency(inv.due)}</span>`, inv.due === 0 ? `<span class="badge bg-success badge-status">${lang==='ar'?'مسددة':'Paid'}</span>` : `<span class="badge bg-warning badge-status">${lang==='ar'?'غير مسددة':'Unpaid'}</span>`, `<button class="btn btn-sm btn-info rounded-pill" onclick="showInvoiceProductDetails('بيع',${inv.id})"><i class="fas fa-eye"></i></button>`]; });
+                    data.tableHeaders = [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), lang === 'ar' ? 'الكمية' : 'Qty', t('total'), t('paid'), t('due'), t('status'), lang === 'ar' ? 'تفاصيل' : 'Details'];
+                    data.tableRows = filteredSales.map(inv => { 
+                        const c = inv.customerId ? appData.customers.find(c => c.id === inv.customerId) : null;
+                        const totalQty = inv.items.reduce((s, item) => s + item.quantity, 0);
+                        return [inv.invoiceNumber, c?.name || 'بدون', inv.salesManager || 'بدون', new Date(inv.date).toLocaleDateString(lang === 'ar' ? 'ar' : 'en'), totalQty, formatCurrency(inv.total), formatCurrency(inv.paid), `<span style="color:#e94560;font-weight:bold;">${formatCurrency(inv.due)}</span>`, inv.due === 0 ? `<span class="badge bg-success badge-status">${lang==='ar'?'مسددة':'Paid'}</span>` : `<span class="badge bg-warning badge-status">${lang==='ar'?'غير مسددة':'Unpaid'}</span>`, `<button class="btn btn-sm btn-info rounded-pill" onclick="showInvoiceProductDetails('بيع',${inv.id})"><i class="fas fa-eye"></i></button>`]; });
                     data.filteredData = filteredSales;
-                    data.listboxOptions = appData.salesInvoices.map(inv => { const c = appData.customers.find(c => c.id === inv.customerId); return { id: inv.id, text: `${inv.invoiceNumber} - ${c?.name||''}`, type: 'invoice' }; });
+                    data.listboxOptions = appData.salesInvoices.map(inv => { const c = appData.customers.find(c => c.id === inv.customerId); return { id: inv.id, text: `${inv.invoiceNumber} - ${c?.name||'بدون'}`, type: 'invoice' }; });
                     break;
                 }
                 case 'expenses': {
@@ -2336,6 +2422,9 @@
                     let filteredExp = [...(appData.expenses || [])].sort((a, b) => new Date(b.date) - new Date(a.date));
                     if (filter.expenseTypeFilter && filter.expenseTypeFilter !== 'all') {
                         filteredExp = filteredExp.filter(exp => exp.expenseType === filter.expenseTypeFilter);
+                    }
+                    if (filter.productFilterId) {
+                        filteredExp = filteredExp.filter(exp => exp.productId == filter.productFilterId);
                     }
                     if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredExp = filteredExp.filter(exp => { return (exp.description || '').toLowerCase().includes(term) || (exp.expenseNumber || '').toLowerCase().includes(term); }); }
@@ -2355,22 +2444,25 @@
                         { icon: 'fa-bullhorn', color: '#14b8a6', label: lang === 'ar' ? 'مصروفات تسويقية' : 'Marketing', value: formatReportCurrency(marketExp), type: 'expMarket', filteredData: filteredExp.filter(e => e.expenseType === 'مصروفات تسويقية') },
                         { icon: 'fa-chart-line', color: '#e94560', label: lang === 'ar' ? 'مصروفات تمويلية' : 'Financing', value: formatReportCurrency(finExp), type: 'expFin', filteredData: filteredExp.filter(e => e.expenseType === 'مصروفات تمويلية') }
                     ];
-                    data.tableHeaders = [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due')];
-                    data.tableRows = filteredExp.map(exp => { return [exp.expenseNumber || '-', exp.expenseType || 'مصروفات تشغيلية', exp.description || '-', exp.quantity || 0, exp.date ? new Date(exp.date).toLocaleDateString(lang === 'ar' ? 'ar' : 'en') : '-', formatCurrency(exp.amount || 0), `<span style="color:#10b981;">${formatCurrency(exp.paid||0)}</span>`, `<span style="color:#e94560;font-weight:bold;">${formatCurrency(exp.due||0)}</span>`]; });
+                    data.tableHeaders = [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'الصنف' : 'Product', lang === 'ar' ? 'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty', lang === 'ar' ? 'الوحدة' : 'Unit', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due')];
+                    data.tableRows = filteredExp.map(exp => { 
+                        const p = exp.productId ? appData.products.find(pr => pr.id === exp.productId) : null;
+                        return [exp.expenseNumber || '-', exp.expenseType || 'مصروفات تشغيلية', p ? p.name : 'بدون', exp.description || '-', exp.quantity || 0, exp.unit || 'kg', exp.date ? new Date(exp.date).toLocaleDateString(lang === 'ar' ? 'ar' : 'en') : '-', formatCurrency(exp.amount || 0), `<span style="color:#10b981;">${formatCurrency(exp.paid||0)}</span>`, `<span style="color:#e94560;font-weight:bold;">${formatCurrency(exp.due||0)}</span>`]; });
                     data.filteredData = filteredExp;
                     data.listboxOptions = [
                         { id: 'all', text: lang === 'ar' ? 'كل الأنواع' : 'All Types', type: 'expenseType' },
                         { id: 'مصروفات الانتاج والتصنيع', text: lang === 'ar' ? 'مصروفات الانتاج والتصنيع' : 'Production & Manufacturing', type: 'expenseType' },
                         { id: 'مصروفات تشغيلية', text: lang === 'ar' ? 'مصروفات تشغيلية' : 'Operational', type: 'expenseType' },
                         { id: 'مصروفات تسويقية', text: lang === 'ar' ? 'مصروفات تسويقية' : 'Marketing', type: 'expenseType' },
-                        { id: 'مصروفات تمويلية', text: lang === 'ar' ? 'مصروفات تمويلية' : 'Financing', type: 'expenseType' }
+                        { id: 'مصروفات تمويلية', text: lang === 'ar' ? 'مصروفات تمويلية' : 'Financing', type: 'expenseType' },
+                        { id: 'بدون', text: 'بدون', type: 'expenseType' }
                     ];
                     break;
                 }
                 case 'inventory': {
                     data.title = lang === 'ar' ? 'تقرير المنتجات' : 'Products Report';
                     data.hasFilter = true;
-                    let filteredProd = [...appData.products];
+                    let filteredProd = [...appData.products].sort((a, b) => b.id - a.id);
                     let selectedProduct = null;
                     if (filter.selectedProductId) {
                         filteredProd = filteredProd.filter(p => p.id == filter.selectedProductId);
@@ -2418,7 +2510,7 @@
                 }
                 case 'customers': {
                     data.title = lang === 'ar' ? 'تقرير العملاء' : 'Customers Report';
-                    const customers = appData.customers.filter(c => c.type === 'customer' || !c.type);
+                    const customers = appData.customers.filter(c => c.type === 'customer' || !c.type).sort((a, b) => b.id - a.id);
                     let filteredCust = [...customers];
                     if (filter.selectedCustomerId) { filteredCust = filteredCust.filter(c => c.id == filter.selectedCustomerId); } else if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredCust = filteredCust.filter(c => c.name.toLowerCase().includes(term) || c.code.toLowerCase().includes(term)); }
@@ -2445,7 +2537,7 @@
                 case 'employees': {
                     data.title = lang === 'ar' ? 'تقرير الموظفين - أداء المبيعات' : 'Employees Report - Sales Performance';
                     data.isEmployeeReport = true;
-                    const emps = appData.employees || [];
+                    const emps = (appData.employees || []).sort((a, b) => b.id - a.id);
                     let employeePerformance = emps.map(emp => { const empInvoices = appData.salesInvoices.filter(inv => inv.salesManager === emp.name);
                         const empTotalSales = empInvoices.reduce((s, inv) => s + inv.total, 0);
                         const empTotalPaid = empInvoices.reduce((s, inv) => s + inv.paid, 0);
@@ -2467,7 +2559,7 @@
                 }
                 case 'factory': {
                     data.title = lang === 'ar' ? 'تقرير أرصدة المصنع' : 'Factory Balances Report';
-                    const fbs = appData.factoryBalances || [];
+                    const fbs = (appData.factoryBalances || []).sort((a, b) => b.id - a.id);
                     let filteredFB = [...fbs];
                     if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredFB = filteredFB.filter(b => b.activeIngredient.toLowerCase().includes(term)); }
@@ -2540,10 +2632,10 @@
             } else if (type.includes('sales') || type.includes('overSales') || type.includes('overInvoices') || type.includes('prodTotal') || type.includes('prodPaid') || type.includes('prodDue') || type.includes('custTotal') || type.includes('custPaid')) {
                 title = lang === 'ar' ? 'تفاصيل المبيعات' : 'Sales Details';
                 const invoicesData = Array.isArray(filteredData) && filteredData.length > 0 && filteredData[0].invoiceNumber ? filteredData : [];
-                contentHtml = invoicesData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'رقم الفاتورة':'Invoice #'}</th><th>${lang==='ar'?'العميل':'Customer'}</th><th>${t('date')}</th><th>${t('total')}</th><th>${t('paid')}</th><th>${t('due')}</th></tr></thead><tbody>${invoicesData.map(inv=>{const c=appData.customers.find(c=>c.id===inv.customerId);return`<tr><td>${inv.invoiceNumber}</td><td>${c?.name||'-'}</td><td>${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</td><td>${formatCurrency(inv.total)}</td><td>${formatCurrency(inv.paid)}</td><td style="color:#e94560;">${formatCurrency(inv.due)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`;
+                contentHtml = invoicesData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'رقم الفاتورة':'Invoice #'}</th><th>${lang==='ar'?'العميل':'Customer'}</th><th>${t('date')}</th><th>${lang==='ar'?'الكمية':'Qty'}</th><th>${t('total')}</th><th>${t('paid')}</th><th>${t('due')}</th><th>${lang==='ar'?'تفاصيل':'Details'}</th></tr></thead><tbody>${invoicesData.map(inv=>{const c=appData.customers.find(c=>c.id===inv.customerId);const totalQty=inv.items.reduce((s,item)=>s+item.quantity,0);return`<tr><td>${inv.invoiceNumber}</td><td>${c?.name||'-'}</td><td>${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</td><td>${totalQty}</td><td>${formatCurrency(inv.total)}</td><td>${formatCurrency(inv.paid)}</td><td style="color:#e94560;">${formatCurrency(inv.due)}</td><td><button class="btn btn-sm btn-info rounded-pill" onclick="showInvoiceProductDetails('بيع',${inv.id})"><i class="fas fa-eye"></i></button></td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`;
             } else if (type.includes('exp') || type.includes('overExp')) {
                 title = lang === 'ar' ? 'تفاصيل المصروفات' : 'Expense Details';
-                contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'رقم المصروف':'Expense #'}</th><th>${lang==='ar'?'النوع':'Type'}</th><th>${lang==='ar'?'البيان':'Description'}</th><th>${t('date')}</th><th>${lang==='ar'?'التكلفة':'Cost'}</th><th>${t('paid')}</th><th>${t('due')}</th></tr></thead><tbody>${filteredData.map(exp=>{return`<tr><td>${exp.expenseNumber||'-'}</td><td>${exp.expenseType||'مصروفات تشغيلية'}</td><td>${exp.description||'-'}</td><td>${exp.date?new Date(exp.date).toLocaleDateString(lang==='ar'?'ar':'en'):'-'}</td><td>${formatCurrency(exp.amount||0)}</td><td style="color:#10b981;">${formatCurrency(exp.paid||0)}</td><td style="color:#e94560;">${formatCurrency(exp.due||0)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`;
+                contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'رقم المصروف':'Expense #'}</th><th>${lang==='ar'?'النوع':'Type'}</th><th>${lang==='ar'?'الصنف':'Product'}</th><th>${lang==='ar'?'البيان':'Description'}</th><th>${t('date')}</th><th>${lang==='ar'?'التكلفة':'Cost'}</th><th>${t('paid')}</th><th>${t('due')}</th></tr></thead><tbody>${filteredData.map(exp=>{const p=exp.productId?appData.products.find(pr=>pr.id===exp.productId):null;return`<tr><td>${exp.expenseNumber||'-'}</td><td>${exp.expenseType||'مصروفات تشغيلية'}</td><td>${p?p.name:'-'}</td><td>${exp.description||'-'}</td><td>${exp.date?new Date(exp.date).toLocaleDateString(lang==='ar'?'ar':'en'):'-'}</td><td>${formatCurrency(exp.amount||0)}</td><td style="color:#10b981;">${formatCurrency(exp.paid||0)}</td><td style="color:#e94560;">${formatCurrency(exp.due||0)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`;
             } else if (type.includes('cust')) {
                 title = lang === 'ar' ? 'تفاصيل العملاء' : 'Customer Details';
                 contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'الكود':'Code'}</th><th>${lang==='ar'?'الاسم':'Name'}</th><th>${t('phone')}</th><th>${t('address')}</th><th>${lang==='ar'?'عدد الفواتير':'Invoice Count'}</th><th>${lang==='ar'?'إجمالي المبيعات':'Total Sales'}</th><th>${t('due')}</th></tr></thead><tbody>${filteredData.map(c=>{const invs=appData.salesInvoices.filter(i=>i.customerId===c.id);const totalSales=invs.reduce((s,i)=>s+i.total,0);return`<tr><td>${c.code}</td><td>${c.name}</td><td>${c.phone}</td><td>${c.address||'-'}</td><td>${invs.length}</td><td>${formatCurrency(totalSales)}</td><td style="color:#e94560;">${formatCurrency(getCustomerDue(c.id))}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`;
@@ -2604,7 +2696,7 @@
         function switchReportTab(tab) { currentReportTab = tab;
             reportsFilter = { searchTerm: '', dateFrom: '', dateTo: '', status: 'all', employeeId: null,
                 customerId: null, selectedInvoiceId: null, selectedCustomerId: null, selectedProductId: null,
-                expenseTypeFilter: 'all' };
+                expenseTypeFilter: 'all', productFilterId: null };
             renderReports(); }
 
         function renderReportContent() {
@@ -2613,15 +2705,10 @@
             let filterHtml = '';
 
             if (data.hasFilter && !data.isEmployeeReport && !data.isPaymentReport) {
-                const isSalesReport = currentReportTab === 'sales';
-                const isInventoryReport = currentReportTab === 'inventory';
-                const isCustomerReport = currentReportTab === 'customers';
                 const isExpenseReport = currentReportTab === 'expenses';
-                const isFactoryReport = currentReportTab === 'factory';
-                const needsListbox = isSalesReport || isInventoryReport || isCustomerReport || isExpenseReport || isFactoryReport;
-
+                
                 filterHtml = `
-                <div class="filter-section mb-4"><div class="row g-3">${needsListbox&&data.listboxOptions?`<div class="col-md-3"><label><i class="fas fa-search"></i> ${lang==='ar'?'اختر من القائمة':'Select from list'}</label><select class="form-control select2-search" id="reportListboxSearch" data-placeholder="${lang==='ar'?'ابحث واختر...':'Search & Select...'}" style="width:100%;border-radius:10px;" onchange="onReportListboxSelect(this.value)"><option value="">-- ${lang==='ar'?'الكل':'All'} --</option>${data.listboxOptions.map(opt=>`<option value="${opt.type}_${opt.id}">${opt.text}</option>`).join('')}</select></div>`:`<div class="col-md-3"><label><i class="fas fa-search"></i> ${lang==='ar'?'بحث':'Search'}</label><input type="text" class="form-control" id="reportSearch" placeholder="${lang==='ar'?'ابحث...':'Search...'}" value="${reportsFilter.searchTerm}" oninput="updateReportFilterContent('searchTerm',this.value)" style="border-radius:10px;"></div>`}<div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-check-circle"></i> ${t('status')}</label><select class="form-control" id="reportStatusFilter" onchange="updateReportFilterContent('status',this.value)" style="border-radius:10px;"><option value="all" ${reportsFilter.status==='all'?'selected':''}>${lang==='ar'?'الكل':'All'}</option>${isCustomerReport?`<option value="paid" ${reportsFilter.status==='paid'?'selected':''}>${lang==='ar'?'سداد كامل':'Fully Paid'}</option><option value="unpaid" ${reportsFilter.status==='unpaid'?'selected':''}>${lang==='ar'?'غير مسدد':'Unpaid'}</option>`:`<option value="paid" ${reportsFilter.status==='paid'?'selected':''}>${lang==='ar'?'مسددة':'Paid'}</option><option value="unpaid" ${reportsFilter.status==='unpaid'?'selected':''}>${lang==='ar'?'غير مسددة':'Unpaid'}</option>`}</select></div><div class="col-md-3 d-flex align-items-end gap-2"><button class="btn btn-success rounded-pill" onclick="exportCurrentReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
+                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-3"><label><i class="fas fa-search"></i> ${lang==='ar'?'اختر من القائمة':'Select from list'}</label><select class="form-control select2-search" id="reportListboxSearch" data-placeholder="${lang==='ar'?'ابحث واختر...':'Search & Select...'}" style="width:100%;border-radius:10px;" onchange="onReportListboxSelect(this.value)"><option value="">-- ${lang==='ar'?'الكل':'All'} --</option>${data.listboxOptions.map(opt=>`<option value="${opt.type}_${opt.id}" ${(reportsFilter[opt.type+'Id']==opt.id||reportsFilter.expenseTypeFilter==opt.id)?'selected':''}>${opt.text}</option>`).join('')}</select></div>${isExpenseReport?`<div class="col-md-3"><label><i class="fas fa-box"></i> ${lang==='ar'?'بحث بالصنف':'Search by Product'}</label><select class="form-control select2-search" id="reportProductFilter" data-placeholder="${lang==='ar'?'ابحث عن منتج...':'Search product...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('productFilterId',this.value)"><option value="">-- ${lang==='ar'?'كل المنتجات':'All Products'} --</option>${appData.products.map(p=>`<option value="${p.id}" ${reportsFilter.productFilterId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div>`:''}<div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-check-circle"></i> ${t('status')}</label><select class="form-control" id="reportStatusFilter" onchange="updateReportFilterContent('status',this.value)" style="border-radius:10px;"><option value="all" ${reportsFilter.status==='all'?'selected':''}>${lang==='ar'?'الكل':'All'}</option><option value="paid" ${reportsFilter.status==='paid'?'selected':''}>${lang==='ar'?'مسددة':'Paid'}</option><option value="unpaid" ${reportsFilter.status==='unpaid'?'selected':''}>${lang==='ar'?'غير مسددة':'Unpaid'}</option></select></div></div><div class="row mt-3"><div class="col-12 d-flex gap-2"><button class="btn btn-success rounded-pill" onclick="exportCurrentReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
             }
             if (data.isPaymentReport) {
                 filterHtml = `
@@ -2633,7 +2720,14 @@
                 <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-4"><label><i class="fas fa-user-tie"></i> ${lang==='ar'?'اختر الموظف':'Select Employee'}</label><select class="form-control select2-search" id="reportEmployeeSelect" data-placeholder="${lang==='ar'?'ابحث عن موظف...':'Search employee...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('employeeId',this.value)"><option value="">-- ${lang==='ar'?'كل الموظفين':'All Employees'} --</option>${(appData.employees||[]).map(emp=>`<option value="${emp.id}" ${reportsFilter.employeeId==emp.id?'selected':''}>${emp.name} (${emp.code}) - ${emp.position}</option>`).join('')}</select></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-4 d-flex align-items-end gap-2"><button class="btn btn-success rounded-pill" onclick="exportEmployeeReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
                 setTimeout(() => { if ($('#reportEmployeeSelect').length && !$('#reportEmployeeSelect').hasClass('select2-hidden-accessible')) { $('#reportEmployeeSelect').select2({ placeholder: lang === 'ar' ? 'ابحث عن موظف...' : 'Search employee...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); } }, 200);
             }
-            setTimeout(() => { if ($('#reportListboxSearch').length && !$('#reportListboxSearch').hasClass('select2-hidden-accessible')) { $('#reportListboxSearch').select2({ placeholder: lang === 'ar' ? 'ابحث واختر...' : 'Search & Select...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); } }, 200);
+            setTimeout(() => { 
+                if ($('#reportListboxSearch').length && !$('#reportListboxSearch').hasClass('select2-hidden-accessible')) { 
+                    $('#reportListboxSearch').select2({ placeholder: lang === 'ar' ? 'ابحث واختر...' : 'Search & Select...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); 
+                }
+                if ($('#reportProductFilter').length && !$('#reportProductFilter').hasClass('select2-hidden-accessible')) { 
+                    $('#reportProductFilter').select2({ placeholder: lang === 'ar' ? 'ابحث عن منتج...' : 'Search product...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); 
+                }
+            }, 200);
 
             const isOverview = currentReportTab === 'overview';
             let summaryHtml = '';
@@ -2674,12 +2768,13 @@
             reportsFilter.selectedCustomerId = null;
             reportsFilter.selectedProductId = null;
             reportsFilter.expenseTypeFilter = 'all';
+            reportsFilter.productFilterId = null;
             if (type === 'invoice') { reportsFilter.selectedInvoiceId = id; } else if (type === 'customer') { reportsFilter.selectedCustomerId = id; } else if (type === 'product') { reportsFilter.selectedProductId = id; } else if (type === 'expenseType') { reportsFilter.expenseTypeFilter = id; } else if (type === 'factoryBalance') { reportsFilter.searchTerm = id; }
             renderReportContent(); }
 
         function clearReportFilters() { reportsFilter = { searchTerm: '', dateFrom: '', dateTo: '', status: 'all',
                 employeeId: null, customerId: null, selectedInvoiceId: null, selectedCustomerId: null,
-                selectedProductId: null, expenseTypeFilter: 'all' };
+                selectedProductId: null, expenseTypeFilter: 'all', productFilterId: null };
             renderReportContent(); }
 
         function handleReportCardClick(type) { const data = getReportTabData(currentReportTab, reportsFilter);
@@ -2695,18 +2790,60 @@
         function exportCurrentReportToExcel() { const data = getReportTabData(currentReportTab, reportsFilter);
             const company = appData.settings.companyName || 'Sernova Pharmaceuticals';
             const lang = currentLang; if (data.isEmployeeReport) { exportEmployeeReportToExcel(); return; } if (data.isPaymentReport) { exportPaymentReportToExcel(); return; } if (data.tableHeaders.length === 0 || data.tableRows.length === 0) { alert(lang === 'ar' ? 'لا توجد بيانات للتصدير' : 'No data to export'); return; }
-            const wsData = [
-                [company],
-                [data.title],
-                [''],
-                data.tableHeaders.map(h => h.replace(/<[^>]*>/g, ''))
-            ];
-            data.tableRows.forEach(row => { const cleanRow = row.map(cell => typeof cell === 'string' ? cell.replace(/<[^>]*>/g, '') : cell);
-                wsData.push(cleanRow); });
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, data.title);
-            XLSX.writeFile(wb, `${data.title}_${new Date().toISOString().split('T')[0]}.xlsx`); }
+            if (currentReportTab === 'sales') {
+                const wsData = [
+                    [company],
+                    [data.title],
+                    [''],
+                    [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), lang === 'ar' ? 'الكمية' : 'Qty', t('total'), t('paid'), t('due'), t('status'), lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'كمية المنتج' : 'Item Qty', lang === 'ar' ? 'السعر' : 'Price', lang === 'ar' ? 'خصم %' : 'Disc %', lang === 'ar' ? 'بعد الخصم' : 'After Disc']
+                ];
+                data.filteredData.forEach(inv => {
+                    const c = appData.customers.find(c => c.id === inv.customerId);
+                    const totalQty = inv.items.reduce((s, item) => s + item.quantity, 0);
+                    if (inv.items.length > 0) {
+                        inv.items.forEach(item => {
+                            const p = appData.products.find(pr => pr.id === item.productId);
+                            wsData.push([
+                                inv.invoiceNumber,
+                                c?.name || '',
+                                inv.salesManager || '',
+                                inv.date,
+                                totalQty,
+                                inv.total,
+                                inv.paid,
+                                inv.due,
+                                inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'),
+                                p?.name || '-',
+                                p?.batchNumber || '-',
+                                item.quantity,
+                                item.price,
+                                item.discountPercent || 0,
+                                item.totalAfterDiscount || item.total
+                            ]);
+                        });
+                    } else {
+                        wsData.push([inv.invoiceNumber, c?.name || '', inv.salesManager || '', inv.date, 0, inv.total, inv.paid, inv.due, inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'), '-', '-', '-', '-', '-', '-']);
+                    }
+                });
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, data.title);
+                XLSX.writeFile(wb, `${data.title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            } else {
+                const wsData = [
+                    [company],
+                    [data.title],
+                    [''],
+                    data.tableHeaders.map(h => h.replace(/<[^>]*>/g, ''))
+                ];
+                data.tableRows.forEach(row => { const cleanRow = row.map(cell => typeof cell === 'string' ? cell.replace(/<[^>]*>/g, '') : cell);
+                    wsData.push(cleanRow); });
+                const ws = XLSX.utils.aoa_to_sheet(wsData);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, data.title);
+                XLSX.writeFile(wb, `${data.title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            }
+        }
 
         function exportEmployeeReportToExcel() { const data = getReportTabData('employees', reportsFilter);
             const employeeData = data.employeeData || [];
@@ -2783,19 +2920,47 @@
                 [company],
                 [lang === 'ar' ? 'فواتير البيع' : 'Sales Invoices'],
                 [''],
-                [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), lang === 'ar' ? 'الإجمالي قبل الخصم' : 'Subtotal', lang === 'ar' ? 'الإجمالي بعد الخصم' : 'Total After Discount', t('paid'), t('due'), t('status')]
+                [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), lang === 'ar' ? 'الكمية' : 'Qty', lang === 'ar' ? 'الإجمالي قبل الخصم' : 'Subtotal', lang === 'ar' ? 'الإجمالي بعد الخصم' : 'Total After Discount', t('paid'), t('due'), t('status'), lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'كمية المنتج' : 'Item Qty', lang === 'ar' ? 'السعر' : 'Price', lang === 'ar' ? 'خصم %' : 'Disc %', lang === 'ar' ? 'بعد الخصم' : 'After Disc']
             ];
-            appData.salesInvoices.forEach(inv => { const c = appData.customers.find(c => c.id === inv.customerId);
-                salesData.push([inv.invoiceNumber, c?.name || '', inv.salesManager || '', inv.date, inv.subtotal || inv.total, inv.total, inv.paid, inv.due, inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid')]); });
+            appData.salesInvoices.forEach(inv => { 
+                const c = appData.customers.find(c => c.id === inv.customerId);
+                const totalQty = inv.items.reduce((s, item) => s + item.quantity, 0);
+                if (inv.items.length > 0) {
+                    inv.items.forEach(item => {
+                        const p = appData.products.find(pr => pr.id === item.productId);
+                        salesData.push([
+                            inv.invoiceNumber, 
+                            c?.name || '', 
+                            inv.salesManager || '', 
+                            inv.date, 
+                            totalQty,
+                            inv.subtotal || inv.total, 
+                            inv.total, 
+                            inv.paid, 
+                            inv.due, 
+                            inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'),
+                            p?.name || '-',
+                            p?.batchNumber || '-',
+                            item.quantity,
+                            item.price,
+                            item.discountPercent || 0,
+                            item.totalAfterDiscount || item.total
+                        ]);
+                    });
+                } else {
+                    salesData.push([inv.invoiceNumber, c?.name || '', inv.salesManager || '', inv.date, 0, inv.subtotal || inv.total, inv.total, inv.paid, inv.due, inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'), '-', '-', '-', '-', '-', '-']);
+                }
+            });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(salesData), lang === 'ar' ? 'فواتير البيع' : 'Sales Invoices');
             const expData = [
                 [company],
                 [lang === 'ar' ? 'المصروفات' : 'Expenses'],
                 [''],
-                [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due'), lang === 'ar' ? 'ملاحظات' : 'Notes']
+                [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'الصنف' : 'Product', lang === 'ar' ? 'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty', lang === 'ar' ? 'الوحدة' : 'Unit', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due'), lang === 'ar' ? 'ملاحظات' : 'Notes']
             ];
             (appData.expenses || []).forEach(exp => {
-                expData.push([exp.expenseNumber || '', exp.expenseType || 'مصروفات تشغيلية', exp.description || '', exp.quantity || 0, exp.date, exp.amount || 0, exp.paid || 0, exp.due || 0, exp.notes || '']);
+                const p = exp.productId ? appData.products.find(pr => pr.id === exp.productId) : null;
+                expData.push([exp.expenseNumber || '', exp.expenseType || 'مصروفات تشغيلية', p ? p.name : '-', exp.description || '', exp.quantity || 0, exp.unit || 'kg', exp.date, exp.amount || 0, exp.paid || 0, exp.due || 0, exp.notes || '']);
             });
             XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expData), lang === 'ar' ? 'المصروفات' : 'Expenses');
             const custData = [
@@ -2923,7 +3088,7 @@
             const itemsRows = inv.items.map(item => { const p = appData.products.find(pr => pr.id === item.productId);
                 return `<tr><td>${p?.name||'منتج'}</td><td>${p?.batchNumber||'-'}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td><td>${item.discountPercent||0}%</td><td>${(item.totalAfterDiscount||item.total).toFixed(2)}</td></tr>`; }).join('');
             const subtotal = inv.subtotal || 0;
-            return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><style>body{font-family:Tajawal;padding:20px;direction:rtl;background:#f5f5f5;}.invoice-container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 0 20px rgba(0,0,0,0.1);}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f3460;padding-bottom:15px;margin-bottom:20px;}.company-info{text-align:right;flex:1;}.company-info h2{margin:0;color:#0f3460;}.company-info p{margin:2px 0;color:#666;font-size:14px;}.logo-container{max-width:120px;margin-right:0;margin-left:20px;text-align:right;}.logo-container img{max-width:120px;max-height:120px;border-radius:10px;}table{width:100%;border-collapse:collapse;margin:20px 0;}th{background:#d3d3d3;color:#000000;font-weight:bold;padding:10px;text-align:center;border:1px solid #b0b0b0;}td{border:1px solid #ddd;padding:10px;text-align:center;}.totals-section{margin-top:20px;border-top:1px solid #eee;padding-top:15px;}.totals-section p{margin:5px 0;text-align:right;}@media print{body{background:#fff;}.invoice-container{box-shadow:none;}}</style></head><body><div class="invoice-container"><div class="header"><div class="company-info"><h2>${company}</h2>${infoLine?`<p style="font-weight:bold;color:#e94560;">${infoLine}</p>`:''}${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}</div>${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}</div><h3 style="color:#e94560;text-align:center;">فاتورة ${type==='sale'?'بيع':'شراء'}</h3><p><strong>رقم الفاتورة:</strong> ${inv.invoiceNumber}</p><p><strong>${type==='sale'?'العميل':'المورد'}:</strong> ${party?.name||''} ${party?.code?'('+party.code+')':''}</p>${party?.address?`<p><strong>العنوان:</strong> ${party.address}</p>`:''}${party?.phone?`<p><strong>الهاتف:</strong> ${party.phone}</p>`:''}<p><strong>التاريخ:</strong> ${new Date(inv.date).toLocaleDateString('ar')}</p><table><thead><tr><th>المنتج</th><th>رقم التشغيلة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>نسبة الخصم</th><th>بعد الخصم</th></tr></thead><tbody>${itemsRows}</tbody></table><div class="totals-section"><p><strong>الإجمالي قبل الخصم:</strong> ${subtotal.toFixed(2)}</p><p><strong>الإجمالي بعد الخصم:</strong> ${inv.total.toFixed(2)}</p><p><strong>المدفوع:</strong> ${inv.paid.toFixed(2)}</p><p><strong>المتبقي:</strong> ${inv.due.toFixed(2)}</p><div style="text-align:left;font-weight:bold;border:none;padding:0;margin:0;background:transparent;">ختم الاستلام<br><br>....................</div></div></div><script>window.print();<\/script></body></html>`;
+            return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><style>body{font-family:Tajawal;padding:20px;direction:rtl;background:#f5f5f5;}.invoice-container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 0 20px rgba(0,0,0,0.1);}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #0f3460;padding-bottom:15px;margin-bottom:20px;}.company-info{text-align:right;flex:1;}.company-info h2{margin:0;color:#0f3460;}.company-info p{margin:2px 0;color:#666;font-size:14px;}.logo-container{max-width:120px;margin-right:0;margin-left:20px;text-align:right;}.logo-container img{max-width:120px;max-height:120px;border-radius:10px;}table{width:100%;border-collapse:collapse;margin:20px 0;}th{background:#d3d3d3;color:#000000;font-weight:bold;padding:10px;text-align:center;border:1px solid #b0b0b0;}td{border:1px solid #ddd;padding:10px;text-align:center;}.totals-section{margin-top:20px;border-top:1px solid #eee;padding-top:15px;}.totals-section p{margin:5px 0;text-align:right;}@media print{body{background:#fff;}.invoice-container{box-shadow:none;}}</style></head><body><div class="invoice-container"><div class="header"><div class="company-info"><h2>${company}</h2>${infoLine?`<p style="font-weight:bold;color:#e94560;">${infoLine}</p>`:''}${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}</div>${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}</div><h3 style="color:#e94560;text-align:center;">فاتورة ${type==='sale'?'بيع':'شراء'}</h3><p><strong>رقم الفاتورة:</strong> ${inv.invoiceNumber}</p><p><strong>${type==='sale'?'العميل':'المورد'}:</strong> ${party?.name||'بدون'} ${party?.code?'('+party.code+')':''}</p>${party?.address?`<p><strong>العنوان:</strong> ${party.address}</p>`:''}${party?.phone?`<p><strong>الهاتف:</strong> ${party.phone}</p>`:''}<p><strong>التاريخ:</strong> ${new Date(inv.date).toLocaleDateString('ar')}</p><table><thead><tr><th>المنتج</th><th>رقم التشغيلة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>نسبة الخصم</th><th>بعد الخصم</th></tr></thead><tbody>${itemsRows}</tbody></table><div class="totals-section"><p><strong>الإجمالي قبل الخصم:</strong> ${subtotal.toFixed(2)}</p><p><strong>الإجمالي بعد الخصم:</strong> ${inv.total.toFixed(2)}</p><p><strong>المدفوع:</strong> ${inv.paid.toFixed(2)}</p><p><strong>المتبقي:</strong> ${inv.due.toFixed(2)}</p><div style="text-align:left;font-weight:bold;border:none;padding:0;margin:0;background:transparent;">ختم الاستلام<br><br>....................</div></div></div><script>window.print();<\/script></body></html>`;
         }
 
         document.querySelectorAll('[data-page]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault();
