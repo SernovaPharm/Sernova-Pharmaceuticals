@@ -273,6 +273,26 @@
             justify-content: center;
         }
 
+        /* Overview cards smaller size */
+        .stat-card-overview {
+            min-height: 110px;
+            padding: 15px 12px;
+            margin-bottom: 12px;
+        }
+        
+        .stat-card-overview .icon {
+            font-size: 1.8rem !important;
+            margin-bottom: 5px;
+        }
+        
+        .stat-card-overview .value {
+            font-size: 1.2rem !important;
+        }
+        
+        .stat-card-overview .label {
+            font-size: 0.75rem;
+        }
+
         .stat-card-sm {
             min-height: 120px;
             padding: 18px 12px;
@@ -776,6 +796,16 @@
             .stat-card {
                 min-height: 110px;
                 padding: 15px 10px;
+            }
+            .stat-card-overview {
+                min-height: 90px;
+                padding: 12px 8px;
+            }
+            .stat-card-overview .icon {
+                font-size: 1.4rem !important;
+            }
+            .stat-card-overview .value {
+                font-size: 1rem !important;
             }
         }
     </style>
@@ -2764,7 +2794,7 @@
                         <option value="">-- ${lang==='ar'?'كل المنتجات':'All Products'} --</option>
                         ${appData.products.map(p=>`<option value="${p.id}" ${reportsFilter.overviewProductFilterId==p.id?'selected':''}>${p.name}${p.batchNumber?' ('+p.batchNumber+')':''}</option>`).join('')}
                     </select>
-                    <button class="btn btn-success rounded-pill" onclick="exportOverviewToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button>
+                    <button class="btn btn-success rounded-pill" onclick="exportDetailedOverviewToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button>
                     <button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button>
                 </div>`;
                 setTimeout(() => { 
@@ -2809,8 +2839,8 @@
                 const row1 = data.summaryCards.slice(0, 3);
                 const row2 = data.summaryCards.slice(3, 6);
                 summaryHtml = `
-                <div class="row g-3 justify-content-center mb-3">${row1.map((card,i)=>`<div class="col-xl-4 col-lg-4 col-md-6"><div class="stat-card" style="border-right:5px solid ${card.color};animation-delay:${0.1+i*0.1}s;" onclick="handleReportCardClick('${card.type||'over'}')"><i class="fas ${card.icon} icon" style="color:${card.color};"></i><div><small class="label">${card.label}</small><div class="value" style="color:${card.color};">${card.value}</div></div></div></div>`).join('')}</div>
-                <div class="row g-3 justify-content-center mb-4">${row2.map((card,i)=>`<div class="col-xl-4 col-lg-4 col-md-6"><div class="stat-card" style="border-right:5px solid ${card.color};animation-delay:${0.4+i*0.1}s;" onclick="handleReportCardClick('${card.type||'over'}')"><i class="fas ${card.icon} icon" style="color:${card.color};"></i><div><small class="label">${card.label}</small><div class="value" style="color:${card.color};">${card.value}</div></div></div></div>`).join('')}</div>`;
+                <div class="row g-3 justify-content-center mb-3">${row1.map((card,i)=>`<div class="col-xl-4 col-lg-4 col-md-6"><div class="stat-card stat-card-overview" style="border-right:5px solid ${card.color};animation-delay:${0.1+i*0.1}s;" onclick="handleReportCardClick('${card.type||'over'}')"><i class="fas ${card.icon} icon" style="color:${card.color};"></i><div><small class="label">${card.label}</small><div class="value" style="color:${card.color};">${card.value}</div></div></div></div>`).join('')}</div>
+                <div class="row g-3 justify-content-center mb-4">${row2.map((card,i)=>`<div class="col-xl-4 col-lg-4 col-md-6"><div class="stat-card stat-card-overview" style="border-right:5px solid ${card.color};animation-delay:${0.4+i*0.1}s;" onclick="handleReportCardClick('${card.type||'over'}')"><i class="fas ${card.icon} icon" style="color:${card.color};"></i><div><small class="label">${card.label}</small><div class="value" style="color:${card.color};">${card.value}</div></div></div></div>`).join('')}</div>`;
             } else if (currentReportTab === 'expenses' && data.summaryCards.length === 5) {
                 summaryHtml = `<div class="row g-2 justify-content-center mb-4">${data.summaryCards.map((card,i)=>`<div class="col-xl col-lg-2 col-md-4 col-6"><div class="stat-card stat-card-sm" style="border-right:3px solid ${card.color};animation-delay:${0.1+i*0.1}s;" onclick="handleReportCardClick('${card.type||'exp'}')"><i class="fas ${card.icon} icon" style="color:${card.color};font-size:1.6rem;"></i><div><small class="label" style="font-size:0.7rem;">${card.label}</small><div class="value" style="color:${card.color};font-size:1.1rem;">${card.value}</div></div></div></div>`).join('')}</div>`;
             } else if (currentReportTab === 'inventory' && data.summaryCards.length === 5) {
@@ -2874,47 +2904,102 @@
             } 
         }
 
-        function exportOverviewToExcel() {
+        function exportDetailedOverviewToExcel() {
             const data = getReportTabData('overview', reportsFilter);
             const company = appData.settings.companyName || 'Sernova Pharmaceuticals';
             const lang = currentLang;
-            const wsData = [
+            const wb = XLSX.utils.book_new();
+            
+            const filteredProductId = reportsFilter.overviewProductFilterId;
+            let filteredSalesO = [...appData.salesInvoices];
+            let filteredExpensesO = [...(appData.expenses || [])];
+            let filteredProductsO = [...appData.products];
+            let filteredCustomersO = appData.customers.filter(c => c.type === 'customer' || !c.type);
+            
+            if (filteredProductId) {
+                filteredSalesO = filteredSalesO.filter(inv => inv.items.some(item => item.productId == filteredProductId));
+                filteredExpensesO = filteredExpensesO.filter(exp => exp.productId == filteredProductId);
+                filteredProductsO = filteredProductsO.filter(p => p.id == filteredProductId);
+                const custIdsWithProduct = filteredSalesO.map(inv => inv.customerId).filter(id => id);
+                filteredCustomersO = filteredCustomersO.filter(c => custIdsWithProduct.includes(c.id));
+            }
+            
+            const titlePrefix = filteredProductId ? 
+                (lang === 'ar' ? ' نظرة عامة - منتج محدد' : ' Overview - Specific Product') : '';
+            
+            // Sheet 1: Summary
+            const summaryData = [
                 [company],
-                [data.title],
+                [lang === 'ar' ? 'نظرة عامة' + titlePrefix : 'Overview' + titlePrefix],
                 [''],
                 [lang === 'ar' ? 'البطاقة' : 'Card', lang === 'ar' ? 'القيمة' : 'Value']
             ];
             data.summaryCards.forEach(card => {
-                wsData.push([card.label.replace(/<[^>]*>/g, ''), card.value]);
+                summaryData.push([card.label.replace(/<[^>]*>/g, ''), card.value]);
             });
-            wsData.push(['']);
-            const filteredProductId = reportsFilter.overviewProductFilterId;
-            const filteredProduct = filteredProductId ? appData.products.find(p => p.id == filteredProductId) : null;
-            if (filteredProduct) {
-                wsData.push([lang === 'ar' ? 'تفاصيل المنتج المحدد' : 'Selected Product Details']);
-                wsData.push([lang === 'ar' ? 'المنتج' : 'Product', filteredProduct.name]);
-                wsData.push([lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', filteredProduct.batchNumber || '---']);
-                wsData.push([lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', filteredProduct.quantity]);
-                wsData.push(['']);
-                const productInvoices = appData.salesInvoices.filter(inv => inv.items.some(item => item.productId == filteredProductId));
-                if (productInvoices.length > 0) {
-                    wsData.push([lang === 'ar' ? 'فواتير تحتوي على هذا المنتج' : 'Invoices containing this product']);
-                    wsData.push([lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', lang === 'ar' ? 'التاريخ' : 'Date', lang === 'ar' ? 'الإجمالي' : 'Total', lang === 'ar' ? 'المدفوع' : 'Paid', lang === 'ar' ? 'المتبقي' : 'Due']);
-                    productInvoices.forEach(inv => {
-                        const c = appData.customers.find(c => c.id === inv.customerId);
-                        wsData.push([inv.invoiceNumber, c?.name || '---', inv.date, inv.total, inv.paid, inv.due]);
-                    });
-                }
-            }
-            const ws = XLSX.utils.aoa_to_sheet(wsData);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, data.title);
-            XLSX.writeFile(wb, `${data.title}_${new Date().toISOString().split('T')[0]}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryData), lang === 'ar' ? 'الملخص' : 'Summary');
+            
+            // Sheet 2: Sales Invoices
+            const salesSheetData = [
+                [company],
+                [lang === 'ar' ? 'فواتير البيع' : 'Sales Invoices'],
+                [''],
+                [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), lang === 'ar' ? 'الكمية' : 'Qty', t('total'), t('paid'), t('due'), t('status')]
+            ];
+            filteredSalesO.forEach(inv => {
+                const c = appData.customers.find(c => c.id === inv.customerId);
+                const totalQty = inv.items.reduce((s, item) => s + item.quantity, 0);
+                salesSheetData.push([inv.invoiceNumber, c?.name || '---', inv.salesManager || '---', inv.date, totalQty, inv.total, inv.paid, inv.due, inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid')]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(salesSheetData), lang === 'ar' ? 'فواتير البيع' : 'Sales Invoices');
+            
+            // Sheet 3: Expenses
+            const expSheetData = [
+                [company],
+                [lang === 'ar' ? 'المصروفات' : 'Expenses'],
+                [''],
+                [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'الصنف' : 'Product', lang === 'ar' ? 'البيان' : 'Description', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due')]
+            ];
+            filteredExpensesO.forEach(exp => {
+                const p = exp.productId ? appData.products.find(pr => pr.id === exp.productId) : null;
+                expSheetData.push([exp.expenseNumber || '---', exp.expenseType || 'مصروفات تشغيلية', p ? p.name : '---', exp.description || '---', exp.date || '', exp.amount || 0, exp.paid || 0, exp.due || 0]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expSheetData), lang === 'ar' ? 'المصروفات' : 'Expenses');
+            
+            // Sheet 4: Products
+            const prodSheetData = [
+                [company],
+                [lang === 'ar' ? 'المنتجات' : 'Products'],
+                [''],
+                [lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'المخزون الابتدائي' : 'Initial Stock', lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', lang === 'ar' ? 'المباع' : 'Sold', t('status')]
+            ];
+            filteredProductsO.forEach(p => {
+                const sold = (p.initialQuantity || p.quantity) - p.quantity;
+                prodSheetData.push([p.name, p.batchNumber || '---', p.initialQuantity || p.quantity, p.quantity, sold > 0 ? sold : 0, p.quantity <= 0 ? (lang === 'ar' ? 'نفذ' : 'Out') : (lang === 'ar' ? 'متوفر' : 'Available')]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prodSheetData), lang === 'ar' ? 'المنتجات' : 'Products');
+            
+            // Sheet 5: Customers
+            const custSheetData = [
+                [company],
+                [lang === 'ar' ? 'العملاء' : 'Customers'],
+                [''],
+                [lang === 'ar' ? 'الكود' : 'Code', lang === 'ar' ? 'الاسم' : 'Name', t('phone'), t('address'), lang === 'ar' ? 'عدد الفواتير' : 'Invoice Count', lang === 'ar' ? 'إجمالي المبيعات' : 'Total Sales', t('paid'), t('due')]
+            ];
+            filteredCustomersO.forEach(c => {
+                const invs = appData.salesInvoices.filter(i => i.customerId === c.id);
+                const totalSales = invs.reduce((s, i) => s + i.total, 0);
+                const totalPaid = invs.reduce((s, i) => s + i.paid, 0);
+                custSheetData.push([c.code, c.name, c.phone, c.address || '---', invs.length, totalSales, totalPaid, getCustomerDue(c.id)]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(custSheetData), lang === 'ar' ? 'العملاء' : 'Customers');
+            
+            XLSX.writeFile(wb, `${lang==='ar'?'نظرة_عامة_تفصيلية':'Detailed_Overview'}_${new Date().toISOString().split('T')[0]}.xlsx`);
         }
 
         function exportCurrentReportToExcel() { const data = getReportTabData(currentReportTab, reportsFilter);
             const company = appData.settings.companyName || 'Sernova Pharmaceuticals';
-            const lang = currentLang; if (data.isEmployeeReport) { exportEmployeeReportToExcel(); return; } if (data.isPaymentReport) { exportPaymentReportToExcel(); return; } if (currentReportTab === 'overview') { exportOverviewToExcel(); return; } if (data.tableHeaders.length === 0 || data.tableRows.length === 0) { alert(lang === 'ar' ? 'لا توجد بيانات للتصدير' : 'No data to export'); return; }
+            const lang = currentLang; if (data.isEmployeeReport) { exportEmployeeReportToExcel(); return; } if (data.isPaymentReport) { exportPaymentReportToExcel(); return; } if (currentReportTab === 'overview') { exportDetailedOverviewToExcel(); return; } if (data.tableHeaders.length === 0 || data.tableRows.length === 0) { alert(lang === 'ar' ? 'لا توجد بيانات للتصدير' : 'No data to export'); return; }
             if (currentReportTab === 'sales') {
                 const wsData = [
                     [company],
