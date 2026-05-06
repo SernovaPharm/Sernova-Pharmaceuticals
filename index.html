@@ -1309,14 +1309,18 @@
             const passwordError = document.getElementById('passwordError');
             const enteredPassword = passwordInput.value;
             if (enteredPassword === CORRECT_PASSWORD) {
-                isAuthenticated = true;
-                const passwordModal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
-                passwordModal.hide();
-                loadData();
-                setInterval(updateDateTime, 1000);
-                updateDateTime();
-                updateCompanyNameDisplay();
-            } else {
+    isAuthenticated = true;
+    const passwordModal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+    passwordModal.hide();
+    // لو Auth مش جاهز، مش هنعمل حاجة (onAuthStateChanged هيتولى الباقي)
+    if (authReady) {
+        loadData();
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        updateCompanyNameDisplay();
+    }
+}
+else {
                 passwordError.style.display = 'block';
                 passwordInput.value = '';
                 passwordInput.focus();
@@ -1360,7 +1364,33 @@
             measurementId: "G-34P7RLX4JC"
         };
         firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
+const database = firebase.database();
+
+// استنى لحد ما الدخول المجهول يخلص، وبعدين حمّل البيانات
+let authReady = false;
+
+firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+        // المستخدم دخل (مجهول)، خلاص نقدر نكمل
+        authReady = true;
+        console.log("Anonymous Auth نجح:", user.uid);
+        // دلوقتي حمّل البيانات
+        loadData();
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+        updateCompanyNameDisplay();
+    } else {
+        // لو مفيش مستخدم، اعمل دخول مجهول
+        firebase.auth().signInAnonymously().catch(function(error) {
+            console.log("Auth error:", error);
+            // لو فشل، خلينا نشوف البيانات من Local Storage
+            loadData();
+            setInterval(updateDateTime, 1000);
+            updateDateTime();
+            updateCompanyNameDisplay();
+        });
+    }
+});
 // تفعيل الدخول المجهول تلقائياً لأي مستخدم يفتح التطبيق
 firebase.auth().signInAnonymously().catch(function(error) {
     console.log("Auth error:", error);
