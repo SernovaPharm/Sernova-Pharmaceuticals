@@ -1515,7 +1515,9 @@
             localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave));
             if (firebaseSyncEnabled && !isSyncing) {
                 isSyncing = true;
-                database.ref('appData').set(dataToSave).then(() => { isSyncing = false; }).catch((error) => { firebaseSyncEnabled = false; isSyncing = false; });
+               var dataWithSecret = JSON.parse(JSON.stringify(dataToSave));
+dataWithSecret.appSecret = '2017';
+database.ref('appData').set(dataWithSecret).then(() => { isSyncing = false; }).catch((error) => { firebaseSyncEnabled = false; isSyncing = false; });;
             }
             updateLogoDisplay();
             updateCompanyNameDisplay();
