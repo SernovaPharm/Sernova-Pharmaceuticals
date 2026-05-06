@@ -1359,7 +1359,10 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
-
+// تفعيل الدخول المجهول تلقائياً لأي مستخدم يفتح التطبيق
+firebase.auth().signInAnonymously().catch(function(error) {
+    console.log("Auth error:", error);
+});
         let appData = {
             customers: [],
             products: [],
