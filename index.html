@@ -1830,8 +1830,9 @@
         }
 
         function renderSalesInvoices() {
-            const sortedInvoices = [...appData.salesInvoices].sort((a, b) => new Date(b.date) - new Date(a.date));
-            const lang = currentLang;
+const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
+    return parseInt(b.invoiceNumber.split('-')[1]) - parseInt(a.invoiceNumber.split('-')[1]);
+});            const lang = currentLang;
             const html = `
             <div class="d-flex justify-content-between mb-4"><h5>🧾 ${t('sales')}</h5><button class="btn btn-primary" onclick="showSaleInvoiceModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'فاتورة جديدة':'New Invoice'}</button></div>
             <div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-control" id="saleSearch" placeholder="${lang==='ar'?'بحث...':'Search...'}" onkeyup="filterTableContains('salesTable', 'saleSearch')"></div>
@@ -2412,7 +2413,9 @@
                 case 'sales': {
                     data.title = lang === 'ar' ? 'تقرير المبيعات' : 'Sales Report';
                     data.hasFilter = true;
-                    let filteredSales = [...appData.salesInvoices].sort((a, b) => new Date(b.date) - new Date(a.date));
+                    let filteredSales = [...appData.salesInvoices].sort((a, b) => {
+    return parseInt(b.invoiceNumber.split('-')[1]) - parseInt(a.invoiceNumber.split('-')[1]);
+})
                     if (filter.selectedInvoiceId) { filteredSales = filteredSales.filter(inv => inv.id == filter.selectedInvoiceId); } else if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredSales = filteredSales.filter(inv => { const c = appData.customers.find(c => c.id === inv.customerId); return (inv.invoiceNumber || '').toLowerCase().includes(term) || (c?.name || '').toLowerCase().includes(term) || (inv.salesManager || '').toLowerCase().includes(term); }); }
                     if (filter.dateFrom) filteredSales = filteredSales.filter(inv => inv.date >= filter.dateFrom);
