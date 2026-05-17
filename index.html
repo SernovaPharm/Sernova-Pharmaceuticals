@@ -2132,6 +2132,26 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
             showPaymentCustomerDetails(customerId);
         }
 
+        function formatGregorianDate(dateVal) {
+            if (!dateVal) return '---';
+            if (typeof dateVal === 'string' && dateVal.includes('-') && dateVal.length === 10) {
+                const parts = dateVal.split('-');
+                if (parts.length === 3) {
+                    return `${parts[0]}/${parseInt(parts[1])}/${parseInt(parts[2])}`;
+                }
+            }
+            try {
+                const d = new Date(dateVal);
+                if (isNaN(d.getTime())) return dateVal;
+                const year = d.getFullYear();
+                const month = d.getMonth() + 1;
+                const day = d.getDate();
+                return `${year}/${month}/${day}`;
+            } catch(e) {
+                return dateVal;
+            }
+        }
+
         function showPaymentCustomerDetails(customerId) {
             const customer = appData.customers.find(c => c.id === customerId);
             if (!customer) return;
@@ -2146,7 +2166,7 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
                 const invPayments = allPayments.filter(p => p.referenceId === inv.id);
                 const statusBadge = inv.due === 0 ? `<span class="badge bg-success badge-status">${lang==='ar'?'مسددة':'Paid'}</span>` : `<span class="badge bg-warning badge-status">${lang==='ar'?'غير مسددة':'Unpaid'}</span>`;
                 invoicesHtml += `
-                <div class="payment-customer-card mb-3"><div class="d-flex justify-content-between align-items-start mb-3"><div><h6 style="margin:0;"><i class="fas fa-file-invoice" style="color:#00d4ff;"></i> ${lang==='ar'?'فاتورة':'Invoice'} ${inv.invoiceNumber}</h6><small style="color:#a0a0b8;">${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')} | ${inv.salesManager?(lang==='ar'?'المندوب: ':'Sales Rep: ')+inv.salesManager:''}</small></div><div>${statusBadge}</div></div><div class="row g-2"><div class="col-md-3"><div class="p-2 rounded text-center" style="background:rgba(255,255,255,0.04);"><small style="color:#a0a0b8;">${t('total')}</small><div style="font-weight:bold;">${formatCurrency(inv.total)}</div></div></div><div class="col-md-3"><div class="p-2 rounded text-center" style="background:rgba(0,230,118,0.12);"><small style="color:#a0a0b8;">${t('paid')}</small><div style="color:#00e676;font-weight:bold;">${formatCurrency(inv.paid)}</div></div></div><div class="col-md-3"><div class="p-2 rounded text-center" style="background:rgba(255,68,68,0.12);"><small style="color:#a0a0b8;">${t('due')}</small><div style="color:#ff4444;font-weight:bold;">${formatCurrency(inv.due)}</div></div></div><div class="col-md-3 d-flex align-items-center justify-content-center gap-1">${inv.due>0?`<button class="btn btn-sm btn-primary rounded-pill" onclick="event.stopPropagation();showPaymentFormForInvoice(${customerId},${inv.id})"><i class="fas fa-money-bill"></i> ${lang==='ar'?'تسجيل دفعة':'Record Payment'}</button>`:`<span class="badge bg-success">${lang==='ar'?'تم السداد':'Paid Off'}</span>`}</div></div>${invPayments.length>0?`<div class="mt-3"><small style="color:#a0a0b8;"><i class="fas fa-history"></i> ${lang==='ar'?'سجل الدفعات:':'Payment History:'}</small>${invPayments.map(p=>`<div class="payment-history-item d-flex justify-content-between align-items-center"><div><span style="color:#00e676;font-weight:bold;">+ ${formatCurrency(p.amount)}</span><small style="color:#a0a0b8;margin-right:10px;">${p.date?new Date(p.date).toLocaleDateString(lang==='ar'?'ar':'en'):'---'}</small></div><div class="payment-actions"><button class="edit-payment-btn" onclick="event.stopPropagation();showDeleteConfirm('payment',${p.id},function(){editPaymentAmount(${p.id},${customerId})},'edit')" title="${t('edit')}"><i class="fas fa-edit"></i></button><button class="delete-payment-btn" onclick="event.stopPropagation();deletePaymentRequest(${p.id},${customerId})" title="${t('delete')}"><i class="fas fa-trash-alt"></i></button></div></div>`).join('')}</div>`:''}<div class="d-flex justify-content-end mt-3 gap-2"><button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="event.stopPropagation();printInvoice(${inv.id})"><i class="fas fa-print"></i> ${lang==='ar'?'طباعة الفاتورة':'Print Invoice'}</button><button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="event.stopPropagation();printPaymentDetails(${customerId},${inv.id})"><i class="fas fa-print"></i> ${lang==='ar'?'كشف حساب الفاتورة':'Invoice Statement'}</button></div></div>`;
+                <div class="payment-customer-card mb-3"><div class="d-flex justify-content-between align-items-start mb-3"><div><h6 style="margin:0;"><i class="fas fa-file-invoice" style="color:#00d4ff;"></i> ${lang==='ar'?'فاتورة':'Invoice'} ${inv.invoiceNumber}</h6><small style="color:#a0a0b8;">${formatGregorianDate(inv.date)} | ${inv.salesManager?(lang==='ar'?'المندوب: ':'Sales Rep: ')+inv.salesManager:''}</small></div><div>${statusBadge}</div></div><div class="row g-2"><div class="col-md-3"><div class="p-2 rounded text-center" style="background:rgba(255,255,255,0.04);"><small style="color:#a0a0b8;">${t('total')}</small><div style="font-weight:bold;">${formatCurrency(inv.total)}</div></div></div><div class="col-md-3"><div class="p-2 rounded text-center" style="background:rgba(0,230,118,0.12);"><small style="color:#a0a0b8;">${t('paid')}</small><div style="color:#00e676;font-weight:bold;">${formatCurrency(inv.paid)}</div></div></div><div class="col-md-3"><div class="p-2 rounded text-center" style="background:rgba(255,68,68,0.12);"><small style="color:#a0a0b8;">${t('due')}</small><div style="color:#ff4444;font-weight:bold;">${formatCurrency(inv.due)}</div></div></div><div class="col-md-3 d-flex align-items-center justify-content-center gap-1">${inv.due>0?`<button class="btn btn-sm btn-primary rounded-pill" onclick="event.stopPropagation();showPaymentFormForInvoice(${customerId},${inv.id})"><i class="fas fa-money-bill"></i> ${lang==='ar'?'تسجيل دفعة':'Record Payment'}</button>`:`<span class="badge bg-success">${lang==='ar'?'تم السداد':'Paid Off'}</span>`}</div></div>${invPayments.length>0?`<div class="mt-3 mb-2"><small style="color:#a0a0b8;display:block;margin-bottom:6px;"><i class="fas fa-history"></i> ${lang==='ar'?'سجل الدفعات:':'Payment History:'}</small>${invPayments.map(p=>`<div class="payment-history-item d-flex justify-content-between align-items-center p-2 mb-2 rounded" style="background:rgba(255,255,255,0.03); border-left:3px solid #00e676; gap: 10px;"><div class="d-flex align-items-center gap-3"><span style="color:#00e676;font-weight:bold;font-size:14px;">+ ${formatCurrency(p.amount)}</span><span class="badge bg-dark text-light font-monospace" style="font-size:12px; padding: 4px 8px; border:1px solid rgba(255,255,255,0.15); direction:ltr !important; unicode-bidi:embed;">${formatGregorianDate(p.date)}</span></div><div class="payment-actions d-flex gap-2"><button class="edit-payment-btn btn btn-sm btn-outline-info" onclick="event.stopPropagation();showDeleteConfirm('payment',${p.id},function(){editPaymentAmount(${p.id},${customerId})},'edit')" title="${t('edit')}" style="padding: 2px 6px; font-size:11px;"><i class="fas fa-edit"></i></button><button class="delete-payment-btn btn btn-sm btn-outline-danger" onclick="event.stopPropagation();deletePaymentRequest(${p.id},${customerId})" title="${t('delete')}" style="padding: 2px 6px; font-size:11px;"><i class="fas fa-trash-alt"></i></button></div></div>`).join('')}</div>`:''}<div class="d-flex justify-content-end mt-3 gap-2"><button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="event.stopPropagation();printInvoice(${inv.id})"><i class="fas fa-print"></i> ${lang==='ar'?'طباعة الفاتورة':'Print Invoice'}</button><button class="btn btn-sm btn-outline-secondary rounded-pill" onclick="event.stopPropagation();printPaymentDetails(${customerId},${inv.id})"><i class="fas fa-print"></i> ${lang==='ar'?'كشف حساب الفاتورة':'Invoice Statement'}</button></div></div>`;
             });
             const detailsHtml = `
             <div class="payment-customer-card mb-4" style="border-right:4px solid #00d4ff;"><div class="d-flex justify-content-between align-items-center"><h5><i class="fas fa-user"></i> ${customer.name} (${customer.code})</h5><span><i class="fas fa-phone"></i> ${customer.phone}</span></div><div class="row mt-3"><div class="col-md-3"><div class="p-3 rounded text-center" style="background:rgba(15,15,30,0.7);"><small style="color:#a0a0b8;">${lang==='ar'?'إجمالي الفواتير':'Total Invoices'}</small><h4 style="color:#ffffff;">${formatCurrency(totalAmount)}</h4></div></div><div class="col-md-3"><div class="p-3 rounded text-center" style="background:rgba(0,230,118,0.15);"><small style="color:#a0a0b8;">${t('paid')}</small><h4 style="color:#00e676;">${formatCurrency(totalPaidOverall)}</h4></div></div><div class="col-md-3"><div class="p-3 rounded text-center" style="background:rgba(255,68,68,0.15);"><small style="color:#a0a0b8;">${t('due')}</small><h4 style="color:#ff4444;">${formatCurrency(totalDue)}</h4></div></div><div class="col-md-3 d-flex align-items-center justify-content-center gap-2"><button class="btn btn-outline-light rounded-pill" onclick="printBulkCustomerInvoices(${customerId})"><i class="fas fa-print"></i> ${lang==='ar'?'طباعة مجمعة':'Bulk Print'}</button><button class="btn btn-success rounded-pill" onclick="exportCustomerPayments(${customerId})"><i class="fas fa-file-excel"></i> ${t('export')}</button></div></div></div>
@@ -2167,13 +2187,132 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
             const commercialRegister = appData.settings.commercialRegister || '';
             const taxCard = appData.settings.taxCard || '';
             let infoLine = '';
-            if (commercialRegister) infoLine += `<span style="color:#000000;">س.ت: ${commercialRegister}</span>`;
-            if (taxCard) { if (infoLine) infoLine += ' <span style="color:#000000">|</span> ';
-                infoLine += `<span style="color:#000000">ب.ض: ${taxCard}</span>`; } let allInvoicesHtml = '';
-            customerInvoices.forEach(inv => { const invPayments = (appData.payments || []).filter(p => p.type === 'sales' && p.referenceId === inv.id); const itemsRows = inv.items.map(item => { const p = appData.products.find(pr => pr.id === item.productId); return `<tr><td>${p?.name||'منتج'}</td><td>${p?.batchNumber||'---'}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${(item.totalAfterDiscount||item.total).toFixed(2)}</td></tr>`; }).join(''); allInvoicesHtml += `
-                <div style="page-break-after:always;margin-bottom:20px;background:#fff;padding:20px;border:1px solid #ddd;border-radius:10px;"><div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:10px;margin-bottom:10px;"><div><h2 style="margin:0;color:#1a1a2e;">${company}</h2>${infoLine?`<p style="margin:2px 0;color:#00d4ff;font-weight:bold;">${infoLine}</p>`:''}</div>${logoHtml?`<div>${logoHtml}</div>`:''}</div><h3 style="color:#000000;text-align:center;">${lang==='ar'?'فاتورة بيع':'Sales Invoice'} - ${inv.invoiceNumber}</h3><p><strong>${lang==='ar'?'العميل':'Customer'}:</strong> ${customer.name} (${customer.code})</p><p><strong>${t('date')}:</strong> ${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</p><p><strong>Sales Manager:</strong> ${inv.salesManager||'---'}</p><table style="width:100%;border-collapse:collapse;margin:15px 0;"><thead><tr style="background:#d3d3d3;"><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'تشغيلة':'Batch'}</th><th>${lang==='ar'?'الكمية':'Qty'}</th><th>${lang==='ar'?'السعر':'Price'}</th><th>${lang==='ar'?'الإجمالي':'Total'}</th></tr></thead><tbody>${itemsRows}</tbody></table><p><strong>${t('total')}:</strong> ${formatCurrency(inv.total)} | <strong>${t('paid')}:</strong> ${formatCurrency(inv.paid)} | <strong>${t('due')}:</strong> <span style="color:#ff4444;">${formatCurrency(inv.due)}</span></p></div>`; });
+            if (commercialRegister) infoLine += `س.ت: ${commercialRegister}`;
+            if (taxCard) { if (infoLine) infoLine += ' | ';
+                infoLine += `ب.ض: ${taxCard}`; }
+            let allInvoicesHtml = '';
+            customerInvoices.forEach(inv => {
+                const itemsRows = inv.items.map(item => {
+                    const p = appData.products.find(pr => pr.id === item.productId);
+                    return `<tr><td>${p?.name||'منتج'}</td><td>${p?.batchNumber||'---'}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${(item.totalAfterDiscount||item.total).toFixed(2)}</td></tr>`;
+                }).join('');
+                allInvoicesHtml += `
+                <div class="bulk-invoice-card" style="page-break-after:always;margin-bottom:30px;background:#fff;padding:25px;border:1px solid #ddd;border-radius:12px;box-shadow: 0 4px 10px rgba(0,0,0,0.03);">
+                    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:10px;margin-bottom:15px;">
+                        <div>
+                            <h2 style="margin:0;color:#1a1a2e;">${company}</h2>
+                            ${infoLine?`<p style="margin:4px 0;color:#000;font-weight:bold;font-size:14px;">${infoLine}</p>`:''}
+                        </div>
+                        ${logoHtml?`<div>${logoHtml}</div>`:''}
+                    </div>
+                    <h3 style="color:#000000;text-align:center;font-weight:bold;margin-bottom:20px;">${lang==='ar'?'فاتورة بيع':'Sales Invoice'} - ${inv.invoiceNumber}</h3>
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:15px;">
+                        <p style="margin:0;"><strong style="display:inline-block;">${lang==='ar'?'العميل':'Customer'}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block;">${customer.name} (${customer.code})</span></p>
+                        <p style="margin:0;"><strong style="display:inline-block;">التاريخ</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${formatGregorianDate(inv.date)}</span></p>
+                        <p style="margin:0;"><strong style="display:inline-block;">Sales Manager</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${inv.salesManager||'---'}</span></p>
+                    </div>
+                    <table style="width:100%;border-collapse:collapse;margin:15px 0;">
+                        <thead>
+                            <tr style="background:#d3d3d3;color:#000;font-weight:bold;">
+                                <th>${lang==='ar'?'المنتج':'Product'}</th>
+                                <th>${lang==='ar'?'تشغيلة':'Batch'}</th>
+                                <th>${lang==='ar'?'الكمية':'Qty'}</th>
+                                <th>${lang==='ar'?'السعر':'Price'}</th>
+                                <th>${lang==='ar'?'الإجمالي':'Total'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${itemsRows}
+                        </tbody>
+                    </table>
+                    <div style="margin-top:15px; border-top:1px solid #eee; padding-top:10px; display:flex; justify-content:space-between; flex-wrap:wrap; font-weight:bold;">
+                        <span><strong style="display:inline-block;">${t('total')}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${formatCurrency(inv.total)}</span></span>
+                        <span><strong style="display:inline-block;">${t('paid')}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${formatCurrency(inv.paid)}</span></span>
+                        <span><strong style="display:inline-block;">${t('due')}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace; color:#000000;">${formatCurrency(inv.due)}</span></span>
+                    </div>
+                </div>`;
+            });
             const win = window.open('', '_blank');
-            win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>${lang==='ar'?'طباعة مجمعة':'Bulk Print'} - ${customer.name}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><style>body{font-family:'Tajawal',sans-serif;direction:rtl;background:#f5f5f5;padding:20px;}table td,table th{border:1px solid #ddd;padding:8px;text-align:center;}@media print{body{background:#fff;}}</style></head><body>${allInvoicesHtml}<script>window.print();<\/script></body></html>`);
+            win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=1024"><title>${lang==='ar'?'طباعة مجمعة':'Bulk Print'} - ${customer.name}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script><style>
+body{font-family:'Tajawal',sans-serif;direction:rtl;background:#f5f5f5;padding:20px;margin:0;}
+.action-bar{background:#1a1a2e;padding:15px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;margin-bottom:20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.15);}
+.action-btn{font-family:Tajawal;font-weight:bold;font-size:14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 16px;border:none;transition:all 0.3s;}
+.close-btn{background:#ff4444;color:#fff;}
+.close-btn:hover{background:#cc3333;transform:translateY(-1px);}
+.pdf-btn{background:#25d366;color:#fff;}
+.pdf-btn:hover{background:#128c7e;transform:translateY(-1px);}
+.download-btn{background:#0088cc;color:#fff;}
+.download-btn:hover{background:#006699;transform:translateY(-1px);}
+.print-btn{background:#00d4ff;color:#000;}
+.print-btn:hover{background:#00b2d6;transform:translateY(-1px);}
+.bulk-container{max-width:850px;margin:auto;}
+table td,table th{border:1px solid #ddd;padding:8px;text-align:center;color:#000;}
+@media print{
+  body{background:#fff;padding:0;margin:0;}
+  .bulk-invoice-card{box-shadow:none !important; border:1px solid #000 !important; margin-bottom: 30px !important;}
+  .no-print{display:none !important;}
+}
+</style></head><body>
+<div class="action-bar no-print">
+  <button class="action-btn close-btn" onclick="window.close()"><i class="fas fa-times"></i> إغلاق والعودة للتطبيق</button>
+  <div style="display:flex; gap:10px;">
+    <button class="action-btn pdf-btn" onclick="sharePDF()"><i class="fas fa-paper-plane"></i> إرسال ومشاركة PDF</button>
+    <button class="action-btn download-btn" onclick="downloadPDF()"><i class="fas fa-download"></i> تحميل PDF</button>
+    <button class="action-btn print-btn" onclick="window.print()"><i class="fas fa-print"></i> طباعة الفواتير</button>
+  </div>
+</div>
+<div class="bulk-container">
+  ${allInvoicesHtml}
+</div>
+<script>
+function downloadPDF() {
+  const element = document.querySelector('.bulk-container');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'فواتير_مجمعة_${customer.name}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+function sharePDF() {
+  const element = document.querySelector('.bulk-container');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'فواتير_مجمعة_${customer.name}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  const shareBtn = document.querySelector('.pdf-btn');
+  const originalText = shareBtn.innerHTML;
+  shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحضير...';
+  shareBtn.disabled = true;
+  html2pdf().set(opt).from(element).outputPdf('blob').then(function(pdfBlob) {
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
+    const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: 'فواتير مجمعة',
+        text: 'مرفق ملف الفواتير المجمعة بصيغة PDF'
+      }).catch(err => {
+        downloadPDF();
+      });
+    } else {
+      downloadPDF();
+      alert('تم تحميل الملف بصيغة PDF لعدم دعم المشاركة المباشرة في هذا المتصفح');
+    }
+  }).catch(err => {
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
+    downloadPDF();
+  });
+}
+<\/script>
+</body></html>`);
             win.document.close();
         }
 
@@ -2215,13 +2354,144 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
             const commercialRegister = appData.settings.commercialRegister || '';
             const taxCard = appData.settings.taxCard || '';
             let infoLine = '';
-            if (commercialRegister) infoLine += `<span style="color:#000000;">س.ت: ${commercialRegister}</span>`;
+            if (commercialRegister) infoLine += `س.ت: ${commercialRegister}`;
             if (taxCard) { if (infoLine) infoLine += ' | ';
-                infoLine += `<span style="color:#000000;">ب.ض: ${taxCard}</span>`; }
+                infoLine += `ب.ض: ${taxCard}`; }
             const itemsRows = inv.items.map(item => { const p = appData.products.find(pr => pr.id === item.productId); return `<tr><td>${p?.name||'منتج'}</td><td>${p?.batchNumber||'---'}</td><td>${item.quantity}</td><td>${formatCurrency(item.price)}</td><td>${formatCurrency(item.total)}</td></tr>`; }).join('');
-            const paymentsRows = payments.map(p => `<tr><td>${p.date?new Date(p.date).toLocaleDateString(lang==='ar'?'ar':'en'):'---'}</td><td style="color:#000000;font-weight:bold;">${formatCurrency(p.amount)}</td></tr>`).join('');
+            const paymentsRows = payments.map(p => `<tr><td>${formatGregorianDate(p.date)}</td><td style="color:#000000;font-weight:bold;">${formatCurrency(p.amount)}</td></tr>`).join('');
             const win = window.open('', '_blank');
-            win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>${lang==='ar'?'كشف حساب فاتورة':'Invoice Statement'}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><style>body{font-family:'Tajawal',sans-serif;padding:20px;direction:rtl;background:#f5f5f5;}.container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 0 20px rgba(0,0,0,0.1);}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:15px;margin-bottom:20px;}.company-info h2{margin:0;color:#1a1a2e;}.company-info p{margin:2px 0;color:#666;font-size:14px;}.logo-container{max-width:120px;text-align:left;}table{width:100%;border-collapse:collapse;margin:20px 0;}th{background:#d3d3d3;color:#000000;font-weight:bold;padding:10px;text-align:center;border:1px solid #b0b0b0;}td{border:1px solid #ddd;padding:10px;text-align:center;}@media print{body{background:#fff;}.container{box-shadow:none;}}</style></head><body><div class="container"><div class="header"><div class="company-info"><h2>${company}</h2>${infoLine?`<p style="color:#000000;">${infoLine}</p>`:''}${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}</div>${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}</div><h3 style="color:#000000;font-weight:bold;text-align:center;">${lang==='ar'?'كشف حساب فاتورة':'Invoice Statement'}</h3><p><strong>${lang==='ar'?'رقم الفاتورة':'Invoice #'}:</strong> ${inv.invoiceNumber}</p><p><strong>${lang==='ar'?'العميل':'Customer'}:</strong> ${customer.name} (${customer.code})</p><p><strong>${t('date')}:</strong> ${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</p><h5>${lang==='ar'?'المنتجات':'Products'}:</h5><table><thead><tr><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th><th>${lang==='ar'?'الكمية':'Qty'}</th><th>${lang==='ar'?'السعر':'Price'}</th><th>${lang==='ar'?'الإجمالي':'Total'}</th></tr></thead><tbody>${itemsRows}</tbody></table><p><strong>${lang==='ar'?'إجمالي الفاتورة':'Invoice Total'}:</strong> ${formatCurrency(inv.total)}</p><p><strong>${t('paid')}:</strong> ${formatCurrency(inv.paid)}</p><p><strong>${t('due')}:</strong> <span style="color:#ff4444;">${formatCurrency(inv.due)}</span></p><h5>${lang==='ar'?'سجل الدفعات':'Payment History'}:</h5><table><thead><tr><th>${t('date')}</th><th>${lang==='ar'?'المبلغ المسدد':'Amount Paid'}</th></tr></thead><tbody>${paymentsRows||`<tr><td colspan="2">${lang==='ar'?'لا توجد دفعات':'No payments'}</td></tr>`}</tbody></table></div><script>window.print();<\/script></body></html>`);
+            win.document.write(`<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=1024"><title>${lang==='ar'?'كشف حساب فاتورة':'Invoice Statement'}</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script><style>
+body{font-family:'Tajawal',sans-serif;padding:20px;direction:rtl;background:#f5f5f5;margin:0;}
+.action-bar{background:#1a1a2e;padding:15px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;margin-bottom:20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.15);}
+.action-btn{font-family:Tajawal;font-weight:bold;font-size:14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 16px;border:none;transition:all 0.3s;}
+.close-btn{background:#ff4444;color:#fff;}
+.close-btn:hover{background:#cc3333;transform:translateY(-1px);}
+.pdf-btn{background:#25d366;color:#fff;}
+.pdf-btn:hover{background:#128c7e;transform:translateY(-1px);}
+.download-btn{background:#0088cc;color:#fff;}
+.download-btn:hover{background:#006699;transform:translateY(-1px);}
+.print-btn{background:#00d4ff;color:#000;}
+.print-btn:hover{background:#00b2d6;transform:translateY(-1px);}
+.container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 0 20px rgba(0,0,0,0.1);}
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:15px;margin-bottom:20px;}
+.company-info h2{margin:0;color:#1a1a2e;}
+.company-info p{margin:2px 0;color:#666;font-size:14px;}
+.logo-container{max-width:120px;text-align:left;}
+table{width:100%;border-collapse:collapse;margin:20px 0;}
+th{background:#d3d3d3;color:#000000;font-weight:bold;padding:10px;text-align:center;border:1px solid #b0b0b0;}
+td{border:1px solid #ddd;padding:10px;text-align:center;color:#000;}
+.totals-section{margin-top:20px;border-top:1px solid #eee;padding-top:15px;}
+.totals-section p{margin:5px 0;text-align:right;}
+@media print{
+  body{background:#fff;padding:0;margin:0;}
+  .container{box-shadow:none;border:none;padding:0;max-width:100%;width:100%;}
+  .no-print{display:none !important;}
+}
+</style></head><body>
+<div class="action-bar no-print">
+  <button class="action-btn close-btn" onclick="window.close()"><i class="fas fa-times"></i> إغلاق والعودة للتطبيق</button>
+  <div style="display:flex; gap:10px;">
+    <button class="action-btn pdf-btn" onclick="sharePDF()"><i class="fas fa-paper-plane"></i> إرسال ومشاركة PDF</button>
+    <button class="action-btn download-btn" onclick="downloadPDF()"><i class="fas fa-download"></i> تحميل PDF</button>
+    <button class="action-btn print-btn" onclick="window.print()"><i class="fas fa-print"></i> طباعة كشف الحساب</button>
+  </div>
+</div>
+<div class="container">
+  <div class="header">
+    <div class="company-info">
+      <h2>${company}</h2>
+      ${infoLine?`<p style="color:#000000;font-weight:bold;">${infoLine}</p>`:''}
+      ${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}
+      ${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}
+    </div>
+    ${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}
+  </div>
+  <h3 style="color:#000000;font-weight:bold;text-align:center;margin-bottom:20px;">${lang==='ar'?'كشف حساب فاتورة':'Invoice Statement'}</h3>
+  <p><strong style="display:inline-block;">${lang==='ar'?'رقم الفاتورة':'Invoice #'}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; direction:ltr !important; unicode-bidi:embed; font-family:monospace;">${inv.invoiceNumber}</span></p>
+  <p><strong style="display:inline-block;">${lang==='ar'?'العميل':'Customer'}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block;">${customer.name} (${customer.code})</span></p>
+  <p><strong style="display:inline-block;">${t('date')}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${formatGregorianDate(inv.date)}</span></p>
+  <h5>${lang==='ar'?'المنتجات':'Products'}:</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>${lang==='ar'?'المنتج':'Product'}</th>
+        <th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th>
+        <th>${lang==='ar'?'الكمية':'Qty'}</th>
+        <th>${lang==='ar'?'السعر':'Price'}</th>
+        <th>${lang==='ar'?'الإجمالي':'Total'}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${itemsRows}
+    </tbody>
+  </table>
+  <div class="totals-section">
+    <p><strong style="display:inline-block;">${lang==='ar'?'إجمالي الفاتورة':'Invoice Total'}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${formatCurrency(inv.total)}</span></p>
+    <p><strong style="display:inline-block;">${t('paid')}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace; color:#10b981;">${formatCurrency(inv.paid)}</span></p>
+    <p><strong style="display:inline-block;">${t('due')}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace; color:#000000; font-weight:bold;">${formatCurrency(inv.due)}</span></p>
+  </div>
+  <h5>${lang==='ar'?'سجل الدفعات':'Payment History'}:</h5>
+  <table>
+    <thead>
+      <tr>
+        <th>${t('date')}</th>
+        <th>${lang==='ar'?'المبلغ المسدد':'Amount Paid'}</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${paymentsRows||`<tr><td colspan="2">${lang==='ar'?'لا توجد دفعات':'No payments'}</td></tr>`}
+    </tbody>
+  </table>
+</div>
+<script>
+function downloadPDF() {
+  const element = document.querySelector('.container');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'كشف_حساب_فاتورة_${inv.invoiceNumber}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+function sharePDF() {
+  const element = document.querySelector('.container');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'كشف_حساب_فاتورة_${inv.invoiceNumber}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  const shareBtn = document.querySelector('.pdf-btn');
+  const originalText = shareBtn.innerHTML;
+  shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحضير...';
+  shareBtn.disabled = true;
+  html2pdf().set(opt).from(element).outputPdf('blob').then(function(pdfBlob) {
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
+    const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: 'كشف حساب فاتورة',
+        text: 'مرفق كشف حساب الفاتورة بصيغة PDF'
+      }).catch(err => {
+        downloadPDF();
+      });
+    } else {
+      downloadPDF();
+      alert('تم تحميل الملف بصيغة PDF لعدم دعم المشاركة المباشرة في هذا المتصفح');
+    }
+  }).catch(err => {
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
+    downloadPDF();
+  });
+}
+<\/script>
+</body></html>`);
             win.document.close();
         }
 
@@ -3081,11 +3351,138 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
             const commercialRegister = appData.settings.commercialRegister || '';
             const taxCard = appData.settings.taxCard || '';
             let infoLine = '';
-            if (commercialRegister) infoLine += `<span style="color:#000000;">س.ت: ${commercialRegister}</span>`;
+            if (commercialRegister) infoLine += `س.ت: ${commercialRegister}`;
             if (taxCard) { if (infoLine) infoLine += ' | ';
-                infoLine += `<span style="color:#000000;">ب.ض: ${taxCard}</span>`; } const itemsRows = inv.items.map(item => { const p = appData.products.find(pr => pr.id === item.productId); return `<tr><td>${p?.name||'منتج'}</td><td>${p?.batchNumber||'---'}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td><td>${item.discountPercent||0}%</td><td>${(item.totalAfterDiscount||item.total).toFixed(2)}</td></tr>`; }).join('');
+                infoLine += `ب.ض: ${taxCard}`; }
+            const itemsRows = inv.items.map(item => { const p = appData.products.find(pr => pr.id === item.productId); return `<tr><td>${p?.name||'منتج'}</td><td>${p?.batchNumber||'---'}</td><td>${item.quantity}</td><td>${item.price.toFixed(2)}</td><td>${item.total.toFixed(2)}</td><td>${item.discountPercent||0}%</td><td>${(item.totalAfterDiscount||item.total).toFixed(2)}</td></tr>`; }).join('');
             const subtotal = inv.subtotal || 0;
-            return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><title>فاتورة</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><style>body{font-family:Tajawal;padding:20px;direction:rtl;background:#f5f5f5;}.invoice-container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 0 20px rgba(0,0,0,0.1);}.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:15px;margin-bottom:20px;}.company-info{text-align:right;flex:1;}.company-info h2{margin:0;color:#1a1a2e;}.company-info p{margin:2px 0;color:#666;font-size:14px;}.logo-container{max-width:120px;margin-right:0;margin-left:20px;text-align:right;}.logo-container img{max-width:120px;max-height:120px;border-radius:10px;}table{width:100%;border-collapse:collapse;margin:20px 0;}th{background:#d3d3d3;color:#000000;font-weight:bold;padding:10px;text-align:center;border:1px solid #b0b0b0;}td{border:1px solid #ddd;padding:10px;text-align:center;}.totals-section{margin-top:20px;border-top:1px solid #eee;padding-top:15px;}.totals-section p{margin:5px 0;text-align:right;}@media print{body{background:#fff;}.invoice-container{box-shadow:none;}}</style></head><body><div class="invoice-container"><div class="header"><div class="company-info"><h2>${company}</h2>${infoLine?`<p style="font-weight:bold;color:#000000;">${infoLine}</p>`:''}${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}</div>${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}</div><h3 style="color:#000000;font-weight:bold;text-align:center;">فاتورة ${type==='sale'?'بيع':'شراء'}</h3><p><strong>رقم الفاتورة:</strong> ${inv.invoiceNumber}</p><p><strong>${type==='sale'?'العميل':'المورد'}:</strong> ${party?.name||'---'} ${party?.code?'('+party.code+')':''}</p>${party?.address?`<p><strong>العنوان:</strong> ${party.address}</p>`:''}${party?.phone?`<p><strong>الهاتف:</strong> ${party.phone}</p>`:''}<p><strong>التاريخ:</strong> ${new Date(inv.date).toLocaleDateString('ar')}</p><table><thead><tr><th>المنتج</th><th>رقم التشغيلة</th><th>الكمية</th><th>السعر</th><th>الإجمالي</th><th>نسبة الخصم</th><th>بعد الخصم</th></tr></thead><tbody>${itemsRows}</tbody></table><div class="totals-section"><p><strong>الإجمالي قبل الخصم:</strong> ${subtotal.toFixed(2)}</p><p><strong>الإجمالي بعد الخصم:</strong> ${inv.total.toFixed(2)}</p><p><strong>المدفوع:</strong> ${inv.paid.toFixed(2)}</p><p><strong>المتبقي:</strong> ${inv.due.toFixed(2)}</p><div style="text-align:left;font-weight:bold;border:none;padding:0;margin:0;background:transparent;">ختم الاستلام<br><br>....................</div></div></div><script>window.print();<\/script></body></html>`;
+            return `<!DOCTYPE html><html dir="rtl"><head><meta charset="UTF-8"><meta name="viewport" content="width=1024"><title>فاتورة</title><link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"><\/script><style>
+body{font-family:Tajawal;padding:20px;direction:rtl;background:#f5f5f5;margin:0;}
+.action-bar{background:#1a1a2e;padding:15px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;margin-bottom:20px;border-radius:12px;box-shadow:0 4px 15px rgba(0,0,0,0.15);}
+.action-btn{font-family:Tajawal;font-weight:bold;font-size:14px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;padding:10px 16px;border:none;transition:all 0.3s;}
+.close-btn{background:#ff4444;color:#fff;}
+.close-btn:hover{background:#cc3333;transform:translateY(-1px);}
+.pdf-btn{background:#25d366;color:#fff;}
+.pdf-btn:hover{background:#128c7e;transform:translateY(-1px);}
+.download-btn{background:#0088cc;color:#fff;}
+.download-btn:hover{background:#006699;transform:translateY(-1px);}
+.print-btn{background:#00d4ff;color:#000;}
+.print-btn:hover{background:#00b2d6;transform:translateY(-1px);}
+.invoice-container{max-width:800px;margin:auto;background:#fff;padding:30px;border-radius:15px;box-shadow:0 0 20px rgba(0,0,0,0.1);box-sizing:border-box;}
+.header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:15px;margin-bottom:20px;}
+.company-info{text-align:right;flex:1;}
+.company-info h2{margin:0;color:#1a1a2e;}
+.company-info p{margin:2px 0;color:#666;font-size:14px;}
+.logo-container{max-width:120px;margin-right:0;margin-left:20px;text-align:right;}
+.logo-container img{max-width:120px;max-height:120px;border-radius:10px;}
+table{width:100%;border-collapse:collapse;margin:20px 0;}
+th{background:#d3d3d3;color:#000000;font-weight:bold;padding:10px;text-align:center;border:1px solid #b0b0b0;}
+td{border:1px solid #ddd;padding:10px;text-align:center;color:#000;}
+.totals-section{margin-top:20px;border-top:1px solid #eee;padding-top:15px;}
+.totals-section p{margin:5px 0;text-align:right;}
+@media print{
+  body{background:#fff;padding:0;margin:0;}
+  .invoice-container{box-shadow:none;border:none;padding:0;max-width:100%;width:100%;}
+  .no-print{display:none !important;}
+}
+</style></head><body>
+<div class="action-bar no-print">
+  <button class="action-btn close-btn" onclick="window.close()"><i class="fas fa-times"></i> إغلاق والعودة للتطبيق</button>
+  <div style="display:flex; gap:10px;">
+    <button class="action-btn pdf-btn" onclick="sharePDF()"><i class="fas fa-paper-plane"></i> إرسال ومشاركة PDF</button>
+    <button class="action-btn download-btn" onclick="downloadPDF()"><i class="fas fa-download"></i> تحميل PDF</button>
+    <button class="action-btn print-btn" onclick="window.print()"><i class="fas fa-print"></i> طباعة الفاتورة</button>
+  </div>
+</div>
+<div class="invoice-container">
+  <div class="header">
+    <div class="company-info">
+      <h2>${company}</h2>
+      ${infoLine?`<p style="font-weight:bold;color:#000000;">${infoLine}</p>`:''}
+      ${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}
+      ${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}
+    </div>
+    ${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}
+  </div>
+  <h3 style="color:#000000;font-weight:bold;text-align:center;margin-bottom:20px;">فاتورة ${type==='sale'?'بيع':'شراء'}</h3>
+  <p><strong style="display:inline-block;">رقم الفاتورة</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; direction:ltr !important; unicode-bidi:embed; font-family:monospace;">${inv.invoiceNumber}</span></p>
+  <p><strong style="display:inline-block;">${type==='sale'?'العميل':'المورد'}</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block;">${party?.name||'---'} ${party?.code?'('+party.code+')':''}</span></p>
+  ${party?.address?`<p><strong style="display:inline-block;">العنوان</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block;">${party.address}</span></p>`:''}
+  ${party?.phone?`<p><strong style="display:inline-block;">الهاتف</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${party.phone}</span></p>`:''}
+  <p><strong style="display:inline-block;">التاريخ</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${formatGregorianDate(inv.date)}</span></p>
+  <table>
+    <thead>
+      <tr>
+        <th>المنتج</th>
+        <th>رقم التشغيلة</th>
+        <th>الكمية</th>
+        <th>السعر</th>
+        <th>الإجمالي</th>
+        <th>نسبة الخصم</th>
+        <th>بعد الخصم</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${itemsRows}
+    </tbody>
+  </table>
+  <div class="totals-section">
+    <p><strong style="display:inline-block;">الإجمالي قبل الخصم</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${subtotal.toFixed(2)}</span></p>
+    <p><strong style="display:inline-block;">الإجمالي بعد الخصم</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${inv.total.toFixed(2)}</span></p>
+    <p><strong style="display:inline-block;">المدفوع</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace;">${inv.paid.toFixed(2)}</span></p>
+    <p><strong style="display:inline-block;">المتبقي</strong><span style="display:inline-block; margin:0 4px;">:</span><span style="display:inline-block; font-family:monospace; color:#000000; font-weight:bold;">${inv.due.toFixed(2)}</span></p>
+    <div style="text-align:left;font-weight:bold;border:none;padding:0;margin:0;background:transparent;margin-top:15px;">ختم الاستلام<br><br>....................</div>
+  </div>
+</div>
+<script>
+function downloadPDF() {
+  const element = document.querySelector('.invoice-container');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'فاتورة_${inv.invoiceNumber}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  html2pdf().set(opt).from(element).save();
+}
+function sharePDF() {
+  const element = document.querySelector('.invoice-container');
+  const opt = {
+    margin: [10, 10, 10, 10],
+    filename: 'فاتورة_${inv.invoiceNumber}.pdf',
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2.5, useCORS: true, letterRendering: true },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+  };
+  const shareBtn = document.querySelector('.pdf-btn');
+  const originalText = shareBtn.innerHTML;
+  shareBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري التحضير...';
+  shareBtn.disabled = true;
+  html2pdf().set(opt).from(element).outputPdf('blob').then(function(pdfBlob) {
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
+    const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      navigator.share({
+        files: [file],
+        title: 'فاتورة بيع',
+        text: 'مرفق فاتورة البيع بصيغة PDF'
+      }).catch(err => {
+        downloadPDF();
+      });
+    } else {
+      downloadPDF();
+      alert('تم تحميل الملف بصيغة PDF لعدم دعم المشاركة المباشرة في هذا المتصفح');
+    }
+  }).catch(err => {
+    shareBtn.innerHTML = originalText;
+    shareBtn.disabled = false;
+    downloadPDF();
+  });
+}
+<\/script>
+</body></html>`;
         }
 
         document.querySelectorAll('[data-page]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const page = link.getAttribute('data-page');
