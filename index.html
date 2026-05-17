@@ -2201,7 +2201,17 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
                     <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #1a1a2e;padding-bottom:10px;margin-bottom:15px;">
                         <div>
                             <h2 style="margin:0;color:#1a1a2e;">${company}</h2>
-                            ${infoLine?`<p style="margin:4px 0;color:#000;font-weight:bold;font-size:14px;">${infoLine}</p>`:''}
+                            ${(commercialRegister || taxCard) ? `
+                            <p style="margin:4px 0;color:#000;font-weight:bold;font-size:14px;">
+                              ${commercialRegister ? `
+                                <span style="display:inline-block;">س.ت</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${commercialRegister}</span>
+                              ` : ''}
+                              ${(commercialRegister && taxCard) ? `<span style="display:inline-block;margin:0 10px;">|</span>` : ''}
+                              ${taxCard ? `
+                                <span style="display:inline-block;">ب.ض</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${taxCard}</span>
+                              ` : ''}
+                            </p>
+                            ` : ''}
                         </div>
                         ${logoHtml?`<div>${logoHtml}</div>`:''}
                     </div>
@@ -2400,9 +2410,23 @@ td{border:1px solid #ddd;padding:10px;text-align:center;color:#000;}
   <div class="header">
     <div class="company-info">
       <h2>${company}</h2>
-      ${infoLine?`<p style="color:#000000;font-weight:bold;">${infoLine}</p>`:''}
+      ${(commercialRegister || taxCard) ? `
+      <p style="font-weight:bold;color:#000000;margin:4px 0;">
+        ${commercialRegister ? `
+          <span style="display:inline-block;">س.ت</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${commercialRegister}</span>
+        ` : ''}
+        ${(commercialRegister && taxCard) ? `<span style="display:inline-block;margin:0 10px;">|</span>` : ''}
+        ${taxCard ? `
+          <span style="display:inline-block;">ب.ض</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${taxCard}</span>
+        ` : ''}
+      </p>
+      ` : ''}
       ${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}
-      ${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}
+      ${appData.settings.companyPhone ? `
+      <p style="margin:2px 0;color:#666;font-size:14px;">
+        <span style="display:inline-block;">الهاتف</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${appData.settings.companyPhone}</span>
+      </p>
+      ` : ''}
     </div>
     ${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}
   </div>
@@ -3398,9 +3422,23 @@ td{border:1px solid #ddd;padding:10px;text-align:center;color:#000;}
   <div class="header">
     <div class="company-info">
       <h2>${company}</h2>
-      ${infoLine?`<p style="font-weight:bold;color:#000000;">${infoLine}</p>`:''}
+      ${(commercialRegister || taxCard) ? `
+      <p style="font-weight:bold;color:#000000;margin:4px 0;">
+        ${commercialRegister ? `
+          <span style="display:inline-block;">س.ت</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${commercialRegister}</span>
+        ` : ''}
+        ${(commercialRegister && taxCard) ? `<span style="display:inline-block;margin:0 10px;">|</span>` : ''}
+        ${taxCard ? `
+          <span style="display:inline-block;">ب.ض</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${taxCard}</span>
+        ` : ''}
+      </p>
+      ` : ''}
       ${appData.settings.companyAddress?`<p>${appData.settings.companyAddress}</p>`:''}
-      ${appData.settings.companyPhone?`<p>هاتف: ${appData.settings.companyPhone}</p>`:''}
+      ${appData.settings.companyPhone ? `
+      <p style="margin:2px 0;color:#666;font-size:14px;">
+        <span style="display:inline-block;">الهاتف</span><span style="display:inline-block;margin:0 4px;">:</span><span style="display:inline-block;direction:ltr !important;unicode-bidi:embed;font-family:monospace;">${appData.settings.companyPhone}</span>
+      </p>
+      ` : ''}
     </div>
     ${logoHtml?`<div class="logo-container">${logoHtml}</div>`:''}
   </div>
