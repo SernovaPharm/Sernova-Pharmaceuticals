@@ -3,7 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="display" content="standalone">
     <title>Sernova Pharmaceuticals</title>
+    <script>
+        window.onerror = function(msg, url, line, col, error) {
+            alert("Javascript Error: " + msg + " at line " + line);
+        };
+    </script>
 
     <link id="bootstrapCSS" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -998,6 +1007,59 @@
             }
         }
 
+        /* Mobile Bottom Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(8, 8, 13, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            justify-content: flex-start;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            gap: 20px;
+            padding: 10px 15px;
+            padding-bottom: calc(10px + env(safe-area-inset-bottom));
+            z-index: 1040;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .bottom-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        .bottom-nav-item {
+            flex: 0 0 auto;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .bottom-nav-item i {
+            font-size: 1.2rem;
+            margin-bottom: 4px;
+            transition: all 0.3s;
+        }
+
+        .bottom-nav-item.active {
+            color: #00d4ff;
+        }
+
+        .bottom-nav-item.active i {
+            transform: translateY(-3px);
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
         @media (max-width: 991px) {
             .sidebar {
                 position: fixed;
@@ -1014,6 +1076,7 @@
             }
             .main-content {
                 padding: 15px;
+                padding-bottom: calc(80px + env(safe-area-inset-bottom)) !important;
                 width: 100% !important;
             }
             .top-bar {
@@ -1114,11 +1177,12 @@
                     <div class="mb-4">
                         <i class="fas fa-shield-alt fa-3x" style="color: #00d4ff; text-shadow: 0 0 20px rgba(0,212,255,0.5);"></i>
                     </div>
-                    <p class="mb-3" style="color: #e8e8f0;">الرجاء إدخال كلمة المرور للوصول إلى النظام</p>
+                    <p class="mb-3" style="color: #e8e8f0;">الرجاء إدخال بيانات الدخول</p>
                     <div class="mb-3">
-                        <input type="password" id="passwordInput" class="form-control text-center" placeholder="كلمة المرور" style="font-size: 1.2rem; letter-spacing: 5px;">
+                        <input type="text" id="usernameInput" class="form-control text-center mb-2" placeholder="اسم المستخدم" style="font-size: 1.2rem;" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="username">
+                        <input type="password" id="passwordInput" class="form-control text-center" placeholder="كلمة المرور" style="font-size: 1.2rem; letter-spacing: 5px;" autocomplete="current-password">
                     </div>
-                    <div id="passwordError" class="text-danger mb-2" style="display: none;">كلمة المرور غير صحيحة</div>
+                    <div id="passwordError" class="text-danger mb-2" style="display: none;">بيانات الدخول غير صحيحة</div>
                     <button class="btn btn-primary w-100" onclick="checkPassword()">
                         <i class="fas fa-sign-in-alt"></i> دخول
                     </button>
@@ -1188,6 +1252,9 @@
                     <a class="nav-link" data-page="employees" href="#">
                         <i class="fas fa-user-tie"></i> الموظفين
                     </a>
+                    <a class="nav-link" data-page="system_management" href="#">
+                        <i class="fas fa-users-cog"></i> الحسابات والسجل
+                    </a>
                     <a class="nav-link" data-page="backup" href="#">
                         <i class="fas fa-database"></i> النسخ الاحتياطي
                     </a>
@@ -1209,8 +1276,11 @@
                         <h4 id="pageTitle" class="fw-bold mb-0 page-title-animated" style="color: #ffffff;">التقارير</h4>
                     </div>
                     <div class="company-name-animated" id="companyNameDisplay">Sernova Pharmaceuticals</div>
-                    <div class="d-none d-sm-block">
-                        <span id="dateTime" class="fw-bold" style="color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.3);"></span>
+                    <div class="d-flex align-items-center gap-3">
+                        <div id="topBarAuthInfo" class="d-none d-md-flex align-items-center"></div>
+                        <div class="d-none d-sm-block">
+                            <span id="dateTime" class="fw-bold" style="color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.3);"></span>
+                        </div>
                     </div>
                 </div>
 
@@ -1219,6 +1289,21 @@
             </div>
         </div>
     </div>
+
+    <!-- شريط التنقل السفلي للموبايل -->
+    <nav class="bottom-nav d-lg-none" id="bottomNav">
+        <a href="#" class="bottom-nav-item active" data-page="reports"><i class="fas fa-chart-bar"></i><span>الرئيسية</span></a>
+        <a href="#" class="bottom-nav-item" data-page="customers"><i class="fas fa-users"></i><span>العملاء</span></a>
+        <a href="#" class="bottom-nav-item" data-page="sales"><i class="fas fa-shopping-cart"></i><span>المبيعات</span></a>
+        <a href="#" class="bottom-nav-item" data-page="payments_screen"><i class="fas fa-hand-holding-usd"></i><span>السداد</span></a>
+        <a href="#" class="bottom-nav-item" data-page="purchases"><i class="fas fa-money-bill-wave"></i><span>المصروفات</span></a>
+        <a href="#" class="bottom-nav-item" data-page="products"><i class="fas fa-boxes"></i><span>المنتجات</span></a>
+        <a href="#" class="bottom-nav-item" data-page="factory_balances"><i class="fas fa-industry"></i><span>المصنع</span></a>
+        <a href="#" class="bottom-nav-item" data-page="employees"><i class="fas fa-user-tie"></i><span>الموظفين</span></a>
+        <a href="#" class="bottom-nav-item" data-page="system_management"><i class="fas fa-users-cog"></i><span>الحسابات والسجل</span></a>
+        <a href="#" class="bottom-nav-item" data-page="backup"><i class="fas fa-database"></i><span>نسخ</span></a>
+        <a href="#" class="bottom-nav-item" data-page="settings"><i class="fas fa-cog"></i><span>الإعدادات</span></a>
+    </nav>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
     </script>
@@ -1272,6 +1357,8 @@
                 payments_screen: 'السداد والدفعات',
                 backup: 'النسخ الاحتياطي',
                 settings: 'الإعدادات',
+                activity_log: 'سجل العمليات',
+                accounts: 'إدارة الحسابات',
                 add: 'إضافة',
                 edit: 'تعديل',
                 delete: 'حذف',
@@ -1319,6 +1406,8 @@
                 payments_screen: 'Payments',
                 backup: 'Backup',
                 settings: 'Settings',
+                activity_log: 'Activity Log',
+                accounts: 'Accounts Management',
                 add: 'Add',
                 edit: 'Edit',
                 delete: 'Delete',
@@ -1363,28 +1452,160 @@
             return translations[currentLang]?.[key] || translations.ar[key] || key;
         }
 
-        const CORRECT_PASSWORD = "2017";
         const DELETE_PASSWORD = "1510";
         let isAuthenticated = false;
         let pendingDeleteCallback = null;
+        let currentUser = null;
 
         function checkPassword() {
+            const usernameInput = document.getElementById('usernameInput');
             const passwordInput = document.getElementById('passwordInput');
-            const passwordError = document.getElementById('passwordError');
+            const enteredUsername = usernameInput.value.trim();
             const enteredPassword = passwordInput.value;
-            if (enteredPassword === CORRECT_PASSWORD) {
-                isAuthenticated = true;
-                const passwordModal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
-                passwordModal.hide();
-                loadData();
-                setInterval(updateDateTime, 1000);
-                updateDateTime();
-                updateCompanyNameDisplay();
+
+            const defaultAccounts = [
+                { username: 'admin', password: '2017', role: 'admin', permissions: ['reports', 'customers', 'sales', 'payments_screen', 'purchases', 'products', 'factory_balances', 'employees', 'backup', 'settings', 'activity_log', 'accounts'] },
+                { username: 'user1', password: '1234', role: 'user', permissions: ['reports', 'sales', 'products'] }
+            ];
+
+            // 1. Get local accounts
+            let localAccounts = defaultAccounts;
+            const saved = localStorage.getItem('invoiceSystemDataV2');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.accounts) localAccounts = parsed.accounts;
+                } catch (e) {}
+            }
+
+            // 2. Check if credentials match any local account (case-insensitive username check)
+            const localUser = localAccounts.find(a => a.username.trim().toLowerCase() === enteredUsername.toLowerCase() && a.password === enteredPassword);
+            if (localUser) {
+                executeLogin(localUser);
+                return;
+            }
+
+            // 3. If local check fails, check Firebase (if enabled)
+            if (firebaseSyncEnabled) {
+                const loginBtn = document.querySelector('#passwordModal .btn-primary');
+                const passwordError = document.getElementById('passwordError');
+                if (passwordError) passwordError.style.display = 'none';
+
+                let originalBtnHTML = '';
+                if (loginBtn) {
+                    originalBtnHTML = loginBtn.innerHTML;
+                    loginBtn.disabled = true;
+                    loginBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> جاري التحقق...';
+                }
+
+                database.ref('appData/accounts').once('value').then((snapshot) => {
+                    const firebaseAccounts = snapshot.val();
+                    if (firebaseAccounts && Array.isArray(firebaseAccounts)) {
+                        const fbUser = firebaseAccounts.find(a => a.username.trim().toLowerCase() === enteredUsername.toLowerCase() && a.password === enteredPassword);
+                        if (fbUser) {
+                            appData.accounts = firebaseAccounts; // update local memory state
+                            executeLogin(fbUser);
+                            if (loginBtn) {
+                                loginBtn.disabled = false;
+                                loginBtn.innerHTML = originalBtnHTML;
+                            }
+                            return;
+                        }
+                    }
+                    showLoginError();
+                    if (loginBtn) {
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = originalBtnHTML;
+                    }
+                }).catch((error) => {
+                    console.error('Firebase login check error:', error);
+                    showLoginError('حدث خطأ في الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.');
+                    if (loginBtn) {
+                        loginBtn.disabled = false;
+                        loginBtn.innerHTML = originalBtnHTML;
+                    }
+                });
             } else {
+                showLoginError();
+            }
+        }
+
+        function executeLogin(user) {
+            isAuthenticated = true;
+            currentUser = user;
+            
+            if (currentUser.role !== 'admin' && currentUser.permissions && currentUser.permissions.length > 0) {
+                currentPage = currentUser.permissions[0];
+                if (currentPage === 'accounts' || currentPage === 'activity_log') {
+                    currentPage = 'system_management';
+                }
+            } else {
+                currentPage = 'reports';
+            }
+
+            document.querySelectorAll('[data-page]').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('[data-page="' + currentPage + '"]').forEach(l => l.classList.add('active'));
+
+            const passwordModal = bootstrap.Modal.getInstance(document.getElementById('passwordModal'));
+            if (passwordModal) passwordModal.hide();
+            
+            loadData();
+            setInterval(updateDateTime, 1000);
+            updateDateTime();
+            updateCompanyNameDisplay();
+            updateSidebarPermissions();
+        }
+
+        function showLoginError(customMessage) {
+            const passwordError = document.getElementById('passwordError');
+            if (passwordError) {
+                passwordError.textContent = customMessage || 'بيانات الدخول غير صحيحة';
                 passwordError.style.display = 'block';
+            }
+            const passwordInput = document.getElementById('passwordInput');
+            if (passwordInput) {
                 passwordInput.value = '';
                 passwordInput.focus();
             }
+        }
+
+        function updateSidebarPermissions() {
+            if (!currentUser) return;
+            const links = document.querySelectorAll('.sidebar .nav-link, .bottom-nav .bottom-nav-item[data-page]');
+            links.forEach(link => {
+                const page = link.getAttribute('data-page');
+                if (!page) return;
+                // If it's admin, they see everything. If it's a user, they only see their permissions.
+                let hasPermission = currentUser.role === 'admin' || (currentUser.permissions && Array.isArray(currentUser.permissions) && currentUser.permissions.includes(page));
+                if (page === 'system_management' && currentUser.role !== 'admin') {
+                    hasPermission = currentUser.permissions.includes('accounts') || currentUser.permissions.includes('activity_log') || currentUser.permissions.includes('system_management');
+                }
+                if (hasPermission) {
+                    link.style.display = '';
+                } else {
+                    link.style.display = 'none';
+                }
+            });
+            const topBarAuthInfo = document.getElementById('topBarAuthInfo');
+            if (topBarAuthInfo) {
+                topBarAuthInfo.innerHTML = `
+                    <span class="me-3" style="color: var(--accent); font-weight: bold;"><i class="fas fa-user-circle"></i> ${currentUser.username}</span>
+                    <button class="btn btn-sm btn-outline-danger rounded-pill" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+                `;
+            }
+        }
+
+        function logout() {
+            isAuthenticated = false;
+            currentUser = null;
+            document.getElementById('pageContent').innerHTML = '';
+            const topBarAuthInfo = document.getElementById('topBarAuthInfo');
+            if (topBarAuthInfo) topBarAuthInfo.innerHTML = '';
+            const modal = new bootstrap.Modal(document.getElementById('passwordModal'));
+            modal.show();
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordError').style.display = 'none';
         }
 
         function showDeleteConfirm(type, id, callback, actionType = 'delete') {
@@ -1464,6 +1685,11 @@
             payments: [],
             factoryBalances: [],
             employees: [],
+            accounts: [
+                { username: 'admin', password: '2017', role: 'admin', permissions: ['reports', 'customers', 'sales', 'payments_screen', 'purchases', 'products', 'factory_balances', 'employees', 'backup', 'settings', 'activity_log', 'accounts'] },
+                { username: 'user1', password: '1234', role: 'user', permissions: ['reports', 'sales', 'products'] }
+            ],
+            activityLog: [],
             settings: {
                 companyName: 'Sernova Pharmaceuticals',
                 companyAddress: '',
@@ -1500,6 +1726,11 @@
             if (!data.payments) data.payments = [];
             if (!data.factoryBalances) data.factoryBalances = [];
             if (!data.employees) data.employees = [];
+            if (!data.accounts) data.accounts = [
+                { username: 'admin', password: '2017', role: 'admin', permissions: ['reports', 'customers', 'sales', 'payments_screen', 'purchases', 'products', 'factory_balances', 'employees', 'backup', 'settings', 'activity_log', 'accounts'] },
+                { username: 'user1', password: '1234', role: 'user', permissions: ['reports', 'sales', 'products'] }
+            ];
+            if (!data.activityLog) data.activityLog = [];
             if (!data.settings) data.settings = {};
             if (!data.settings.commercialRegister) data.settings.commercialRegister = '';
             if (!data.settings.taxCard) data.settings.taxCard = '';
@@ -1556,6 +1787,14 @@
                     if (firebaseData) {
                         const mergedData = ensureDataStructure(JSON.parse(JSON.stringify(firebaseData)));
                         appData = mergedData;
+                        
+                        // Cache the fetched Firebase data to LocalStorage for offline fallback
+                        try {
+                            localStorage.setItem('invoiceSystemDataV2', JSON.stringify(appData));
+                        } catch (e) {
+                            console.error('Failed to cache Firebase data to localStorage:', e);
+                        }
+
                         updateCounters();
                         updateLogoDisplay();
                         updateCompanyNameDisplay();
@@ -1602,13 +1841,52 @@
             updateDateTime();
         }
 
+        function logActivity(actionType, section, details) {
+            if (!appData.activityLog) appData.activityLog = [];
+            const username = currentUser ? currentUser.username : 'النظام';
+            appData.activityLog.push({
+                id: Date.now(),
+                timestamp: new Date().toISOString(),
+                username: username,
+                actionType: actionType,
+                section: section,
+                details: details
+            });
+            saveData();
+        }
+
         function saveData() {
             if (!appData.settings) appData.settings = {};
             appData.settings.currency = '';
             appData.settings.language = currentLang;
             if (!appData.settings.themeColors) appData.settings.themeColors = { primary: '#0f0f1a', accent: '#00d4ff', bgColor1: '#08080d', bgColor2: '#1a1a2e', textColor: '#e8e8f0' };
             const dataToSave = JSON.parse(JSON.stringify(appData));
-            localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave));
+            try {
+                localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave));
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                    // Silently trim old activity logs and retry
+                    if (appData.activityLog && appData.activityLog.length > 30) {
+                        appData.activityLog = appData.activityLog.slice(-30);
+                        dataToSave.activityLog = appData.activityLog;
+                    }
+                    // Removed logo size limit that was deleting the logo during saving/printing
+                    // if (dataToSave.settings && dataToSave.settings.logo && dataToSave.settings.logo.length > 5000) {
+                    //     dataToSave.settings.logo = '';
+                    //     appData.settings.logo = '';
+                    // }
+                    try {
+                        localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave));
+                    } catch (e2) {
+                        // Last resort: clear activity log completely
+                        appData.activityLog = [];
+                        dataToSave.activityLog = [];
+                        try { localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave)); } catch(e3) { console.error('Cannot save data:', e3); }
+                    }
+                } else {
+                    console.error('Error saving data:', e.message);
+                }
+            }
             if (firebaseSyncEnabled && !isSyncing) {
                 isSyncing = true;
                 database.ref('appData').set(dataToSave).then(() => { isSyncing = false; }).catch((error) => { firebaseSyncEnabled = false;
@@ -1691,6 +1969,12 @@
                     break;
                 case 'settings':
                     renderSettings();
+                    break;
+                case 'activity_log':
+                case 'accounts':
+                case 'system_management':
+                    currentPage = 'system_management';
+                    renderSystemManagement();
                     break;
                 default:
                     renderReports();
@@ -1996,13 +2280,46 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
         }
 
         function showFactoryBalanceModal(id = null) {
-            const bal = id ? (appData.factoryBalances || []).find(b => b.id === id) : null;
-            const units = ['kg', 'gm', 'mg', 'unit', '---'];
+            const b = id ? (appData.factoryBalances || []).find(x => x.id === id) : null;
             const lang = currentLang;
-            const selectedUnit = (bal?.unit && bal.unit !== '-') ? bal.unit : '---';
-            const modalHtml = `
-            <div class="modal fade" id="factoryBalanceModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5><i class="fas fa-industry"></i> ${bal?(lang==='ar'?'تعديل رصيد':'Edit Balance'):(lang==='ar'?'رصيد جديد':'New Balance')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="factoryBalanceId" value="${bal?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المادة الفعالة':'Active Ingredient'}</label><input id="factoryActiveIngredient" class="form-control" value="${bal?.activeIngredient||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'الرصيد':'Balance'}</label><input id="factoryBalance" type="number" class="form-control" value="${bal?.balance||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'وحدة القياس':'Unit'}</label><select id="factoryUnit" class="form-control">${units.map(u=>`<option value="${u}" ${selectedUnit===u?'selected':''}>${u}</option>`).join('')}</select></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</label><input id="factoryExpiryDate" type="date" class="form-control" value="${bal?.expiryDate||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'تاريخ الجرد':'Inventory Date'}</label><input id="factoryInventoryDate" type="date" class="form-control" value="${bal?.inventoryDate||''}"></div></div><div class="modal-footer"><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button><button class="btn btn-primary rounded-pill" onclick="saveFactoryBalance()">${t('save')}</button></div></div></div></div>`;
-            showModal(modalHtml, 'factoryBalanceModal');
+            const html = `
+            <div class="modal fade" id="factoryBalanceModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header">
+                <h5><i class="fas fa-industry"></i> ${b ? (lang==='ar'?'تعديل رصيد':'Edit Balance') : (lang==='ar'?'إضافة رصيد':'Add Balance')}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="factoryBalanceId" value="${id || ''}">
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'المادة الفعالة':'Active Ingredient'}</label>
+                    <input type="text" id="factoryActiveIngredient" class="form-control" value="${b ? b.activeIngredient : ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'الرصيد':'Balance'}</label>
+                    <input type="number" step="0.01" id="factoryBalance" class="form-control" value="${b ? b.balance : ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'وحدة القياس':'Unit'}</label>
+                    <select id="factoryUnit" class="form-control">
+                        <option value="kg" ${b && b.unit==='kg' ? 'selected':''}>${lang==='ar'?'كجم':'kg'}</option>
+                        <option value="g" ${b && b.unit==='g' ? 'selected':''}>${lang==='ar'?'جم':'g'}</option>
+                        <option value="L" ${b && b.unit==='L' ? 'selected':''}>${lang==='ar'?'لتر':'L'}</option>
+                        <option value="ml" ${b && b.unit==='ml' ? 'selected':''}>${lang==='ar'?'مل':'ml'}</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</label>
+                    <input type="date" id="factoryExpiryDate" class="form-control" value="${b ? (b.expiryDate||'') : ''}">
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'تاريخ الجرد':'Inventory Date'}</label>
+                    <input type="date" id="factoryInventoryDate" class="form-control" value="${b ? (b.inventoryDate||'') : ''}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button>
+                <button class="btn btn-primary rounded-pill" onclick="saveFactoryBalance()">${t('save')}</button>
+            </div></div></div></div>`;
+            showModal(html, 'factoryBalanceModal');
         }
 
         function saveFactoryBalance() {
@@ -2013,7 +2330,7 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
             if (!data.activeIngredient) return alert(currentLang === 'ar' ? 'أدخل المادة الفعالة' : 'Enter active ingredient');
             if (!appData.factoryBalances) appData.factoryBalances = [];
             if (id) { const idx = appData.factoryBalances.findIndex(b => b.id === parseInt(id)); if (idx !== -1) appData.factoryBalances[idx] = data; } else { appData.factoryBalances.push(data); }
-            saveData();
+            logActivity(id ? 'تعديل' : 'إضافة', 'أرصدة المصنع', 'مادة فعالة: ' + data.activeIngredient);
             bootstrap.Modal.getInstance(document.getElementById('factoryBalanceModal')).hide();
             renderFactoryBalances();
         }
@@ -2021,7 +2338,7 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
         function editFactoryBalance(id) { showFactoryBalanceModal(id); }
 
         function deleteFactoryBalanceRequest(id) { showDeleteConfirm('factoryBalance', id, function() { appData.factoryBalances = (appData.factoryBalances || []).filter(b => b.id !== id);
-                saveData();
+                logActivity('حذف', 'أرصدة المصنع', 'حذف رصيد بـ ID: ' + id);
                 renderFactoryBalances(); }); }
 
         function renderEmployees() {
@@ -2094,7 +2411,7 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
             if (!appData.employees) appData.employees = [];
             if (id) { const idx = appData.employees.findIndex(e => e.id === parseInt(id)); if (idx !== -1) { data.code = appData.employees[idx].code;
                     appData.employees[idx] = data; } } else { appData.employees.push(data); }
-            saveData();
+            logActivity(id ? 'تعديل' : 'إضافة', 'الموظفين', 'موظف: ' + data.name);
             bootstrap.Modal.getInstance(document.getElementById('employeeModal')).hide();
             renderEmployees();
         }
@@ -2102,7 +2419,7 @@ const sortedInvoices = [...appData.salesInvoices].sort((a, b) => {
         function editEmployee(id) { showEmployeeModal(id); }
 
         function deleteEmployeeRequest(id) { showDeleteConfirm('employee', id, function() { appData.employees = (appData.employees || []).filter(e => e.id !== id);
-                saveData();
+                logActivity('حذف', 'الموظفين', 'حذف موظف بـ ID: ' + id);
                 renderEmployees(); }); }
 
         function renderPaymentsScreen() {
@@ -2348,7 +2665,7 @@ function sharePDF() {
                 inv.due = inv.total - inv.paid;
                 inv.status = inv.due === 0 ? 'paid' : 'partial'; }
             payment.amount = newAmount;
-            saveData();
+            logActivity('تعديل', 'السداد والدفعات', 'تعديل دفعة ID: ' + paymentId);
             bootstrap.Modal.getInstance(document.getElementById('editPaymentModal')).hide();
             showPaymentCustomerDetails(customerId);
         }
@@ -2552,7 +2869,7 @@ function sharePDF() {
                             inv.due = inv.total - inv.paid;
                             inv.status = inv.due === 0 ? 'paid' : 'partial'; } } else if (payment.type === 'expense') { const exp = (appData.expenses || []).find(e => e.id === payment.referenceId); if (exp) { exp.paid = (exp.paid || 0) - payment.amount;
                             exp.due = exp.amount - exp.paid; } } appData.payments = (appData.payments || []).filter(p => p.id !== paymentId);
-                    saveData(); if (customerId) { showPaymentCustomerDetails(customerId); } else { renderCurrentPage(); } } }); }
+                    logActivity('حذف', 'السداد والدفعات', 'حذف دفعة بـ ID: ' + paymentId); if (customerId) { showPaymentCustomerDetails(customerId); } else { renderCurrentPage(); } } }); }
 
         function exportCustomerPayments(customerId) {
             const customer = appData.customers.find(c => c.id === customerId);
@@ -2615,7 +2932,7 @@ function sharePDF() {
             if (!appData.expenses) appData.expenses = [];
             if (id) { const idx = appData.expenses.findIndex(e => e.id === parseInt(id)); if (idx !== -1) { expenseData.expenseNumber = appData.expenses[idx].expenseNumber;
                     appData.expenses[idx] = expenseData; } } else { appData.expenses.push(expenseData); }
-            saveData();
+            logActivity(id ? 'تعديل' : 'إضافة', 'المصروفات', 'مصروف رقم: ' + expenseData.expenseNumber);
             bootstrap.Modal.getInstance(document.getElementById('expenseModal')).hide();
             renderExpenses();
         }
@@ -2623,18 +2940,18 @@ function sharePDF() {
         function editExpense(id) { showExpenseModal(id); }
 
         function deleteExpenseRequest(id) { showDeleteConfirm('expense', id, function() { appData.expenses = (appData.expenses || []).filter(e => e.id !== id);
-                saveData();
+                logActivity('حذف', 'المصروفات', 'حذف مصروف بـ ID: ' + id);
                 renderExpenses(); }); }
 
-        function deleteInvoiceRequest(type, id) { showDeleteConfirm(type, id, function() { if (type === 'sales') { appData.salesInvoices = appData.salesInvoices.filter(i => i.id !== id); } else if (type === 'purchases') { appData.purchaseInvoices = appData.purchaseInvoices.filter(i => i.id !== id); } saveData();
+        function deleteInvoiceRequest(type, id) { showDeleteConfirm(type, id, function() { if (type === 'sales') { appData.salesInvoices = appData.salesInvoices.filter(i => i.id !== id); } else if (type === 'purchases') { appData.purchaseInvoices = appData.purchaseInvoices.filter(i => i.id !== id); } logActivity('حذف', type === 'sales' ? 'فواتير البيع' : 'المصروفات', 'حذف فاتورة بـ ID: ' + id);
                 renderCurrentPage(); }); }
 
         function deleteCustomerRequest(id) { showDeleteConfirm('customer', id, function() { appData.customers = appData.customers.filter(c => c.id !== id);
-                saveData();
+                logActivity('حذف', 'العملاء', 'حذف عميل بـ ID: ' + id);
                 renderCustomers(); }); }
 
         function deleteProductRequest(id) { showDeleteConfirm('product', id, function() { appData.products = appData.products.filter(p => p.id !== id);
-                saveData();
+                logActivity('حذف', 'المنتجات', 'حذف منتج بـ ID: ' + id);
                 renderProducts(); }); }
 
         function showSaleInvoiceModal() {
@@ -2690,7 +3007,7 @@ function sharePDF() {
             appData.salesInvoices.push(newInvoice);
             items.forEach(item => { const prod = appData.products.find(p => p.id === item.productId); if (prod) { if (prod.initialQuantity === undefined) prod.initialQuantity = prod.quantity;
                     prod.quantity -= item.quantity; } });
-            saveData();
+            logActivity('إضافة', 'فواتير البيع', 'فاتورة مبيعات جديدة رقم: ' + newInvoice.invoiceNumber);
             bootstrap.Modal.getInstance(document.getElementById('saleModal')).hide();
             renderCurrentPage();
             alert(lang === 'ar' ? '✅ تم حفظ الفاتورة' : '✅ Invoice saved'); }
@@ -2756,7 +3073,7 @@ function sharePDF() {
             inv.due = due;
             inv.status = due === 0 ? 'paid' : 'partial';
             items.forEach(item => { const prod = appData.products.find(p => p.id === item.productId); if (prod) prod.quantity -= item.quantity; });
-            saveData();
+            logActivity('تعديل', 'فواتير البيع', 'تعديل فاتورة مبيعات رقم: ' + inv.invoiceNumber);
             bootstrap.Modal.getInstance(document.getElementById('editSaleModal')).hide();
             renderCurrentPage();
             alert(lang === 'ar' ? '✅ تم تحديث الفاتورة' : '✅ Invoice updated'); }
@@ -2765,7 +3082,7 @@ function sharePDF() {
             <div class="modal fade" id="customerModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>${c?t('edit'):t('add')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="customerId" value="${c?.id||''}"><input type="hidden" id="customerCode" value="${c?.code||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'النوع':'Type'}</label><select id="customerType" class="form-control"><option value="customer" ${c?.type==='customer'?'selected':''}>${t('customer')}</option><option value="supplier" ${c?.type==='supplier'?'selected':''}>${t('supplier')}</option></select></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'كود العميل':'Customer Code'}</label><input id="customerCodeDisplay" class="form-control" value="${c?.code||(id?'':(lang==='ar'?'سيتم توليده تلقائياً':'Auto-generated'))}" readonly style="background:rgba(0,212,255,0.15);color:#ffffff;"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'الاسم':'Name'}</label><input id="customerName" class="form-control" value="${c?.name||''}"></div><div class="mb-3"><label class="fw-bold">${t('phone')}</label><input id="customerPhone" class="form-control" value="${c?.phone||''}"></div><div class="mb-3"><label class="fw-bold">${t('address')}</label><input id="customerAddress" class="form-control" value="${c?.address||''}"></div></div><div class="modal-footer"><button class="btn btn-primary rounded-pill" onclick="saveCustomer()">${t('save')}</button><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button></div></div></div></div>`; showModal(html, 'customerModal'); }
 
         function saveCustomer() { const id = document.getElementById('customerId').value; let code = document.getElementById('customerCode').value; const type = document.getElementById('customerType').value; const name = document.getElementById('customerName').value; const phone = document.getElementById('customerPhone').value; const address = document.getElementById('customerAddress').value; const lang = currentLang; const autoGenText = lang === 'ar' ? 'سيتم توليده تلقائياً' : 'Auto-generated'; if (!code || code === autoGenText) { code = generateCustomerCode(id ? parseInt(id) : Date.now()); } if (!name) return alert(lang === 'ar' ? 'أدخل الاسم' : 'Enter name'); const data = { id: id ? parseInt(id) : Date.now(), code: code, type: type, name: name, phone: phone, address: address, discountPercent: 0 }; if (id) { const idx = appData.customers.findIndex(c => c.id === parseInt(id)); if (idx !== -1) { data.code = appData.customers[idx].code;
-                appData.customers[idx] = data; } } else { appData.customers.push(data); } saveData();
+                appData.customers[idx] = data; } } else { appData.customers.push(data); } logActivity(id ? 'تعديل' : 'إضافة', 'العملاء', 'عميل: ' + name);
             bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
             renderCustomers(); }
 
@@ -2774,7 +3091,7 @@ function sharePDF() {
         function showProductModal(id = null) { const p = id ? appData.products.find(p => p.id === id) : null; const lang = currentLang; const html = `
             <div class="modal fade" id="productModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>${p?(lang==='ar'?'تعديل منتج':'Edit Product'):(lang==='ar'?'إضافة منتج':'Add Product')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="productId" value="${p?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'اسم المنتج':'Product Name'}</label><input id="productName" class="form-control" value="${p?.name||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'رقم التشغيلة':'Batch Number'}</label><input id="productBatch" class="form-control" value="${p?.batchNumber||''}" placeholder="${lang==='ar'?'أدخل رقم التشغيلة يدوياً':'Enter batch number manually'}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'سعر البيع':'Sell Price'}</label><input id="productSellPrice" type="number" class="form-control" value="${p?.sellPrice||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</label><input id="productInitialQuantity" type="number" class="form-control" value="${p?.initialQuantity||p?.quantity||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الحالي':'Current Stock'}</label><input id="productQuantity" type="number" class="form-control" value="${p?.quantity||0}"></div></div><div class="modal-footer"><button class="btn btn-primary rounded-pill" onclick="saveProduct()">${t('save')}</button><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button></div></div></div></div>`; showModal(html, 'productModal'); }
 
-        function saveProduct() { const id = document.getElementById('productId').value; const sell = parseFloat(document.getElementById('productSellPrice').value) || 0; let batchNumber = document.getElementById('productBatch').value.trim(); const initialQty = parseFloat(document.getElementById('productInitialQuantity').value) || 0; const qty = parseFloat(document.getElementById('productQuantity').value) || 0; const data = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('productName').value, batchNumber: batchNumber, sellPrice: sell, quantity: qty, initialQuantity: initialQty }; const lang = currentLang; if (!data.name) return alert(lang === 'ar' ? 'أدخل الاسم' : 'Enter name'); if (id) { const idx = appData.products.findIndex(p => p.id === parseInt(id)); if (idx !== -1) appData.products[idx] = data; } else { appData.products.push(data); } saveData();
+        function saveProduct() { const id = document.getElementById('productId').value; const sell = parseFloat(document.getElementById('productSellPrice').value) || 0; let batchNumber = document.getElementById('productBatch').value.trim(); const initialQty = parseFloat(document.getElementById('productInitialQuantity').value) || 0; const qty = parseFloat(document.getElementById('productQuantity').value) || 0; const data = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('productName').value, batchNumber: batchNumber, sellPrice: sell, quantity: qty, initialQuantity: initialQty }; const lang = currentLang; if (!data.name) return alert(lang === 'ar' ? 'أدخل الاسم' : 'Enter name'); if (id) { const idx = appData.products.findIndex(p => p.id === parseInt(id)); if (idx !== -1) appData.products[idx] = data; } else { appData.products.push(data); } logActivity(id ? 'تعديل' : 'إضافة', 'المنتجات', 'منتج: ' + data.name);
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             renderProducts(); }
 
@@ -3523,17 +3840,284 @@ function sharePDF() {
 </body></html>`;
         }
 
-        document.querySelectorAll('[data-page]').forEach(link => { link.addEventListener('click', (e) => { e.preventDefault(); const page = link.getAttribute('data-page');
+        function renderSystemManagement() {
+            const lang = currentLang;
+            document.getElementById('pageTitle').innerHTML = '<i class="fas fa-users-cog"></i> ' + (lang === 'ar' ? 'الحسابات والسجل' : 'Accounts & Activity Log');
+            const html = `
+            <div class="row">
+                <div class="col-12 mb-4" id="accountsContainer"></div>
+                <div class="col-12" id="logContainer"></div>
+            </div>`;
+            document.getElementById('pageContent').innerHTML = html;
+            renderAccounts('accountsContainer');
+            renderActivityLog('logContainer');
+        }
+
+        function renderActivityLog(containerId = 'pageContent') {
+            const lang = currentLang;
+            const logs = (appData.activityLog || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const html = `
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 style="color: #ffffff; margin: 0;"><i class="fas fa-history"></i> ${lang==='ar'?'سجل العمليات':'Activity Log'}</h5>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" id="activitySearch" placeholder="${lang==='ar'?'ابحث في السجل...':'Search logs...'}" onkeyup="filterTableContains('activityLogTable', 'activitySearch')">
+            </div>
+            <div class="table-card">
+                <div class="d-flex justify-content-end mb-3 gap-2">
+                    <button class="btn btn-success rounded-pill" onclick="exportActivityLogToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button>
+                    <button class="btn btn-danger rounded-pill" onclick="clearActivityLogConfirm()"><i class="fas fa-trash"></i> ${lang==='ar'?'إفراغ السجل':'Clear Log'}</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table" id="activityLogTable">
+                        <thead>
+                            <tr>
+                                <th>${lang==='ar'?'التاريخ والوقت':'Date & Time'}</th>
+                                <th>${lang==='ar'?'المستخدم':'User'}</th>
+                                <th>${lang==='ar'?'العملية':'Action'}</th>
+                                <th>${lang==='ar'?'القسم':'Section'}</th>
+                                <th>${lang==='ar'?'التفاصيل':'Details'}</th>
+                                <th>${lang==='ar'?'إجراءات':'Actions'}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${logs.map(log => {
+                                const logName = log.username || log.user || '---';
+                                let actionColor = log.actionType === 'إضافة' ? 'success' : (log.actionType === 'حذف' ? 'danger' : 'warning');
+                                let dateStr = new Date(log.timestamp).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US');
+                                return `<tr data-search="${logName} ${log.actionType} ${log.section} ${log.details}">
+                                    <td>${dateStr}</td>
+                                    <td><strong>${logName}</strong></td>
+                                    <td><span class="badge bg-${actionColor}">${log.actionType}</span></td>
+                                    <td>${log.section}</td>
+                                    <td>${log.details}</td>
+                                    <td><button class="btn btn-sm btn-danger rounded-pill" onclick="deleteActivityLogEntry('${log.timestamp}')"><i class="fas fa-trash"></i></button></td>
+                                </tr>`;
+                            }).join('') || `<tr><td colspan="6" class="text-center py-4">${lang==='ar'?'لا يوجد سجلات':'No logs found'}</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+            document.getElementById(containerId).innerHTML = html;
+            if (containerId === 'pageContent') {
+                document.getElementById('pageTitle').innerHTML = '<i class="fas fa-history"></i> ' + (lang === 'ar' ? 'سجل العمليات' : 'Activity Log');
+            }
+        }
+
+        function clearActivityLogConfirm() {
+            showDeleteConfirm('activityLogAll', 'all', function() {
+                appData.activityLog = [];
+                saveData();
+                renderCurrentPage();
+            });
+        }
+
+        function deleteActivityLogEntry(timestamp) {
+            showDeleteConfirm('activityLogEntry', timestamp, function() {
+                appData.activityLog = (appData.activityLog || []).filter(l => l.timestamp !== timestamp);
+                saveData();
+                renderCurrentPage();
+            });
+        }
+
+        function exportActivityLogToExcel() {
+            const lang = currentLang;
+            const logs = (appData.activityLog || []).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            const company = appData.settings.companyName || 'Company';
+            const wsData = [
+                [company],
+                [lang === 'ar' ? 'سجل العمليات' : 'Activity Log'],
+                [''],
+                [lang==='ar'?'التاريخ والوقت':'Date & Time', lang==='ar'?'المستخدم':'User', lang==='ar'?'العملية':'Action', lang==='ar'?'القسم':'Section', lang==='ar'?'التفاصيل':'Details']
+            ];
+            logs.forEach(log => {
+                wsData.push([new Date(log.timestamp).toLocaleString(lang === 'ar' ? 'ar-EG' : 'en-US'), log.username || log.user || '---', log.actionType, log.section, log.details]);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(wsData);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, lang === 'ar' ? 'سجل_العمليات' : 'Activity_Log');
+            XLSX.writeFile(wb, `${lang==='ar'?'سجل_العمليات':'Activity_Log'}_${new Date().toISOString().split('T')[0]}.xlsx`);
+        }
+
+        function renderAccounts(containerId = 'pageContent') {
+            const lang = currentLang;
+            const accounts = (appData.accounts || []);
+            const html = `
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <h5 style="color: #ffffff; margin: 0;"><i class="fas fa-users-cog"></i> ${lang==='ar'?'إدارة الحسابات':'Accounts Management'}</h5>
+                <button class="btn btn-primary rounded-pill" onclick="showAccountModal()"><i class="fas fa-plus"></i> ${lang==='ar'?'إضافة حساب':'Add Account'}</button>
+            </div>
+            <div class="table-card">
+                <div class="table-responsive">
+                    <table class="table" id="accountsTable">
+                        <thead>
+                            <tr>
+                                <th>${lang==='ar'?'اسم المستخدم':'Username'}</th>
+                                <th>${lang==='ar'?'الدور':'Role'}</th>
+                                <th>${lang==='ar'?'الصلاحيات':'Permissions'}</th>
+                                <th>${t('actions')}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${accounts.map((acc, idx) => `<tr>
+                                <td><strong>${acc.username}</strong></td>
+                                <td><span class="badge bg-${acc.role === 'admin' ? 'danger' : 'info'}">${acc.role}</span></td>
+                                <td>${(acc.permissions || []).map(p => t(p) || p).join(', ')}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-warning rounded-pill" onclick="showAccountModal(${idx})"><i class="fas fa-edit"></i></button>
+                                    ${acc.role !== 'admin' ? `<button class="btn btn-sm btn-danger rounded-pill" onclick="deleteAccountRequest(${idx})"><i class="fas fa-trash"></i></button>` : ''}
+                                </td>
+                            </tr>`).join('') || `<tr><td colspan="4" class="text-center py-4">${lang==='ar'?'لا يوجد حسابات':'No accounts'}</td></tr>`}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+            document.getElementById(containerId).innerHTML = html;
+            if (containerId === 'pageContent') {
+                document.getElementById('pageTitle').innerHTML = '<i class="fas fa-users-cog"></i> ' + (lang === 'ar' ? 'إدارة الحسابات' : 'Accounts Management');
+            }
+        }
+
+        function showAccountModal(idx = null) {
+            const acc = idx !== null ? appData.accounts[idx] : null;
+            const lang = currentLang;
+            const screens = [
+                { id: 'reports', label: t('reports') }, { id: 'customers', label: t('customers') },
+                { id: 'products', label: t('products') }, { id: 'sales', label: t('sales') },
+                { id: 'purchases', label: t('purchases') }, { id: 'factory_balances', label: t('factory_balances') },
+                { id: 'employees', label: t('employees') }, { id: 'payments_screen', label: t('payments_screen') },
+                { id: 'backup', label: t('backup') }, { id: 'settings', label: t('settings') },
+                { id: 'system_management', label: lang==='ar'?'الحسابات والسجل':'Accounts & Log' }
+            ];
+            const accPermissions = acc ? (acc.permissions || []) : screens.map(s => s.id);
+            const html = `
+            <div class="modal fade" id="accountModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header">
+                <h5><i class="fas fa-user"></i> ${acc ? (lang==='ar'?'تعديل حساب':'Edit Account') : (lang==='ar'?'إضافة حساب':'Add Account')}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="accountId" value="${idx !== null ? idx : ''}">
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'اسم المستخدم':'Username'}</label>
+                    <input type="text" id="accUsername" class="form-control" value="${acc ? acc.username : ''}" ${acc && acc.role === 'admin' ? 'readonly' : ''}>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'كلمة المرور':'Password'}</label>
+                    <input type="password" id="accPassword" class="form-control" placeholder="${acc ? (lang==='ar'?'اتركه فارغاً لعدم التغيير':'Leave blank to keep current') : ''}">
+                </div>
+                ${!acc || acc.role !== 'admin' ? `
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'الدور':'Role'}</label>
+                    <select id="accRole" class="form-control">
+                        <option value="user" ${acc && acc.role === 'user' ? 'selected' : ''}>User</option>
+                        <option value="admin" ${acc && acc.role === 'admin' ? 'selected' : ''}>Admin</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="fw-bold">${lang==='ar'?'الصلاحيات (الشاشات المسموحة)':'Permissions (Allowed Screens)'}</label>
+                    <div style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                        ${screens.map(s => `
+                        <div class="form-check">
+                            <input class="form-check-input acc-permission" type="checkbox" value="${s.id}" id="perm_${s.id}" ${accPermissions.includes(s.id) ? 'checked' : ''}>
+                            <label class="form-check-label text-white" for="perm_${s.id}">${s.label}</label>
+                        </div>
+                        `).join('')}
+                    </div>
+                </div>` : ''}
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button>
+                <button class="btn btn-primary rounded-pill" onclick="saveAccount()">${t('save')}</button>
+            </div></div></div></div>`;
+            showModal(html, 'accountModal');
+        }
+
+        function saveAccount() {
+            const idx = document.getElementById('accountId').value;
+            const username = document.getElementById('accUsername').value.trim();
+            const password = document.getElementById('accPassword').value;
+            const lang = currentLang;
+            if (!username) return alert(lang === 'ar' ? 'أدخل اسم المستخدم' : 'Enter username');
+            
+            let role = 'user';
+            let permissions = [];
+            const roleEl = document.getElementById('accRole');
+            if (roleEl) {
+                role = roleEl.value;
+                document.querySelectorAll('.acc-permission:checked').forEach(cb => permissions.push(cb.value));
+            } else if (idx !== '') {
+                role = appData.accounts[parseInt(idx)].role;
+                permissions = appData.accounts[parseInt(idx)].permissions;
+            }
+
+            if (idx === '') {
+                if (!password) return alert(lang === 'ar' ? 'أدخل كلمة المرور' : 'Enter password');
+                if (appData.accounts.some(a => a.username === username)) return alert(lang === 'ar' ? 'اسم المستخدم موجود مسبقاً' : 'Username already exists');
+                appData.accounts.push({ username, password, role, permissions });
+                logActivity('إضافة', 'إدارة الحسابات', 'إضافة حساب جديد: ' + username);
+            } else {
+                const acc = appData.accounts[parseInt(idx)];
+                if (acc.role !== 'admin') {
+                    acc.username = username;
+                    acc.role = role;
+                    acc.permissions = permissions;
+                }
+                if (password) acc.password = password;
+                logActivity('تعديل', 'إدارة الحسابات', 'تعديل حساب: ' + acc.username);
+            }
+            saveData();
+            bootstrap.Modal.getInstance(document.getElementById('accountModal')).hide();
+            renderCurrentPage();
+            
+            if (currentUser && currentUser.username === username) {
+                updateSidebarPermissions(currentUser);
+            }
+        }
+
+        function deleteAccountRequest(idx) {
+            const lang = currentLang;
+            if (confirm(lang === 'ar' ? 'هل أنت متأكد من حذف هذا الحساب؟' : 'Are you sure you want to delete this account?')) {
+                const acc = appData.accounts[idx];
+                appData.accounts.splice(idx, 1);
+                logActivity('حذف', 'إدارة الحسابات', 'حذف حساب: ' + acc.username);
+                saveData();
+                renderCurrentPage();
+            }
+        }
+
+        document.querySelectorAll('[data-page]').forEach(link => { 
+            link.addEventListener('click', (e) => { 
+                e.preventDefault(); 
+                const page = link.getAttribute('data-page');
+                if (!page) return;
                 currentPage = page;
                 document.querySelectorAll('[data-page]').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
-                renderCurrentPage(); if (window.innerWidth < 768) toggleSidebar(); }); });
+                document.querySelectorAll('[data-page="' + page + '"]').forEach(l => l.classList.add('active'));
+                renderCurrentPage(); 
+                const sidebar = document.getElementById('sidebar');
+                if (window.innerWidth < 992 && sidebar && sidebar.classList.contains('show')) {
+                    toggleSidebar(); 
+                }
+            }); 
+        });
 
         document.addEventListener('DOMContentLoaded', function() { const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
             passwordModal.show();
             setTimeout(() => { document.getElementById('passwordInput').focus(); }, 500); });
         window.addEventListener('resize', () => { if (window.innerWidth >= 768) { document.getElementById('sidebar').classList.remove('show');
                 document.getElementById('sidebarOverlay').style.display = 'none'; } });
+
+        document.addEventListener('click', function() {
+            if (window.innerWidth <= 768 && !document.fullscreenElement) {
+                try { document.documentElement.requestFullscreen(); } catch(e){}
+            }
+        }, { once: true });
+        document.addEventListener('touchstart', function() {
+            if (window.innerWidth <= 768 && !document.fullscreenElement) {
+                try { document.documentElement.requestFullscreen(); } catch(e){}
+            }
+        }, { once: true });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js">
     </script>
