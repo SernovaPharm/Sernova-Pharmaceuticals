@@ -3180,7 +3180,7 @@ function sharePDF() {
                         filteredProd = filteredProd.filter(p => p.name.toLowerCase().includes(term) || (p.batchNumber || '').toLowerCase().includes(term)); }
                     if (selectedProduct) {
                         const productInvoices = appData.salesInvoices.filter(inv => inv.items.some(item => item.productId === selectedProduct.id));
-                        const soldQty = productInvoices.reduce((s, inv) => s + inv.items.filter(item => item.productId === selectedProduct.id).reduce((si, item) => si + item.quantity, 0), 0);
+                        const soldQty = (selectedProduct.initialQuantity || selectedProduct.quantity) - selectedProduct.quantity;
                         let totalProductSales = 0; let totalProductPaid = 0; let totalProductDue = 0;
                         productInvoices.forEach(inv => { const productItems = inv.items.filter(item => item.productId === selectedProduct.id); const productTotalInInv = productItems.reduce((s, item) => s + (item.totalAfterDiscount || item.total), 0); const invTotal = inv.total || 1; const share = invTotal > 0 ? productTotalInInv / invTotal : 0;
                             totalProductSales += productTotalInInv;
