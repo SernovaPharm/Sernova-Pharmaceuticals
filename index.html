@@ -4652,7 +4652,7 @@ function sharePDF() {
                 const prodColors = ['rgba(0,212,255,0.85)','rgba(123,47,247,0.85)','rgba(0,230,118,0.85)','rgba(255,145,0,0.85)','rgba(255,68,68,0.85)','rgba(233,30,99,0.85)','rgba(0,200,83,0.85)','rgba(156,39,176,0.85)'];
                 window.mySalesByProductChart = new Chart(prodCanvas.getContext('2d'), {
                     type: 'doughnut',
-                    data: { labels: productChartData.map(p => p.name), datasets: [{ data: productChartData.map(p => p.qty), backgroundColor: prodColors.slice(0, productChartData.length), borderColor: 'rgba(26,26,46,0.4)', borderWidth: 2 }] },
+                    data: { labels: productChartData.map(p => p.name), datasets: [{ data: productChartData.map(p => p.qty), backgroundColor: prodColors.slice(0, productChartData.length), borderColor: '#000000', borderWidth: 4 }] },
                     options: { responsive: true, maintainAspectRatio: false, cutout: '55%', plugins: { legend: { position: 'bottom', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 9, weight: 'bold' }, padding: 8, boxWidth: 8 } }, tooltip: { bodyFont: { family: 'Tajawal', size: 11 }, callbacks: { label: function(c) { const p = productChartData[c.dataIndex]; return ` ${p.name}: ${p.qty} ${lang==='ar'?'علبة':'boxes'}`; } } } } }
                 });
             }
@@ -4675,11 +4675,15 @@ function sharePDF() {
                 if (!ph) repCanvas.parentNode.insertAdjacentHTML('beforeend', `<div class="chart-placeholder text-center text-white-50 py-5"><i class="fas fa-user-tie fa-2x mb-2" style="color:rgba(255,255,255,0.15);"></i><br>${lang==='ar'?'لا توجد بيانات':'No data'}</div>`);
             } else {
                 repCanvas.style.display = 'block'; const ph = repCanvas.parentNode.querySelector('.chart-placeholder'); if (ph) ph.remove();
-                const repBarColors = repChartData.map((r, i) => `hsla(${(i * 35) % 280 + 220}, 70%, 55%, 0.8)`);
-                window.mySalesByRepChart = new Chart(repCanvas.getContext('2d'), {
+                const repCtx2 = repCanvas.getContext('2d');
+                const repGrad2 = repCtx2.createLinearGradient(0, 0, 0, 280);
+                repGrad2.addColorStop(0, 'rgba(0,212,255,0.5)');
+                repGrad2.addColorStop(0.6, 'rgba(0,212,255,0.1)');
+                repGrad2.addColorStop(1, 'rgba(0,212,255,0.0)');
+                window.mySalesByRepChart = new Chart(repCtx2, {
                     type: 'bar',
-                    data: { labels: repChartData.map(r => r.name), datasets: [{ label: lang==='ar'?'الكمية (علب)':'Qty (boxes)', data: repChartData.map(r => r.qty), backgroundColor: repBarColors, borderColor: repBarColors.map(c => c.replace('0.8','1')), borderWidth: 1, borderRadius: 8, barPercentage: 0.65 }] },
-                    options: { indexAxis: 'y', responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { bodyFont: { family: 'Tajawal', size: 11 }, callbacks: { label: function(c) { return ` ${c.dataset.label}: ${c.parsed.x} ${lang==='ar'?'علبة':'boxes'}`; } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#a0a0b8', font: { family: 'Tajawal', size: 9 } } }, y: { grid: { display: false }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' } } } } }
+                    data: { labels: repChartData.map(r => r.name), datasets: [{ label: lang==='ar'?'الكمية (علب)':'Qty (boxes)', data: repChartData.map(r => r.qty), backgroundColor: repGrad2, borderColor: '#00d4ff', borderWidth: 1.5, borderRadius: 6, barPercentage: 0.55 }] },
+                    options: { responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false }, plugins: { legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' }, padding: 14, usePointStyle: true, boxWidth: 8 } }, datalabels: { display: true, color: '#00d4ff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: function(v) { return v > 0 ? v : ''; } }, tooltip: { bodyFont: { family: 'Tajawal', size: 11 }, titleFont: { family: 'Tajawal', size: 12, weight: 'bold' }, backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 12, cornerRadius: 12, callbacks: { label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.y + ' ' + (lang==='ar'?'علبة':'boxes'); } } } }, scales: { x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' } } }, y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#a0a0b8', font: { family: 'Tajawal', size: 9 } }, title: { display: true, text: lang==='ar'?'عدد العلب':'Qty (boxes)', color: '#a0a0c0', font: { family: 'Tajawal', size: 10 } }, beginAtZero: true } } }
                 });
             }
             // --- Rep Ranking ---
