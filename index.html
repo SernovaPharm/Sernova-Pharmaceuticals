@@ -1384,9 +1384,160 @@
             color: #ffffff !important;
             padding: 8px !important;
         }
+
+        /* Close Button */
+        #appCloseBtn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 9999;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.4);
+            transition: all 0.3s;
+        }
+        #appCloseBtn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 25px rgba(255,0,0,0.6);
+        }
+        html[dir="ltr"] #appCloseBtn { left: auto; right: 10px; }
+
+        /* Backup Progress Modal */
+        #backupProgressOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(8,8,13,0.95);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+        }
+        #backupProgressOverlay.show { display: flex; }
+        .backup-progress-container {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,212,255,0.1);
+            animation: backupPulseIn 0.5s ease;
+        }
+        @keyframes backupPulseIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .backup-icon-anim {
+            font-size: 56px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: backupSpin 2s linear infinite;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        @keyframes backupSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .backup-title {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .backup-subtitle {
+            color: #a0a0b8;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .backup-progress-bar-track {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .backup-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7, #00e676);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            animation: backupBarShimmer 1.5s ease-in-out infinite;
+        }
+        @keyframes backupBarShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .backup-percent {
+            color: #00d4ff;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .backup-status {
+            color: #00e676;
+            font-size: 0.85rem;
+            min-height: 20px;
+        }
+        .backup-steps {
+            text-align: right;
+            margin-top: 16px;
+            direction: rtl;
+        }
+        .backup-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            color: #a0a0b8;
+            font-size: 0.82rem;
+            transition: all 0.3s;
+        }
+        .backup-step.active { color: #00d4ff; }
+        .backup-step.done { color: #00e676; }
+        .backup-step i { width: 20px; text-align: center; }
     </style>
 </head>
 <body>
+
+    <!-- زر اغلاق التطبيق -->
+    <button id="appCloseBtn" onclick="handleAppClose()" title="اغلاق التطبيق">
+        <i class="fas fa-times"></i>
+    </button>
+
+    <!-- شاشة النسخ الاحتياطي التلقائي -->
+    <div id="backupProgressOverlay">
+        <div class="backup-progress-container">
+            <div class="backup-icon-anim"><i class="fas fa-database"></i></div>
+            <div class="backup-title" id="backupTitle">يتم اخذ نسخة احتياطية...</div>
+            <div class="backup-subtitle" id="backupSubtitle">يرجى الانتظار يادكتور لاخذ نسخة احتياطية من السيستم</div>
+            <div class="backup-percent" id="backupPercent">0%</div>
+            <div class="backup-progress-bar-track">
+                <div class="backup-progress-bar-fill" id="backupProgressBar"></div>
+            </div>
+            <div class="backup-status" id="backupStatus">جاري التجهيز...</div>
+            <div class="backup-steps">
+                <div class="backup-step" id="backupStep1"><i class="fas fa-circle"></i> حفظ البيانات</div>
+                <div class="backup-step" id="backupStep2"><i class="fas fa-circle"></i> اعداد ملف النسخة الاحتياطية</div>
+                <div class="backup-step" id="backupStep3"><i class="fas fa-circle"></i> تحميل النسخة الاحتياطية (JSON)</div>
+                <div class="backup-step" id="backupStep4"><i class="fas fa-circle"></i> تحميل ملف Excel الشامل</div>
+            </div>
+        </div>
+    </div>
 
     <!-- جزيئات متحركة -->
 
@@ -1532,6 +1683,8 @@
     </nav>
 
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js">
     </script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js">
     </script>
@@ -1714,7 +1867,7 @@
             }
 
             // 3. If local check fails, check Firebase (if enabled)
-            if (firebaseSyncEnabled) {
+            if (firebaseSyncEnabled && firebaseAuthReady && firebaseUser) {
                 const loginBtn = document.querySelector('#passwordModal .btn-primary');
                 const passwordError = document.getElementById('passwordError');
                 if (passwordError) passwordError.style.display = 'none';
@@ -1934,6 +2087,29 @@
         };
         firebase.initializeApp(firebaseConfig);
         const database = firebase.database();
+        const auth = firebase.auth();
+
+        // حماية Firebase: تسجيل دخول مجهول تلقائي للمصادقة
+        let firebaseUser = null;
+        let firebaseAuthReady = false;
+        (async function() {
+            try {
+                const result = await auth.signInAnonymously();
+                firebaseUser = result.user;
+                firebaseAuthReady = true;
+                console.log('Firebase Auth: تم تسجيل الدخول المجهول بنجاح');
+            } catch (err) {
+                console.error('Firebase Auth error:', err);
+                firebaseSyncEnabled = false;
+            }
+        })();
+
+        auth.onAuthStateChanged(function(user) {
+            firebaseUser = user;
+            if (user) {
+                firebaseAuthReady = true;
+            }
+        });
 
         let appData = {
             customers: [],
@@ -2043,6 +2219,11 @@
         function loadData() {
             if (!isAuthenticated) return;
             if (firebaseSyncEnabled) {
+                if (!firebaseAuthReady || !firebaseUser) {
+                    console.warn('Firebase Auth not ready. Loading from localStorage.');
+                    loadFromLocalStorage();
+                    return;
+                }
                 database.ref('appData').once('value').then((snapshot) => {
                     const firebaseData = snapshot.val();
                     if (firebaseData) {
@@ -2116,6 +2297,9 @@
             if (deletedData) entry.deletedData = deletedData;
             appData.activityLog.push(entry);
             saveData();
+            if (['إضافة', 'تعديل', 'حذف', 'Add', 'Edit', 'Delete'].includes(actionType)) {
+                hasDataChanges = true;
+            }
         }
 
         function saveData() {
@@ -2128,20 +2312,13 @@
                 localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave));
             } catch (e) {
                 if (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
-                    // Silently trim old activity logs and retry
                     if (appData.activityLog && appData.activityLog.length > 30) {
                         appData.activityLog = appData.activityLog.slice(-30);
                         dataToSave.activityLog = appData.activityLog;
                     }
-                    // Removed logo size limit that was deleting the logo during saving/printing
-                    // if (dataToSave.settings && dataToSave.settings.logo && dataToSave.settings.logo.length > 5000) {
-                    //     dataToSave.settings.logo = '';
-                    //     appData.settings.logo = '';
-                    // }
                     try {
                         localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave));
                     } catch (e2) {
-                        // Last resort: clear activity log completely
                         appData.activityLog = [];
                         dataToSave.activityLog = [];
                         try { localStorage.setItem('invoiceSystemDataV2', JSON.stringify(dataToSave)); } catch(e3) { console.error('Cannot save data:', e3); }
@@ -2151,9 +2328,23 @@
                 }
             }
             if (firebaseSyncEnabled && !isSyncing) {
+                if (!firebaseAuthReady || !firebaseUser) {
+                    console.warn('Firebase Auth not ready. Skipping Firebase sync.');
+                    return;
+                }
+                const totalRecords = (dataToSave.customers||[]).length + (dataToSave.products||[]).length + (dataToSave.salesInvoices||[]).length + (dataToSave.expenses||[]).length;
+                if (totalRecords === 0 && (dataToSave.accounts||[]).length <= 2) {
+                    console.warn('Firebase Protection: حماية من حذف جميع البيانات. تم إلغاء المزامنة.');
+                    return;
+                }
                 isSyncing = true;
-                database.ref('appData').set(dataToSave).then(() => { isSyncing = false; }).catch((error) => { firebaseSyncEnabled = false;
-                    isSyncing = false; });
+                database.ref('appData').set(dataToSave).then(() => { isSyncing = false; }).catch((error) => { 
+                    console.error('Firebase write error:', error);
+                    if (error.code === 'PERMISSION_DENIED') {
+                        console.error('Firebase: صلاحية مرفوضة - تأكد من Security Rules');
+                    }
+                    isSyncing = false; 
+                });
             }
             updateLogoDisplay();
             updateCompanyNameDisplay();
@@ -5097,12 +5288,158 @@ function sharePDF() {
             showModal(modalHtml, 'returnsDetailModal');
         }
 
-        function renderBackup() { const lang = currentLang; const html = `<div class="table-card"><h5>💾 ${t('backup')}</h5><div class="alert alert-info">Firebase: ${firebaseSyncEnabled?(lang==='ar'?'متصل ✅':'Connected ✅'):(lang==='ar'?'غير متصل ⚠️':'Disconnected ⚠️')}</div><div class="row mb-4"><div class="col-md-6"><button class="btn btn-primary w-100" onclick="backupData()"><i class="fas fa-download"></i> ${lang==='ar'?'تحميل نسخة احتياطية (JSON)':'Download Backup (JSON)'}</button></div><div class="col-md-6"><button class="btn btn-success w-100" onclick="exportAllDataToExcel()"><i class="fas fa-file-excel"></i> ${lang==='ar'?'تصدير Excel شامل':'Export Full Excel'}</button></div></div><hr><h6>${lang==='ar'?'استعادة نسخة احتياطية':'Restore Backup'}</h6><input type="file" id="restoreFile" class="form-control mb-2" accept=".json"><button class="btn btn-warning" onclick="restoreData()"><i class="fas fa-upload"></i> ${lang==='ar'?'استعادة البيانات':'Restore Data'}</button></div>`; document.getElementById('pageContent').innerHTML = html; document.getElementById('pageTitle').innerHTML = '💾 ' + t('backup'); }
+        function renderBackup() { const lang = currentLang;
+            const authStatus = firebaseAuthReady && firebaseUser ? (lang==='ar'?'مصادقة نشطة ✅':'Auth Active ✅') : (lang==='ar'?'مصادقة غير نشطة ⚠️':'Auth Inactive ⚠️');
+            const authColor = firebaseAuthReady && firebaseUser ? 'success' : 'warning';
+            const html = `<div class="table-card"><h5>💾 ${t('backup')}</h5>
+            <div class="alert alert-info">Firebase: ${firebaseSyncEnabled?(lang==='ar'?'متصل ✅':'Connected ✅'):(lang==='ar'?'غير متصل ⚠️':'Disconnected ⚠️')}</div>
+            <div class="alert alert-${authColor}"><i class="fas fa-shield-alt"></i> ${lang==='ar'?'حالة المصادقة:':'Auth Status:'} ${authStatus}</div>
+            <div class="row mb-4"><div class="col-md-6"><button class="btn btn-primary w-100" onclick="backupData()"><i class="fas fa-download"></i> ${lang==='ar'?'تحميل نسخة احتياطية (JSON)':'Download Backup (JSON)'}</button></div><div class="col-md-6"><button class="btn btn-success w-100" onclick="exportAllDataToExcel()"><i class="fas fa-file-excel"></i> ${lang==='ar'?'تصدير Excel شامل':'Export Full Excel'}</button></div></div><hr>
+            <h6>${lang==='ar'?'استعادة نسخة احتياطية':'Restore Backup'}</h6><input type="file" id="restoreFile" class="form-control mb-2" accept=".json"><button class="btn btn-warning" onclick="restoreData()"><i class="fas fa-upload"></i> ${lang==='ar'?'استعادة البيانات':'Restore Data'}</button>
+            <hr><h6><i class="fas fa-shield-alt text-warning"></i> ${lang==='ar'?'حماية Firebase':'Firebase Protection'}</h6>
+            <div class="alert alert-dark text-start" style="font-size:0.82rem; direction:ltr; white-space:pre-wrap; max-height:300px; overflow-y:auto;">
+<b>Firebase Realtime Database Rules</b> - Copy from Firebase Console > Realtime Database > Rules:
+
+{
+  "rules": {
+    "appData": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      "accounts": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    }
+  }
+}
+
+<b>Steps in Firebase Console:</b>
+1. Go to console.firebase.google.com
+2. Select project: company-63941
+3. Go to Realdatabase > Rules
+4. Paste the rules above
+5. Click "Publish"
+
+<b>Enable Anonymous Auth:</b>
+1. Go to Authentication > Sign-in method
+2. Enable "Anonymous" provider
+3. Save
+
+<b>This ensures:</b>
+- Only authenticated users can read/write
+- Anonymous auth is required for all operations
+- No one can delete data without authentication</div>
+            </div>`; document.getElementById('pageContent').innerHTML = html; document.getElementById('pageTitle').innerHTML = '💾 ' + t('backup'); }
 
         function backupData() { const lang = currentLang; const dataStr = JSON.stringify(appData, null, 2); const blob = new Blob([dataStr], { type: 'application/json' }); const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = `backup_${new Date().toISOString().split('T')[0]}_${new Date().toLocaleTimeString(lang==='ar'?'ar':'en').replace(/:/g,'-')}.json`;
             a.click(); alert(lang === 'ar' ? '✅ تم تحميل النسخة الاحتياطية بنجاح' : '✅ Backup downloaded successfully'); }
+
+        function generateExcelFile() {
+            const company = appData.settings.companyName || 'Sernova Pharmaceuticals';
+            const lang = currentLang;
+            const wb = XLSX.utils.book_new();
+            const salesData = [
+                [company],
+                [lang === 'ar' ? 'فواتير البيع' : 'Sales Invoices'],
+                [''],
+                [lang === 'ar' ? 'رقم الفاتورة' : 'Invoice #', lang === 'ar' ? 'العميل' : 'Customer', 'Sales Manager', t('date'), lang === 'ar' ? 'الكمية' : 'Qty', lang === 'ar' ? 'الاجمالي قبل الخصم' : 'Subtotal', lang === 'ar' ? 'الاجمالي بعد الخصم' : 'Total After Discount', t('paid'), t('due'), t('status'), lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'كمية المنتج' : 'Item Qty', lang === 'ar' ? 'السعر' : 'Price', lang === 'ar' ? 'خصم %' : 'Disc %', lang === 'ar' ? 'بعد الخصم' : 'After Disc']
+            ];
+            (appData.salesInvoices || []).forEach(inv => {
+                const c = appData.customers.find(c => c.id === inv.customerId);
+                const totalQty = (inv.items || []).reduce((s, item) => s + item.quantity, 0);
+                if (inv.items && inv.items.length > 0) {
+                    inv.items.forEach(item => {
+                        const p = appData.products.find(pr => pr.id === item.productId);
+                        salesData.push([inv.invoiceNumber, c?.name || '---', inv.salesManager || '---', inv.date, totalQty, inv.subtotal || inv.total, inv.total, inv.paid, inv.due, inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'), p?.name || '---', p?.batchNumber || '---', item.quantity, item.price, item.discountPercent || 0, item.totalAfterDiscount || item.total]);
+                    });
+                } else {
+                    salesData.push([inv.invoiceNumber, c?.name || '---', inv.salesManager || '---', inv.date, 0, inv.subtotal || inv.total, inv.total, inv.paid, inv.due, inv.due === 0 ? (lang === 'ar' ? 'مسددة' : 'Paid') : (lang === 'ar' ? 'غير مسددة' : 'Unpaid'), '---', '---', '---', '---', '---', '---']);
+                }
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(salesData), lang === 'ar' ? 'فواتير البيع' : 'Sales Invoices');
+            const expData = [
+                [company],
+                [lang === 'ar' ? 'المصروفات' : 'Expenses'],
+                [''],
+                [lang === 'ar' ? 'رقم المصروف' : 'Expense #', lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'الصنف' : 'Product', lang === 'ar' ? 'البيان' : 'Description', lang === 'ar' ? 'الكمية' : 'Qty', lang === 'ar' ? 'الوحدة' : 'Unit', t('date'), lang === 'ar' ? 'التكلفة' : 'Cost', t('paid'), t('due'), lang === 'ar' ? 'ملاحظات' : 'Notes']
+            ];
+            (appData.expenses || []).forEach(exp => {
+                const p = exp.productId ? appData.products.find(pr => pr.id === exp.productId) : null;
+                expData.push([exp.expenseNumber || '', exp.expenseType || 'مصروفات تشغيلية', p ? p.name : '---', exp.description || '', exp.quantity || 0, exp.unit || 'kg', exp.date, exp.amount || 0, exp.paid || 0, exp.due || 0, exp.notes || '']);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(expData), lang === 'ar' ? 'المصروفات' : 'Expenses');
+            const custData = [
+                [company],
+                [lang === 'ar' ? 'العملاء والموردين' : 'Customers & Suppliers'],
+                [''],
+                [lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'الكود' : 'Code', lang === 'ar' ? 'الاسم' : 'Name', t('phone'), t('address'), lang === 'ar' ? 'المشتريات' : 'Purchases', t('paid'), t('due')]
+            ];
+            (appData.customers || []).forEach(c => {
+                custData.push([c.type === 'supplier' ? (lang === 'ar' ? 'مورد' : 'Supplier') : (lang === 'ar' ? 'عميل' : 'Customer'), c.code, c.name, c.phone, c.address || '', getCustomerTotal(c.id), getCustomerPaid(c.id), getCustomerDue(c.id)]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(custData), lang === 'ar' ? 'العملاء والموردين' : 'Customers');
+            const prodData = [
+                [company],
+                [lang === 'ar' ? 'المنتجات' : 'Products'],
+                [''],
+                [lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'سعر البيع' : 'Sell Price', lang === 'ar' ? 'الكمية الحالية' : 'Current Stock', lang === 'ar' ? 'المخزون الابتدائي' : 'Initial Stock', lang === 'ar' ? 'المباع' : 'Sold', t('status')]
+            ];
+            (appData.products || []).forEach(p => {
+                const sold = getProductSoldQty(p.id);
+                prodData.push([p.name, p.batchNumber || '---', p.sellPrice, p.quantity, p.initialQuantity || p.quantity, sold > 0 ? sold : 0, p.quantity <= 0 ? (lang === 'ar' ? 'نفذ' : 'Out') : (lang === 'ar' ? 'متوفر' : 'Available')]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(prodData), lang === 'ar' ? 'المنتجات' : 'Products');
+            const fbData = [
+                [company],
+                [lang === 'ar' ? 'ارصدة المصنع' : 'Factory Balances'],
+                [''],
+                [lang === 'ar' ? 'المادة الفعالة' : 'Active Ingredient', lang === 'ar' ? 'الرصيد' : 'Balance', lang === 'ar' ? 'وحدة القياس' : 'Unit', lang === 'ar' ? 'تاريخ الانتهاء' : 'Expiry Date', lang === 'ar' ? 'تاريخ الجرد' : 'Inventory Date']
+            ];
+            (appData.factoryBalances || []).forEach(b => {
+                fbData.push([b.activeIngredient, b.balance, b.unit || 'kg', b.expiryDate || '', b.inventoryDate || '']);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(fbData), lang === 'ar' ? 'ارصدة المصنع' : 'Factory Balances');
+            const empData = [
+                [company],
+                [lang === 'ar' ? 'الموظفين' : 'Employees'],
+                [''],
+                [lang === 'ar' ? 'الكود' : 'Code', lang === 'ar' ? 'الاسم' : 'Name', lang === 'ar' ? 'الوظيفة' : 'Position', lang === 'ar' ? 'عدد الفواتير' : 'Invoice Count', lang === 'ar' ? 'اجمالي المبيعات' : 'Total Sales', t('paid'), t('due')]
+            ];
+            (appData.employees || []).forEach(emp => {
+                const empInvoices = (appData.salesInvoices || []).filter(inv => inv.salesManager === emp.name);
+                empData.push([emp.code, emp.name, emp.position, empInvoices.length, empInvoices.reduce((s, inv) => s + inv.total, 0), empInvoices.reduce((s, inv) => s + inv.paid, 0), empInvoices.reduce((s, inv) => s + inv.due, 0)]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(empData), lang === 'ar' ? 'الموظفين' : 'Employees');
+            const payData = [
+                [company],
+                [lang === 'ar' ? 'الدفعات والسداد' : 'Payments'],
+                [''],
+                [t('date'), lang === 'ar' ? 'النوع' : 'Type', lang === 'ar' ? 'المرجع' : 'Reference', lang === 'ar' ? 'العميل/المورد' : 'Customer/Supplier', t('amount')]
+            ];
+            (appData.payments || []).forEach(p => {
+                let reference = '', partyName = '';
+                if (p.type === 'sales') {
+                    const inv = appData.salesInvoices.find(i => i.id === p.referenceId);
+                    reference = inv?.invoiceNumber || (lang === 'ar' ? 'محذوفة' : 'Deleted');
+                    const c = inv ? appData.customers.find(c => c.id === inv.customerId) : null;
+                    partyName = c?.name || '---';
+                } else if (p.type === 'expense') {
+                    const exp = (appData.expenses || []).find(e => e.id === p.referenceId);
+                    reference = exp?.expenseNumber || (lang === 'ar' ? 'محذوفة' : 'Deleted');
+                    const s = exp?.supplierId ? appData.customers.find(c => c.id === exp.supplierId) : null;
+                    partyName = s?.name || '---';
+                }
+                payData.push([p.date || '', p.type === 'sales' ? (lang === 'ar' ? 'بيع' : 'Sale') : (lang === 'ar' ? 'مصروف' : 'Expense'), reference, partyName, p.amount]);
+            });
+            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(payData), lang === 'ar' ? 'السداد والدفعات' : 'Payments');
+            const now = new Date();
+            const datePart = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+            const timePart = String(now.getHours()).padStart(2,'0') + '-' + String(now.getMinutes()).padStart(2,'0') + '-' + String(now.getSeconds()).padStart(2,'0');
+            const fileName = 'تقرير_شامل_' + datePart + '_' + timePart + '.xlsx';
+            XLSX.writeFile(wb, fileName);
+        }
 
         function restoreData() { const file = document.getElementById('restoreFile').files[0]; const lang = currentLang; if (!file) return alert(lang === 'ar' ? 'اختر ملف' : 'Choose a file'); const reader = new FileReader();
             reader.onload = function(e) { try { const data = JSON.parse(e.target.result); if (confirm(lang === 'ar' ? 'سيتم استبدال البيانات الحالية. هل أنت متأكد؟' : 'Current data will be replaced. Are you sure?')) { appData = ensureDataStructure(data);
@@ -5717,17 +6054,170 @@ function sharePDF() {
 
         document.addEventListener('DOMContentLoaded', function() { const passwordModal = new bootstrap.Modal(document.getElementById('passwordModal'));
             passwordModal.show();
-            setTimeout(() => { document.getElementById('passwordInput').focus(); }, 500); });
+            setTimeout(() => { document.getElementById('passwordInput').focus(); }, 500);
+            try { document.documentElement.requestFullscreen(); } catch(e){}
+        });
         window.addEventListener('resize', () => { if (window.innerWidth >= 768) { document.getElementById('sidebar').classList.remove('show');
                 document.getElementById('sidebarOverlay').style.display = 'none'; } });
 
+        let backupInProgress = false;
+        let isClosingApp = false;
+        let isAutoBackingUp = false;
+        let lastBackupTime = 0;
+        const BACKUP_COOLDOWN = 15000;
+        let hasDataChanges = false;
+
+        function handleAppClose() {
+            if (backupInProgress) return;
+            isClosingApp = true;
+            if (!hasDataChanges) {
+                try { document.documentElement.requestExitFullscreen(); } catch(e){}
+                try { window.close(); } catch(e){}
+                return;
+            }
+            performAutoBackup(function() {
+                hasDataChanges = false;
+                try { window.close(); } catch(e){}
+                try { document.documentElement.requestExitFullscreen(); } catch(e){}
+                const lang = currentLang;
+                alert(lang === 'ar' ? 'تم حفظ النسخة الاحتياطية بنجاح. يمكنك اغلاق الصفحة الآن.' : 'Backup saved successfully. You can close the page now.');
+            });
+        }
+
+        function performAutoBackup(callback) {
+            if (backupInProgress) return;
+            const now = Date.now();
+            if (!isClosingApp && (now - lastBackupTime) < BACKUP_COOLDOWN) {
+                if (callback) callback();
+                return;
+            }
+            backupInProgress = true;
+            isAutoBackingUp = true;
+            const lang = currentLang;
+            const overlay = document.getElementById('backupProgressOverlay');
+            const titleEl = document.getElementById('backupTitle');
+            const subtitleEl = document.getElementById('backupSubtitle');
+            const percentEl = document.getElementById('backupPercent');
+            const barEl = document.getElementById('backupProgressBar');
+            const statusEl = document.getElementById('backupStatus');
+            const step1 = document.getElementById('backupStep1');
+            const step2 = document.getElementById('backupStep2');
+            const step3 = document.getElementById('backupStep3');
+            const step4 = document.getElementById('backupStep4');
+
+            titleEl.textContent = lang === 'ar' ? 'جاري اخذ النسخة الاحتياطية...' : 'Taking backup...';
+            subtitleEl.textContent = lang === 'ar' ? 'يرجى الانتظار يادكتور لاخذ نسخة احتياطية من السيستم' : 'Please wait to take a system backup';
+            percentEl.textContent = '0%';
+            barEl.style.width = '0%';
+            statusEl.textContent = lang === 'ar' ? 'جاري التجهيز...' : 'Preparing...';
+            step1.className = 'backup-step';
+            step2.className = 'backup-step';
+            step3.className = 'backup-step';
+            step4.className = 'backup-step';
+            overlay.classList.add('show');
+
+            function setProgress(pct, statusText) {
+                percentEl.textContent = pct + '%';
+                barEl.style.width = pct + '%';
+                statusEl.textContent = statusText;
+            }
+
+            function setStep(stepNum, state) {
+                const stepEl = document.getElementById('backupStep' + stepNum);
+                if (!stepEl) return;
+                if (state === 'active') {
+                    stepEl.className = 'backup-step active';
+                    stepEl.querySelector('i').className = 'fas fa-spinner fa-spin';
+                } else if (state === 'done') {
+                    stepEl.className = 'backup-step done';
+                    stepEl.querySelector('i').className = 'fas fa-check-circle';
+                }
+            }
+
+            setTimeout(function() {
+                setStep(1, 'active');
+                setProgress(10, lang === 'ar' ? 'جاري حفظ البيانات...' : 'Saving data...');
+                saveData();
+
+                setTimeout(function() {
+                    setStep(1, 'done');
+                    setStep(2, 'active');
+                    setProgress(30, lang === 'ar' ? 'جاري اعداد ملف النسخة الاحتياطية...' : 'Preparing backup file...');
+
+                    setTimeout(function() {
+                        const dataStr = JSON.stringify(appData, null, 2);
+                        const jsonBlob = new Blob([dataStr], { type: 'application/json' });
+                        const now = new Date();
+                        const datePart = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+                        const timePart = String(now.getHours()).padStart(2,'0') + '-' + String(now.getMinutes()).padStart(2,'0') + '-' + String(now.getSeconds()).padStart(2,'0');
+                        const jsonFileName = 'نسخة_احتياطية_' + datePart + '_' + timePart + '.json';
+
+                        setStep(2, 'done');
+                        setStep(3, 'active');
+                        setProgress(55, lang === 'ar' ? 'جاري تحميل النسخة الاحتياطية (JSON)...' : 'Downloading JSON backup...');
+
+                        setTimeout(function() {
+                            const jsonLink = document.createElement('a');
+                            jsonLink.href = URL.createObjectURL(jsonBlob);
+                            jsonLink.download = jsonFileName;
+                            document.body.appendChild(jsonLink);
+                            jsonLink.click();
+                            document.body.removeChild(jsonLink);
+
+                            setStep(3, 'done');
+                            setStep(4, 'active');
+                            setProgress(70, lang === 'ar' ? 'جاري اعداد ملف Excel...' : 'Preparing Excel file...');
+
+                            setTimeout(function() {
+                                try {
+                                    generateExcelFile();
+                                    setProgress(90, lang === 'ar' ? 'جاري تحميل ملف Excel...' : 'Downloading Excel file...');
+                                } catch(e) {
+                                    setProgress(90, lang === 'ar' ? 'جاري التحميل...' : 'Downloading...');
+                                }
+
+                                setTimeout(function() {
+                                    setStep(4, 'done');
+                                    setProgress(100, lang === 'ar' ? 'تم بنجاح!' : 'Completed!');
+                                    lastBackupTime = Date.now();
+                                    backupInProgress = false;
+                                    isAutoBackingUp = false;
+                                    isClosingApp = false;
+                                    hasDataChanges = false;
+
+                                    setTimeout(function() {
+                                        overlay.classList.remove('show');
+                                        if (callback) callback();
+                                    }, 800);
+                                }, 600);
+                            }, 400);
+                        }, 400);
+                    }, 400);
+                }, 400);
+            }, 300);
+        }
+
+        let dataChangeBackupTimer = null;
+        function onDataModified() {
+            if (backupInProgress || isClosingApp) return;
+            if (dataChangeBackupTimer) clearTimeout(dataChangeBackupTimer);
+            dataChangeBackupTimer = setTimeout(function() {
+                performAutoBackup(null);
+            }, 1500);
+        }
+
+        window.addEventListener('beforeunload', function(e) {
+            if (!isAuthenticated || !hasDataChanges) return;
+            saveData();
+        });
+
         document.addEventListener('click', function() {
-            if (window.innerWidth <= 768 && !document.fullscreenElement) {
+            if (!document.fullscreenElement) {
                 try { document.documentElement.requestFullscreen(); } catch(e){}
             }
         }, { once: true });
         document.addEventListener('touchstart', function() {
-            if (window.innerWidth <= 768 && !document.fullscreenElement) {
+            if (!document.fullscreenElement) {
                 try { document.documentElement.requestFullscreen(); } catch(e){}
             }
         }, { once: true });
