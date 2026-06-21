@@ -1390,7 +1390,7 @@
             position: fixed;
             top: 10px;
             left: 10px;
-            z-index: 9999;
+            z-index: 100000;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -6062,32 +6062,67 @@ function sharePDF() {
 
         let backupInProgress = false;
         let isClosingApp = false;
-        let isAutoBackingUp = false;
-        let lastBackupTime = 0;
-        const BACKUP_COOLDOWN = 15000;
         let hasDataChanges = false;
 
         function handleAppClose() {
             if (backupInProgress) return;
             isClosingApp = true;
             if (hasDataChanges) {
-                performAutoBackup(function() {
+                backupInProgress = true;
+                showCloseBackupOverlay();
+                setTimeout(function() {
+                    try {
+                        saveData();
+                        downloadJsonBackup();
+                        exportAllDataToExcel();
+                    } catch(e) { console.error('Backup error:', e); }
                     hasDataChanges = false;
-                    exitFullscreen();
-                });
+                    backupInProgress = false;
+                    isClosingApp = false;
+                    setTimeout(function() { exitFullscreen(); }, 500);
+                }, 300);
             } else {
                 exitFullscreen();
             }
         }
 
+        function showCloseBackupOverlay() {
+            const overlay = document.getElementById('backupProgressOverlay');
+            const lang = currentLang;
+            document.getElementById('backupTitle').textContent = lang === 'ar' ? 'جاري اخذ النسخة الاحتياطية...' : 'Taking backup...';
+            document.getElementById('backupSubtitle').textContent = lang === 'ar' ? 'يرجى الانتظار يادكتور لاخذ نسخة احتياطية من السيستم' : 'Please wait to take a system backup';
+            document.getElementById('backupPercent').textContent = '';
+            document.getElementById('backupProgressBar').style.width = '100%';
+            document.getElementById('backupProgressBar').style.background = 'linear-gradient(90deg, #00d4ff, #7b2ff7, #00e676)';
+            document.getElementById('backupStatus').textContent = lang === 'ar' ? 'جاري الحفظ والتحميل...' : 'Saving and downloading...';
+            document.getElementById('backupStep1').className = 'backup-step done';
+            document.getElementById('backupStep1').querySelector('i').className = 'fas fa-check-circle';
+            document.getElementById('backupStep2').className = 'backup-step done';
+            document.getElementById('backupStep2').querySelector('i').className = 'fas fa-check-circle';
+            document.getElementById('backupStep3').className = 'backup-step done';
+            document.getElementById('backupStep3').querySelector('i').className = 'fas fa-check-circle';
+            document.getElementById('backupStep4').className = 'backup-step done';
+            document.getElementById('backupStep4').querySelector('i').className = 'fas fa-check-circle';
+            overlay.classList.add('show');
+        }
+
+        function downloadJsonBackup() {
+            const dataStr = JSON.stringify(appData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const now = new Date();
+            const d = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+            const t = String(now.getHours()).padStart(2,'0') + '-' + String(now.getMinutes()).padStart(2,'0') + '-' + String(now.getSeconds()).padStart(2,'0');
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'نسخة_احتياطية_' + d + '_' + t + '.json';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         function exitFullscreen() {
-            isClosingApp = false;
-            backupInProgress = false;
-            isAutoBackingUp = false;
-            try {
-                var ov = document.getElementById('backupProgressOverlay');
-                if (ov) ov.classList.remove('show');
-            } catch(e){}
+            var ov = document.getElementById('backupProgressOverlay');
+            if (ov) ov.classList.remove('show');
             if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
                 if (document.exitFullscreen) { document.exitFullscreen(); }
                 else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
@@ -6096,126 +6131,9 @@ function sharePDF() {
             }
         }
 
-        function performAutoBackup(callback) {
-            if (backupInProgress) return;
-            const now = Date.now();
-            if (!isClosingApp && (now - lastBackupTime) < BACKUP_COOLDOWN) {
-                if (callback) callback();
-                return;
-            }
-            backupInProgress = true;
-            isAutoBackingUp = true;
-            const lang = currentLang;
-            const overlay = document.getElementById('backupProgressOverlay');
-            const titleEl = document.getElementById('backupTitle');
-            const subtitleEl = document.getElementById('backupSubtitle');
-            const percentEl = document.getElementById('backupPercent');
-            const barEl = document.getElementById('backupProgressBar');
-            const statusEl = document.getElementById('backupStatus');
-            const step1 = document.getElementById('backupStep1');
-            const step2 = document.getElementById('backupStep2');
-            const step3 = document.getElementById('backupStep3');
-            const step4 = document.getElementById('backupStep4');
 
-            titleEl.textContent = lang === 'ar' ? 'جاري اخذ النسخة الاحتياطية...' : 'Taking backup...';
-            subtitleEl.textContent = lang === 'ar' ? 'يرجى الانتظار يادكتور لاخذ نسخة احتياطية من السيستم' : 'Please wait to take a system backup';
-            percentEl.textContent = '0%';
-            barEl.style.width = '0%';
-            statusEl.textContent = lang === 'ar' ? 'جاري التجهيز...' : 'Preparing...';
-            step1.className = 'backup-step';
-            step2.className = 'backup-step';
-            step3.className = 'backup-step';
-            step4.className = 'backup-step';
-            overlay.classList.add('show');
-
-            function setProgress(pct, statusText) {
-                percentEl.textContent = pct + '%';
-                barEl.style.width = pct + '%';
-                statusEl.textContent = statusText;
-            }
-
-            function setStep(stepNum, state) {
-                const stepEl = document.getElementById('backupStep' + stepNum);
-                if (!stepEl) return;
-                if (state === 'active') {
-                    stepEl.className = 'backup-step active';
-                    stepEl.querySelector('i').className = 'fas fa-spinner fa-spin';
-                } else if (state === 'done') {
-                    stepEl.className = 'backup-step done';
-                    stepEl.querySelector('i').className = 'fas fa-check-circle';
-                }
-            }
-
-            setTimeout(function() {
-                setStep(1, 'active');
-                setProgress(10, lang === 'ar' ? 'جاري حفظ البيانات...' : 'Saving data...');
-                saveData();
-
-                setTimeout(function() {
-                    setStep(1, 'done');
-                    setStep(2, 'active');
-                    setProgress(30, lang === 'ar' ? 'جاري اعداد ملف النسخة الاحتياطية...' : 'Preparing backup file...');
-
-                    setTimeout(function() {
-                        const dataStr = JSON.stringify(appData, null, 2);
-                        const jsonBlob = new Blob([dataStr], { type: 'application/json' });
-                        const now = new Date();
-                        const datePart = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-                        const timePart = String(now.getHours()).padStart(2,'0') + '-' + String(now.getMinutes()).padStart(2,'0') + '-' + String(now.getSeconds()).padStart(2,'0');
-                        const jsonFileName = 'نسخة_احتياطية_' + datePart + '_' + timePart + '.json';
-
-                        setStep(2, 'done');
-                        setStep(3, 'active');
-                        setProgress(55, lang === 'ar' ? 'جاري تحميل النسخة الاحتياطية (JSON)...' : 'Downloading JSON backup...');
-
-                        setTimeout(function() {
-                            const jsonLink = document.createElement('a');
-                            jsonLink.href = URL.createObjectURL(jsonBlob);
-                            jsonLink.download = jsonFileName;
-                            document.body.appendChild(jsonLink);
-                            jsonLink.click();
-                            document.body.removeChild(jsonLink);
-
-                            setStep(3, 'done');
-                            setStep(4, 'active');
-                            setProgress(70, lang === 'ar' ? 'جاري اعداد ملف Excel...' : 'Preparing Excel file...');
-
-                            setTimeout(function() {
-                                try {
-                                    generateExcelFile();
-                                    setProgress(90, lang === 'ar' ? 'جاري تحميل ملف Excel...' : 'Downloading Excel file...');
-                                } catch(e) {
-                                    setProgress(90, lang === 'ar' ? 'جاري التحميل...' : 'Downloading...');
-                                }
-
-                                setTimeout(function() {
-                                    setStep(4, 'done');
-                                    setProgress(100, lang === 'ar' ? 'تم بنجاح!' : 'Completed!');
-                                    lastBackupTime = Date.now();
-                                    backupInProgress = false;
-                                    isAutoBackingUp = false;
-                                    isClosingApp = false;
-                                    hasDataChanges = false;
-
-                                    setTimeout(function() {
-                                        overlay.classList.remove('show');
-                                        if (callback) callback();
-                                    }, 800);
-                                }, 600);
-                            }, 400);
-                        }, 400);
-                    }, 400);
-                }, 400);
-            }, 300);
-        }
-
-        let dataChangeBackupTimer = null;
         function onDataModified() {
-            if (backupInProgress || isClosingApp) return;
-            if (dataChangeBackupTimer) clearTimeout(dataChangeBackupTimer);
-            dataChangeBackupTimer = setTimeout(function() {
-                performAutoBackup(null);
-            }, 1500);
+            hasDataChanges = true;
         }
 
         window.addEventListener('beforeunload', function(e) {
