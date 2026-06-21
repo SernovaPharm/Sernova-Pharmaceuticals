@@ -1450,6 +1450,10 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
         .backup-title {
             color: #fff;
             font-size: 1.2rem;
@@ -1935,6 +1939,8 @@
             updateDateTime();
             updateCompanyNameDisplay();
             updateSidebarPermissions();
+            setOnlineStatus(currentUser.username);
+            listenToOnlineUsers();
         }
 
         function showLoginError(customMessage) {
@@ -5307,8 +5313,12 @@ function sharePDF() {
       ".write": "auth != null",
       "accounts": {
         ".read": "auth != null",
-        ".write": "auth != null"
+        ".write": "auth != null && root.child('appData/accounts').child(auth.uid).child('role').val() === 'admin'"
       }
+    },
+    "onlineUsers": {
+      ".read": "auth != null",
+      ".write": "auth != null"
     }
   }
 }
@@ -5884,21 +5894,31 @@ function sharePDF() {
                         <thead>
                             <tr>
                                 <th>${lang==='ar'?'اسم المستخدم':'Username'}</th>
+                                <th>${lang==='ar'?'الحالة':'Status'}</th>
                                 <th>${lang==='ar'?'الدور':'Role'}</th>
                                 <th>${lang==='ar'?'الصلاحيات':'Permissions'}</th>
                                 <th>${t('actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${accounts.map((acc, idx) => `<tr>
+                            ${accounts.map((acc, idx) => {
+                                const status = getOnlineStatus(acc.username);
+                                const isOnline = status.online;
+                                const isMe = currentUser && currentUser.username === acc.username;
+                                const statusHtml = isOnline
+                                    ? `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#00e676;display:inline-block;box-shadow:0 0 8px rgba(0,230,118,0.6);animation:pulse 1.5s infinite;"></span><span style="color:#00e676;font-weight:700;">${lang==='ar'?'متصل':'Online'}${isMe ? (lang==='ar'?' (أنت)':' (You)') : ''}</span></span>`
+                                    : `<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:#666;display:inline-block;"></span><span style="color:#888;">${status.lastSeen ? (lang==='ar'?'آخر ظهور: ':'Last seen: ') + new Date(status.lastSeen).toLocaleString(lang==='ar'?'ar-EG':'en-US') : (lang==='ar'?'غير متصل':'Offline')}</span></span>`;
+                                return `<tr>
                                 <td><strong>${acc.username}</strong></td>
+                                <td>${statusHtml}</td>
                                 <td><span class="badge bg-${acc.role === 'admin' ? 'danger' : 'info'}">${acc.role}</span></td>
                                 <td>${(acc.permissions || []).map(p => t(p) || p).join(', ')}</td>
                                 <td>
                                     <button class="btn btn-sm btn-warning rounded-pill" onclick="showAccountModal(${idx})"><i class="fas fa-edit"></i></button>
                                     ${acc.role !== 'admin' ? `<button class="btn btn-sm btn-danger rounded-pill" onclick="deleteAccountRequest(${idx})"><i class="fas fa-trash"></i></button>` : ''}
                                 </td>
-                            </tr>`).join('') || `<tr><td colspan="4" class="text-center py-4">${lang==='ar'?'لا يوجد حسابات':'No accounts'}</td></tr>`}
+                            </tr>`;
+                            }).join('') || `<tr><td colspan="5" class="text-center py-4">${lang==='ar'?'لا يوجد حسابات':'No accounts'}</td></tr>`}
                         </tbody>
                     </table>
                 </div>
@@ -6067,6 +6087,7 @@ function sharePDF() {
         function handleAppClose() {
             if (backupInProgress) return;
             isClosingApp = true;
+            if (currentUser) setOfflineStatus(currentUser.username);
             if (hasDataChanges) {
                 backupInProgress = true;
                 showCloseBackupOverlay();
@@ -6136,9 +6157,64 @@ function sharePDF() {
             hasDataChanges = true;
         }
 
+        // === Online/Offline Tracking ===
+        let onlineUsersData = {};
+        let onlineUsersListener = null;
+
+        function setOnlineStatus(username) {
+            if (!firebaseAuthReady || !firebaseUser || !username) return;
+            const now = new Date().toISOString();
+            const statusRef = database.ref('onlineUsers/' + username.replace(/[.#$[\]]/g, '_'));
+            statusRef.set({
+                username: username,
+                online: true,
+                lastSeen: now,
+                loginTime: now
+            });
+            statusRef.onDisconnect().set({
+                username: username,
+                online: false,
+                lastSeen: new Date().toISOString()
+            });
+        }
+
+        function setOfflineStatus(username) {
+            if (!firebaseAuthReady || !firebaseUser || !username) return;
+            const statusRef = database.ref('onlineUsers/' + username.replace(/[.#$[\]]/g, '_'));
+            statusRef.set({
+                username: username,
+                online: false,
+                lastSeen: new Date().toISOString()
+            });
+        }
+
+        function listenToOnlineUsers() {
+            if (!firebaseAuthReady || !firebaseUser) return;
+            if (onlineUsersListener) return;
+            onlineUsersListener = database.ref('onlineUsers').on('value', function(snapshot) {
+                onlineUsersData = snapshot.val() || {};
+                if (document.getElementById('accountsContainer') || document.getElementById('accountsTable')) {
+                    renderAccounts(document.getElementById('accountsContainer') ? 'accountsContainer' : 'pageContent');
+                }
+            });
+        }
+
+        function getOnlineStatus(username) {
+            const key = username.replace(/[.#$[\]]/g, '_');
+            const data = onlineUsersData[key];
+            if (data && data.online === true) {
+                return { online: true, lastSeen: null };
+            } else if (data && data.lastSeen) {
+                return { online: false, lastSeen: data.lastSeen };
+            }
+            return { online: false, lastSeen: null };
+        }
+
         window.addEventListener('beforeunload', function(e) {
+            if (currentUser) setOfflineStatus(currentUser.username);
             if (!isAuthenticated || !hasDataChanges) return;
             saveData();
+            if (currentUser) setOfflineStatus(currentUser.username);
         });
 
         document.addEventListener('click', function() {
