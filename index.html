@@ -6070,14 +6070,25 @@ function sharePDF() {
         function handleAppClose() {
             if (backupInProgress) return;
             isClosingApp = true;
-            if (!hasDataChanges) {
-                try { document.documentElement.requestExitFullscreen(); } catch(e){}
-                return;
+            if (hasDataChanges) {
+                performAutoBackup(function() {
+                    hasDataChanges = false;
+                    finishClose();
+                });
+            } else {
+                finishClose();
             }
-            performAutoBackup(function() {
-                hasDataChanges = false;
-                try { document.documentElement.requestExitFullscreen(); } catch(e){}
-            });
+        }
+
+        function finishClose() {
+            isClosingApp = false;
+            backupInProgress = false;
+            isAutoBackingUp = false;
+            try {
+                var ov = document.getElementById('backupProgressOverlay');
+                if (ov) ov.classList.remove('show');
+            } catch(e){}
+            try { document.documentElement.requestExitFullscreen(); } catch(e){}
         }
 
         function performAutoBackup(callback) {
