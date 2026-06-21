@@ -6072,15 +6072,11 @@ function sharePDF() {
             isClosingApp = true;
             if (!hasDataChanges) {
                 try { document.documentElement.requestExitFullscreen(); } catch(e){}
-                try { window.close(); } catch(e){}
                 return;
             }
             performAutoBackup(function() {
                 hasDataChanges = false;
-                try { window.close(); } catch(e){}
                 try { document.documentElement.requestExitFullscreen(); } catch(e){}
-                const lang = currentLang;
-                alert(lang === 'ar' ? 'تم حفظ النسخة الاحتياطية بنجاح. يمكنك اغلاق الصفحة الآن.' : 'Backup saved successfully. You can close the page now.');
             });
         }
 
