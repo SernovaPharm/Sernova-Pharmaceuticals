@@ -6073,14 +6073,14 @@ function sharePDF() {
             if (hasDataChanges) {
                 performAutoBackup(function() {
                     hasDataChanges = false;
-                    finishClose();
+                    exitFullscreen();
                 });
             } else {
-                finishClose();
+                exitFullscreen();
             }
         }
 
-        function finishClose() {
+        function exitFullscreen() {
             isClosingApp = false;
             backupInProgress = false;
             isAutoBackingUp = false;
@@ -6088,7 +6088,12 @@ function sharePDF() {
                 var ov = document.getElementById('backupProgressOverlay');
                 if (ov) ov.classList.remove('show');
             } catch(e){}
-            try { document.documentElement.requestExitFullscreen(); } catch(e){}
+            if (document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement) {
+                if (document.exitFullscreen) { document.exitFullscreen(); }
+                else if (document.webkitExitFullscreen) { document.webkitExitFullscreen(); }
+                else if (document.mozCancelFullScreen) { document.mozCancelFullScreen(); }
+                else if (document.msExitFullscreen) { document.msExitFullscreen(); }
+            }
         }
 
         function performAutoBackup(callback) {
