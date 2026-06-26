@@ -4725,9 +4725,15 @@ function sharePDF() {
             var elA = document.getElementById('chkShowSalesAmount'); if (elA && elA.checked) items.push({text: lng==='ar'?'اجمالي المبيعات':'Total Sales', color:'#00e676'});
             var elE = document.getElementById('chkShowExpenses'); if (elE && elE.checked) items.push({text: lng==='ar'?'المصروفات':'Expenses', color:'#ff9100'});
             var elP = document.getElementById('chkShowPayments'); if (elP && elP.checked) items.push({text: lng==='ar'?'السداد':'Payments', color:'#7b2ff7'});
+            var filters = window.salesChartFilters || {};
+            var filterTexts = [];
+            if (filters.year && filters.year !== 'all' && filters.year !== '') filterTexts.push((lng==='ar'?'السنة':'Year') + ': ' + filters.year);
+            if (filters.productId) { var sel = document.querySelector('#chartProductFilter option:checked'); if (sel && sel.value) filterTexts.push((lng==='ar'?'الصنف':'Product') + ': ' + sel.textContent.split(' - ')[0]); }
+            if (filters.salesManager) filterTexts.push((lng==='ar'?'المندوب':'Rep') + ': ' + filters.salesManager);
+            if (filters.customerId) { var selC = document.querySelector('#chartCustomerFilter option:checked'); if (selC && selC.value) filterTexts.push((lng==='ar'?'العميل':'Customer') + ': ' + selC.textContent.split(' (')[0]); }
             var canvas = window.mySalesChart.canvas;
             var exportCanvas = document.createElement('canvas');
-            var titleHeight = 80;
+            var titleHeight = filterTexts.length > 0 ? 110 : 80;
             exportCanvas.width = canvas.width;
             exportCanvas.height = canvas.height + titleHeight;
             var ectx = exportCanvas.getContext('2d');
@@ -4737,7 +4743,7 @@ function sharePDF() {
                 var totalWidth = 0;
                 var parts = [];
                 ectx.font = 'bold 26px Tajawal, Arial';
-                items.forEach(function(item, i) {
+                items.forEach(function(item) {
                     var w = ectx.measureText(item.text).width;
                     parts.push({text: item.text, color: item.color, w: w});
                     totalWidth += w;
@@ -4747,36 +4753,53 @@ function sharePDF() {
                 var x = (exportCanvas.width - totalWidth) / 2;
                 parts.forEach(function(p) {
                     ectx.fillStyle = p.color;
-                    ectx.fillText(p.text, x, 48);
+                    ectx.fillText(p.text, x, 40);
                     x += p.w + gap;
                 });
             } else {
                 ectx.fillStyle = '#00d4ff';
                 ectx.font = 'bold 28px Tajawal, Arial';
                 ectx.textAlign = 'center';
-                ectx.fillText(lng==='ar'?'المبيعات الشهرية':'Monthly Sales', exportCanvas.width / 2, 48);
+                ectx.fillText(lng==='ar'?'المبيعات الشهرية':'Monthly Sales', exportCanvas.width / 2, 40);
+                ectx.textAlign = 'start';
+            }
+            if (filterTexts.length > 0) {
+                ectx.fillStyle = '#a0a0b8';
+                ectx.font = '20px Tajawal, Arial';
+                ectx.textAlign = 'center';
+                ectx.fillText(filterTexts.join('  |  '), exportCanvas.width / 2, 72);
                 ectx.textAlign = 'start';
             }
             ectx.drawImage(canvas, 0, titleHeight);
             exportCanvas.toBlob(function(blob) {
+                var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'chart.png', {type:'image/png'})] })) {
                     var file = new File([blob], 'chart.png', {type:'image/png'});
                     navigator.share({ files: [file], title: 'chart' });
+                } else if (isMobile) {
+                    var link = document.createElement('a');
+                    link.download = 'رسم_بياني.png';
+                    link.href = exportCanvas.toDataURL('image/png', 1);
+                    link.click();
                 } else {
-                    var url = exportCanvas.toDataURL('image/png', 1);
-                    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
-                    if (isMobile) {
+                    var blobUrl = URL.createObjectURL(blob);
+                    if (navigator.clipboard && window.ClipboardItem) {
+                        var cpItem = new ClipboardItem({'image/png': blob});
+                        navigator.clipboard.write([cpItem]).then(function() {
+                            window.open('https://web.whatsapp.com', '_blank');
+                        }).catch(function() {
+                            var link = document.createElement('a');
+                            link.download = 'رسم_بياني.png';
+                            link.href = blobUrl;
+                            link.click();
+                            window.open('https://web.whatsapp.com', '_blank');
+                        });
+                    } else {
                         var link = document.createElement('a');
                         link.download = 'رسم_بياني.png';
-                        link.href = url;
+                        link.href = blobUrl;
                         link.click();
-                    } else {
-                        var tempImg = document.createElement('img');
-                        tempImg.src = url;
-                        tempImg.style.display = 'none';
-                        document.body.appendChild(tempImg);
-                        window.open('https://web.whatsapp.com/send?text=' + encodeURIComponent('رسم بياني'), '_blank');
-                        document.body.removeChild(tempImg);
+                        window.open('https://web.whatsapp.com', '_blank');
                     }
                 }
             }, 'image/png', 1);
