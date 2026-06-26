@@ -4718,9 +4718,17 @@ function sharePDF() {
 
         window.downloadChartAsImage = function() {
             if (!window.mySalesChart) return;
+            var canvas = window.mySalesChart.canvas;
+            var exportCanvas = document.createElement('canvas');
+            exportCanvas.width = canvas.width;
+            exportCanvas.height = canvas.height;
+            var ectx = exportCanvas.getContext('2d');
+            ectx.fillStyle = '#0f0f23';
+            ectx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
+            ectx.drawImage(canvas, 0, 0);
             var link = document.createElement('a');
             link.download = 'رسم_بياني_' + new Date().toISOString().slice(0,10) + '.png';
-            link.href = window.mySalesChart.toBase64Image('image/png', 1);
+            link.href = exportCanvas.toDataURL('image/png', 1);
             link.click();
         }
 
@@ -4887,11 +4895,7 @@ function sharePDF() {
                     plugins: {
                         datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
                         legend: { display: false },
-                        tooltip: {
-                            bodyFont: { family: 'Tajawal', size: 12 }, titleFont: { family: 'Tajawal', size: 13, weight: 'bold' },
-                            backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 14, cornerRadius: 12,
-                            callbacks: { label: function(context) { var v = context.parsed.y; var lbl = context.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return ' ' + lbl + ': ' + fmtMoney(v); return ' ' + lbl + ': ' + v; } }
-                        }
+                        tooltip: { enabled: false }
                     },
                     scales: scalesConfig
                 };
