@@ -4656,15 +4656,15 @@ function sharePDF() {
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#00e676;font-weight:600;">
                                 <input type="checkbox" id="chkShowSalesAmount" onchange="renderSalesChartData()" style="accent-color:#00e676;width:15px;height:15px;">
-                                <span>${lang==='ar'?'اجمالي المبيعات (فلوس)':'Total Sales (amount)'}</span>
+                                <span>${lang==='ar'?'اجمالي المبيعات )':'Total Sales (amount)'}</span>
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ff9100;font-weight:600;">
                                 <input type="checkbox" id="chkShowExpenses" onchange="renderSalesChartData()" style="accent-color:#ff9100;width:15px;height:15px;">
-                                <span>${lang==='ar'?'اجمالي المصروفات (فلوس)':'Total Expenses (amount)'}</span>
+                                <span>${lang==='ar'?'اجمالي المصروفات ':'Total Expenses (amount)'}</span>
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#7b2ff7;font-weight:600;">
                                 <input type="checkbox" id="chkShowPayments" onchange="renderSalesChartData()" style="accent-color:#7b2ff7;width:15px;height:15px;">
-                                <span>${lang==='ar'?'اجمالي السداد (فلوس)':'Total Payments (amount)'}</span>
+                                <span>${lang==='ar'?'اجمالي السداد ':'Total Payments (amount)'}</span>
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ffffff;font-weight:600;margin-right:auto;">
                                 <input type="checkbox" id="chkShowDataLabels" checked onchange="renderSalesChartData()" style="accent-color:#7b2ff7;width:15px;height:15px;">
@@ -4825,9 +4825,9 @@ function sharePDF() {
             } else if (chartType === 'radar') {
                 if (showSales) mainDatasets.push({ label: lang==='ar'?'الكمية المباعة':'Qty Sold', data: soldQtyValues, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.15)', borderWidth: 2.5, pointBackgroundColor: '#00d4ff', pointRadius: 3 });
                 if (showReturns) mainDatasets.push({ label: lang==='ar'?'المرتجع (علب)':'Returns (boxes)', data: returnsQtyValues, borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', borderWidth: 2, pointBackgroundColor: '#ff4444', pointRadius: 3 });
-                if (showSalesAmount) mainDatasets.push({ label: lang==='ar'?'اجمالي المبيعات (فلوس)':'Total Sales (amount)', data: monthlySalesAmount, borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.1)', borderWidth: 2, pointBackgroundColor: '#00e676', pointRadius: 3 });
-                if (showExpenses) mainDatasets.push({ label: lang==='ar'?'اجمالي المصروفات (فلوس)':'Total Expenses', data: monthlyExpenses, borderColor: '#ff9100', backgroundColor: 'rgba(255,145,0,0.1)', borderWidth: 2, pointBackgroundColor: '#ff9100', pointRadius: 3 });
-                if (showPayments) mainDatasets.push({ label: lang==='ar'?'اجمالي السداد (فلوس)':'Total Payments', data: monthlyPayments, borderColor: '#7b2ff7', backgroundColor: 'rgba(123,47,247,0.1)', borderWidth: 2, pointBackgroundColor: '#7b2ff7', pointRadius: 3 });
+                if (showSalesAmount) mainDatasets.push({ label: lang==='ar'?'اجمالي المبيعات ':'Total Sales (amount)', data: monthlySalesAmount, borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.1)', borderWidth: 2, pointBackgroundColor: '#00e676', pointRadius: 3 });
+                if (showExpenses) mainDatasets.push({ label: lang==='ar'?'اجمالي المصروفات ':'Total Expenses', data: monthlyExpenses, borderColor: '#ff9100', backgroundColor: 'rgba(255,145,0,0.1)', borderWidth: 2, pointBackgroundColor: '#ff9100', pointRadius: 3 });
+                if (showPayments) mainDatasets.push({ label: lang==='ar'?'اجمالي السداد ':'Total Payments', data: monthlyPayments, borderColor: '#7b2ff7', backgroundColor: 'rgba(123,47,247,0.1)', borderWidth: 2, pointBackgroundColor: '#7b2ff7', pointRadius: 3 });
                 mainOptions = {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
@@ -4921,9 +4921,9 @@ function sharePDF() {
                 qtyLabelsEl.innerHTML = `
                     <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات (علب)':'Sales (boxes)'}</span><br><span style="color:#00d4ff;font-size:1.5rem;font-weight:800;">${netQty}</span></div>
                     <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span><br><span style="color:#ff4444;font-size:1.5rem;font-weight:800;">${totalReturnsQty}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات (فلوس)':'Sales (amount)'}</span><br><span style="color:#00e676;font-size:1.5rem;font-weight:800;">${fmtMoney(totalSales)}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المصروفات (فلوس)':'Expenses'}</span><br><span style="color:#ff9100;font-size:1.5rem;font-weight:800;">${fmtMoney(totalExpensesAmt)}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'السداد (فلوس)':'Payments'}</span><br><span style="color:#7b2ff7;font-size:1.5rem;font-weight:800;">${fmtMoney(totalPaymentsAmt)}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات ':'Sales (amount)'}</span><br><span style="color:#00e676;font-size:1.5rem;font-weight:800;">${fmtMoney(totalSales)}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المصروفات ':'Expenses'}</span><br><span style="color:#ff9100;font-size:1.5rem;font-weight:800;">${fmtMoney(totalExpensesAmt)}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'السداد ':'Payments'}</span><br><span style="color:#7b2ff7;font-size:1.5rem;font-weight:800;">${fmtMoney(totalPaymentsAmt)}</span></div>
                 `;
             }
             // --- Rep Ranking ---
