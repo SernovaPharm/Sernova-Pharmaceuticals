@@ -4630,7 +4630,7 @@ function sharePDF() {
                     </div>
                 </div>
             </div>
-            <div class="row mb-3" id="salesChartKpisContainer"></div>
+            <div class="row mb-3 g-2" id="salesChartKpisContainer"></div>
             <div class="row mb-3">
                 <div class="col-12">
                     <div class="evo-card" style="padding: 22px;">
@@ -4740,11 +4740,7 @@ function sharePDF() {
             const activeMonths = monthlyData.filter(m => m.invoicesCount > 0).length;
             const avgPerMonth = activeMonths > 0 ? netQty / activeMonths : 0;
             const bestMonthIdx = monthlyData.reduce((best, m, i) => m.quantitySold > (best.max || 0) ? {max: m.quantitySold, idx: i} : best, {max:0, idx:-1}).idx;
-            const kpisHtml = `
-            <div class="col-lg-3 col-md-6 mb-3"><div class="evo-kpi d-flex align-items-center justify-content-between"><div><div class="label">${lang==='ar'?'صافي المبيعات (علب)':'Net Sales (boxes)'}</div><div class="value" style="color:#00e676;">${netQty} <span style="font-size:0.85rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-cubes" style="color:#00e676;font-size:1.1rem;"></i></div></div></div>
-            <div class="col-lg-3 col-md-6 mb-3"><div class="evo-kpi d-flex align-items-center justify-content-between"><div><div class="label">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</div><div class="value" style="color:#ff4444;">${totalReturnsQty} <span style="font-size:0.85rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:rgba(255,68,68,0.12);flex-shrink:0;"><i class="fas fa-undo" style="color:#ff4444;font-size:1.1rem;"></i></div></div></div>
-            <div class="col-lg-3 col-md-6 mb-3"><div class="evo-kpi d-flex align-items-center justify-content-between"><div><div class="label">${lang==='ar'?'متوسط الشهر (علب)':'Avg / Month (boxes)'}</div><div class="value" style="color:#7b2ff7;">${Math.round(avgPerMonth)} <span style="font-size:0.85rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:44px;height:44px;background:rgba(123,47,247,0.12);flex-shrink:0;"><i class="fas fa-calendar-check" style="color:#7b2ff7;font-size:1.1rem;"></i></div></div></div>`;
-            document.getElementById('salesChartKpisContainer').innerHTML = kpisHtml;
+            
             document.getElementById('chartSummaryBadge').textContent = `${lang==='ar'?'الكل':'Total'}: ${totalQty} ${lang==='ar'?'علبة':'boxes'} | ${lang==='ar'?'مرتجع':'Returns'}: ${totalReturnsQty} | ${lang==='ar'?'صافي':'Net'}: ${netQty}`;
             if (window.mySalesChart) window.mySalesChart.destroy();
 
@@ -4805,6 +4801,13 @@ function sharePDF() {
             const showPayments = document.getElementById('chkShowPayments') ? document.getElementById('chkShowPayments').checked : false;
             const showDataLabels = document.getElementById('chkShowDataLabels') ? document.getElementById('chkShowDataLabels').checked : true;
             const hasMoneySeries = showSalesAmount || showExpenses || showPayments;
+            var kpisHtml = `
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'صافي المبيعات (علب)':'Net Sales (boxes)'}</div><div class="value" style="color:#00e676;font-size:1.15rem;">${netQty} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-cubes" style="color:#00e676;font-size:0.9rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</div><div class="value" style="color:#ff4444;font-size:1.15rem;">${totalReturnsQty} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(255,68,68,0.12);flex-shrink:0;"><i class="fas fa-undo" style="color:#ff4444;font-size:0.9rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'اجمالي المبيعات (جنيه)':'Sales (EGP)'}</div><div class="value" style="color:#00e676;font-size:1.15rem;">${fmtMoney(totalSales)} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-coins" style="color:#00e676;font-size:0.9rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'المصروفات (جنيه)':'Expenses (EGP)'}</div><div class="value" style="color:#ff9100;font-size:1.15rem;">${fmtMoney(monthlyExpenses.reduce((s,v)=>s+v,0))} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(255,145,0,0.12);flex-shrink:0;"><i class="fas fa-money-bill-wave" style="color:#ff9100;font-size:0.9rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'السداد (جنيه)':'Payments (EGP)'}</div><div class="value" style="color:#7b2ff7;font-size:1.15rem;">${fmtMoney(monthlyPayments.reduce((s,v)=>s+v,0))} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(123,47,247,0.12);flex-shrink:0;"><i class="fas fa-hand-holding-usd" style="color:#7b2ff7;font-size:0.9rem;"></i></div></div></div>`;
+            document.getElementById('salesChartKpisContainer').innerHTML = kpisHtml;
             var mainDatasets = [];
             var mainOptions = {};
             function fmtMoney(v) { return v.toLocaleString('en-US'); }
