@@ -4671,7 +4671,7 @@ function sharePDF() {
                                 <span style="color:#a0a0b8;">${lang==='ar'?'أرقام على الرسم':'Labels'}</span>
                             </label>
                         </div>
-                        <div style="position: relative; height:380px; width:100%;"><canvas id="salesEvolutionChart"></canvas></div>
+                        <div style="position: relative; height:420px; width:100%;"><canvas id="salesEvolutionChart"></canvas></div>
                         <div id="chartQtyLabelsAbove" style="display:flex;justify-content:center;gap:24px;margin-top:12px;flex-wrap:wrap;"></div>
                     </div>
                 </div>
@@ -4831,11 +4831,11 @@ function sharePDF() {
                 mainOptions = {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
-                        datalabels: { display: showDataLabels, color: '#ffffff', font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? v : '' },
+                        datalabels: { display: showDataLabels, color: '#ffffff', clip: false, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' },
                         legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' }, padding: 14, usePointStyle: true, boxWidth: 8 } },
                         tooltip: { bodyFont: { family: 'Tajawal', size: 11 }, backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 10, callbacks: { label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.r; } } }
                     },
-                    scales: { r: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#a0a0b8', backdropColor: 'transparent', font: { size: 9 } }, pointLabels: { color: '#ccccdd', font: { family: 'Tajawal', size: 10, weight: 'bold' } } } }
+                    scales: { r: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#a0a0b8', backdropColor: 'transparent', font: { size: 12 } }, pointLabels: { color: '#ccccdd', font: { family: 'Tajawal', size: 10, weight: 'bold' } } } }
                 };
             } else {
                 var isLine = (chartType === 'line' || chartType === 'area');
@@ -4849,7 +4849,7 @@ function sharePDF() {
                     pointRadius: isLine ? 4 : 0, pointHoverRadius: isLine ? 7 : 5,
                     pointHoverBackgroundColor: '#ffffff', pointHoverBorderColor: '#00d4ff',
                     borderRadius: isLine ? 0 : 6, barPercentage: 0.55, yAxisID: 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
                 if (showReturns) mainDatasets.push({
                     label: lang==='ar'?'المرتجع (علب)':'Returns (boxes)', data: returnsQtyValues,
@@ -4858,28 +4858,28 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(255,68,68,0.65)',
                     tension: 0.4, pointBackgroundColor: '#ff4444', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
                 if (showSalesAmount) mainDatasets.push({
                     label: lang==='ar'?'اجمالي المبيعات ':'Total Sales (amount)', data: monthlySalesAmount,
                     type: 'bar',
                     backgroundColor: 'rgba(0,230,118,0.7)', borderColor: '#00e676', borderWidth: 1.5,
                     borderRadius: 6, barPercentage: 0.55, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 if (showExpenses) mainDatasets.push({
                     label: lang==='ar'?'اجمالي المصروفات ':'Total Expenses', data: monthlyExpenses,
                     type: 'bar',
                     backgroundColor: 'rgba(255,145,0,0.7)', borderColor: '#ff9100', borderWidth: 1.5,
                     borderRadius: 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 if (showPayments) mainDatasets.push({
                     label: lang==='ar'?'اجمالي السداد ':'Total Payments', data: monthlyPayments,
                     type: 'bar',
                     backgroundColor: 'rgba(123,47,247,0.7)', borderColor: '#7b2ff7', borderWidth: 1.5,
                     borderRadius: 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 var scalesConfig = {
                     x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 8 } },
@@ -4894,9 +4894,10 @@ function sharePDF() {
                 }
                 mainOptions = {
                     responsive: true, maintainAspectRatio: false,
+                    layout: { padding: { top: 28, left: 8, right: 8 } },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        datalabels: { display: showDataLabels, color: '#ffffff', font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
+                        datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
                         legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 16, usePointStyle: true, boxWidth: 10 } },
                         tooltip: {
                             bodyFont: { family: 'Tajawal', size: 12 }, titleFont: { family: 'Tajawal', size: 13, weight: 'bold' },
