@@ -4633,8 +4633,8 @@ function sharePDF() {
             </div>
             <div class="row mb-3" id="salesChartKpisContainer"></div>
             <div class="row mb-3">
-                <div class="col-lg-8 mb-3 mb-lg-0">
-                    <div class="evo-card h-100" style="padding: 22px;">
+                <div class="col-12">
+                    <div class="evo-card" style="padding: 22px;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h6 class="mb-0 text-white fw-bold" style="font-size:0.95rem;"><i class="fas fa-chart-area" style="color:#00d4ff;margin-left:8px;"></i> ${lang==='ar'?'المبيعات الشهرية':'Monthly Sales'}</h6>
                             <div class="d-flex gap-1" id="chartTypeSelector">
@@ -4648,25 +4648,39 @@ function sharePDF() {
                         <div class="d-flex gap-3 mb-2 flex-wrap" id="chartSeriesCheckboxes" style="padding:8px 4px 6px 4px;background:rgba(255,255,255,0.03);border-radius:12px;">
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#00d4ff;font-weight:600;">
                                 <input type="checkbox" id="chkShowSales" checked onchange="renderSalesChartData()" style="accent-color:#00d4ff;width:15px;height:15px;">
-                                <span>${lang==='ar'?'المبيعات':'Sales'}</span>
+                                <span>${lang==='ar'?'المبيعات (علب)':'Sales (boxes)'}</span>
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ff4444;font-weight:600;">
                                 <input type="checkbox" id="chkShowReturns" checked onchange="renderSalesChartData()" style="accent-color:#ff4444;width:15px;height:15px;">
-                                <span>${lang==='ar'?'المرتجع':'Returns'}</span>
+                                <span>${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span>
+                            </label>
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#00e676;font-weight:600;">
+                                <input type="checkbox" id="chkShowSalesAmount" onchange="renderSalesChartData()" style="accent-color:#00e676;width:15px;height:15px;">
+                                <span>${lang==='ar'?'اجمالي المبيعات (فلوس)':'Total Sales (amount)'}</span>
+                            </label>
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ff9100;font-weight:600;">
+                                <input type="checkbox" id="chkShowExpenses" onchange="renderSalesChartData()" style="accent-color:#ff9100;width:15px;height:15px;">
+                                <span>${lang==='ar'?'اجمالي المصروفات (فلوس)':'Total Expenses (amount)'}</span>
+                            </label>
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#7b2ff7;font-weight:600;">
+                                <input type="checkbox" id="chkShowPayments" onchange="renderSalesChartData()" style="accent-color:#7b2ff7;width:15px;height:15px;">
+                                <span>${lang==='ar'?'اجمالي السداد (فلوس)':'Total Payments (amount)'}</span>
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ffffff;font-weight:600;margin-right:auto;">
                                 <input type="checkbox" id="chkShowDataLabels" checked onchange="renderSalesChartData()" style="accent-color:#7b2ff7;width:15px;height:15px;">
-                                <span style="color:#a0a0b8;">${lang==='ar'?'أرقام على الرسم':'Numbers on chart'}</span>
+                                <span style="color:#a0a0b8;">${lang==='ar'?'أرقام على الرسم':'Labels'}</span>
                             </label>
                         </div>
-                        <div style="position: relative; height:280px; width:100%;"><canvas id="salesEvolutionChart"></canvas></div>
+                        <div style="position: relative; height:380px; width:100%;"><canvas id="salesEvolutionChart"></canvas></div>
                         <div id="chartQtyLabelsAbove" style="display:flex;justify-content:center;gap:24px;margin-top:12px;flex-wrap:wrap;"></div>
                     </div>
                 </div>
-                <div class="col-lg-4">
-                    <div class="evo-card h-100" style="padding: 22px; overflow: hidden; display: flex; flex-direction: column;">
+            </div>
+            <div class="row mb-3">
+                <div class="col-12">
+                    <div class="evo-card" style="padding: 22px; overflow: hidden;">
                         <h6 class="mb-3 text-white fw-bold" style="font-size:0.95rem;"><i class="fas fa-trophy" style="color:#ff9100;margin-left:8px;"></i> ${lang==='ar'?'ترتيب المناديب':'Rep Ranking'}</h6>
-                        <div style="flex: 1; overflow-y: auto; max-height: 260px;" id="salesRepGridContainer"></div>
+                        <div id="salesRepGridContainer"></div>
                     </div>
                 </div>
             </div>
@@ -4758,11 +4772,27 @@ function sharePDF() {
                 if (sRep) { if (!r.invoiceId) return false; const inv = appData.salesInvoices.find(i => i.id === r.invoiceId); if (!inv || inv.salesManager !== sRep) return false; }
                 return true;
             });
-            // --- Main Chart (Qty Based) ---
+            // --- Financial Monthly Data ---
+            const monthlyExpenses = Array(12).fill(0);
+            const monthlyPayments = Array(12).fill(0);
+            const monthlySalesAmount = monthlyData.map(m => m.salesAmount);
+            (appData.expenses || []).forEach(exp => {
+                const m = new Date(exp.date).getMonth();
+                const y = new Date(exp.date).getFullYear();
+                if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
+                monthlyExpenses[m] += (exp.amount || 0);
+            });
+            (appData.payments || []).forEach(pay => {
+                const m = new Date(pay.date).getMonth();
+                const y = new Date(pay.date).getFullYear();
+                if (selectedYears.length > 0 && !selectedYears.includes(y)) return;
+                monthlyPayments[m] += (pay.amount || 0);
+            });
+            // --- Main Chart ---
             var chartType = filters.chartType || 'bar';
             const ctx = document.getElementById('salesEvolutionChart').getContext('2d');
             const shortLabels = lang === 'ar' ? monthsArabic : monthsEnglish;
-            const salesGradient = ctx.createLinearGradient(0, 0, 0, 280);
+            const salesGradient = ctx.createLinearGradient(0, 0, 0, 350);
             salesGradient.addColorStop(0, 'rgba(0,212,255,0.5)');
             salesGradient.addColorStop(0.6, 'rgba(0,212,255,0.1)');
             salesGradient.addColorStop(1, 'rgba(0,212,255,0.0)');
@@ -4771,10 +4801,14 @@ function sharePDF() {
             const soldQtyValues = monthlyData.map(m => m.quantitySold);
             const showSales = document.getElementById('chkShowSales') ? document.getElementById('chkShowSales').checked : true;
             const showReturns = document.getElementById('chkShowReturns') ? document.getElementById('chkShowReturns').checked : true;
-            const showNet = false;
+            const showSalesAmount = document.getElementById('chkShowSalesAmount') ? document.getElementById('chkShowSalesAmount').checked : false;
+            const showExpenses = document.getElementById('chkShowExpenses') ? document.getElementById('chkShowExpenses').checked : false;
+            const showPayments = document.getElementById('chkShowPayments') ? document.getElementById('chkShowPayments').checked : false;
             const showDataLabels = document.getElementById('chkShowDataLabels') ? document.getElementById('chkShowDataLabels').checked : true;
+            const hasMoneySeries = showSalesAmount || showExpenses || showPayments;
             var mainDatasets = [];
             var mainOptions = {};
+            function fmtMoney(v) { return v.toLocaleString('en-US'); }
             if (chartType === 'pie' || chartType === 'doughnut') {
                 mainDatasets = [{
                     data: [Math.max(0.01, totalQty - totalReturnsQty), Math.max(0.01, totalReturnsQty)],
@@ -4791,13 +4825,15 @@ function sharePDF() {
             } else if (chartType === 'radar') {
                 if (showSales) mainDatasets.push({ label: lang==='ar'?'الكمية المباعة':'Qty Sold', data: soldQtyValues, borderColor: '#00d4ff', backgroundColor: 'rgba(0,212,255,0.15)', borderWidth: 2.5, pointBackgroundColor: '#00d4ff', pointRadius: 3 });
                 if (showReturns) mainDatasets.push({ label: lang==='ar'?'المرتجع (علب)':'Returns (boxes)', data: returnsQtyValues, borderColor: '#ff4444', backgroundColor: 'rgba(255,68,68,0.1)', borderWidth: 2, pointBackgroundColor: '#ff4444', pointRadius: 3 });
-                if (showNet) mainDatasets.push({ label: lang==='ar'?'صافي المبيعات':'Net Sales', data: netQtyValues, borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.08)', borderWidth: 2, borderDash: [5,3], pointBackgroundColor: '#00e676', pointRadius: 3 });
+                if (showSalesAmount) mainDatasets.push({ label: lang==='ar'?'اجمالي المبيعات (فلوس)':'Total Sales (amount)', data: monthlySalesAmount, borderColor: '#00e676', backgroundColor: 'rgba(0,230,118,0.1)', borderWidth: 2, pointBackgroundColor: '#00e676', pointRadius: 3 });
+                if (showExpenses) mainDatasets.push({ label: lang==='ar'?'اجمالي المصروفات (فلوس)':'Total Expenses', data: monthlyExpenses, borderColor: '#ff9100', backgroundColor: 'rgba(255,145,0,0.1)', borderWidth: 2, pointBackgroundColor: '#ff9100', pointRadius: 3 });
+                if (showPayments) mainDatasets.push({ label: lang==='ar'?'اجمالي السداد (فلوس)':'Total Payments', data: monthlyPayments, borderColor: '#7b2ff7', backgroundColor: 'rgba(123,47,247,0.1)', borderWidth: 2, pointBackgroundColor: '#7b2ff7', pointRadius: 3 });
                 mainOptions = {
                     responsive: true, maintainAspectRatio: false,
                     plugins: {
                         datalabels: { display: showDataLabels, color: '#ffffff', font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? v : '' },
                         legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' }, padding: 14, usePointStyle: true, boxWidth: 8 } },
-                        tooltip: { bodyFont: { family: 'Tajawal', size: 11 }, backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 10, callbacks: { label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.r + ' ' + (lang==='ar'?'علبة':'boxes'); } } }
+                        tooltip: { bodyFont: { family: 'Tajawal', size: 11 }, backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 10, callbacks: { label: function(c) { return ' ' + c.dataset.label + ': ' + c.parsed.r; } } }
                     },
                     scales: { r: { grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#a0a0b8', backdropColor: 'transparent', font: { size: 9 } }, pointLabels: { color: '#ccccdd', font: { family: 'Tajawal', size: 10, weight: 'bold' } } } }
                 };
@@ -4805,7 +4841,7 @@ function sharePDF() {
                 var isLine = (chartType === 'line' || chartType === 'area');
                 var isArea = (chartType === 'area');
                 if (showSales) mainDatasets.push({
-                    label: lang==='ar'?'صافي المبيعات (علب)':'Net Sales (boxes)', data: netQtyValues,
+                    label: lang==='ar'?'المبيعات (علب)':'Sales (boxes)', data: netQtyValues,
                     type: isLine ? 'line' : 'bar',
                     borderColor: '#00d4ff', borderWidth: isLine ? 3.5 : 1.5,
                     fill: isArea, backgroundColor: isArea ? salesGradient : 'rgba(0,212,255,0.7)',
@@ -4824,22 +4860,51 @@ function sharePDF() {
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: 'y',
                     datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
+                if (showSalesAmount) mainDatasets.push({
+                    label: lang==='ar'?'اجمالي المبيعات (فلوس)':'Total Sales (amount)', data: monthlySalesAmount,
+                    type: 'bar',
+                    backgroundColor: 'rgba(0,230,118,0.7)', borderColor: '#00e676', borderWidth: 1.5,
+                    borderRadius: 6, barPercentage: 0.55, yAxisID: hasMoneySeries ? 'y1' : 'y',
+                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                });
+                if (showExpenses) mainDatasets.push({
+                    label: lang==='ar'?'اجمالي المصروفات (فلوس)':'Total Expenses', data: monthlyExpenses,
+                    type: 'bar',
+                    backgroundColor: 'rgba(255,145,0,0.7)', borderColor: '#ff9100', borderWidth: 1.5,
+                    borderRadius: 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
+                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                });
+                if (showPayments) mainDatasets.push({
+                    label: lang==='ar'?'اجمالي السداد (فلوس)':'Total Payments', data: monthlyPayments,
+                    type: 'bar',
+                    backgroundColor: 'rgba(123,47,247,0.7)', borderColor: '#7b2ff7', borderWidth: 1.5,
+                    borderRadius: 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
+                    datalabels: { display: showDataLabels, color: '#ffffff', anchor: 'end', offset: 0, font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                });
+                var scalesConfig = {
+                    x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 8 } },
+                    y: { position: 'left', grid: { color: 'rgba(255,255,255,0.06)' }, display: showSales || showReturns, ticks: { display: false }, title: { display: showSales || showReturns, text: lang==='ar'?'عدد العلب':'Qty (boxes)', color: '#a0a0c0', font: { family: 'Tajawal', size: 11 } }, beginAtZero: true }
+                };
+                if (hasMoneySeries) {
+                    scalesConfig.y1 = {
+                        position: 'right', grid: { drawOnChartArea: false },
+                        ticks: { display: false }, title: { display: true, text: lang==='ar'?'المبالغ (جنيه)':'Amount (EGP)', color: '#a0a0c0', font: { family: 'Tajawal', size: 11 } },
+                        beginAtZero: true
+                    };
+                }
                 mainOptions = {
                     responsive: true, maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        datalabels: { display: showDataLabels, color: '#ffffff', font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: v => v > 0 ? v : '' },
-                        legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' }, padding: 14, usePointStyle: true, boxWidth: 8 } },
+                        datalabels: { display: showDataLabels, color: '#ffffff', font: { family: 'Tajawal', size: 9, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
+                        legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 16, usePointStyle: true, boxWidth: 10 } },
                         tooltip: {
-                            bodyFont: { family: 'Tajawal', size: 11 }, titleFont: { family: 'Tajawal', size: 12, weight: 'bold' },
-                            backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 12, cornerRadius: 12,
-                            callbacks: { label: function(context) { var v = context.parsed.y; return ' ' + context.dataset.label + ': ' + v + ' ' + (lang==='ar'?'علبة':'boxes'); } }
+                            bodyFont: { family: 'Tajawal', size: 12 }, titleFont: { family: 'Tajawal', size: 13, weight: 'bold' },
+                            backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 14, cornerRadius: 12,
+                            callbacks: { label: function(context) { var v = context.parsed.y; var lbl = context.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return ' ' + lbl + ': ' + fmtMoney(v); return ' ' + lbl + ': ' + v; } }
                         }
                     },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 10, weight: 'bold' } } },
-                        y: { position: 'left', grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#00d4ff', font: { family: 'Tajawal', weight: 'bold', size: 10 } }, title: { display: true, text: lang==='ar'?'عدد العلب':'Qty (boxes)', color: '#a0a0c0', font: { family: 'Tajawal', size: 10 } }, beginAtZero: true }
-                    }
+                    scales: scalesConfig
                 };
             }
             Chart.register(ChartDataLabels);
@@ -4848,12 +4913,17 @@ function sharePDF() {
                 data: { labels: shortLabels, datasets: mainDatasets },
                 options: mainOptions
             });
-            // --- Qty Labels Above Chart ---
+            // --- Labels Below Chart ---
             const qtyLabelsEl = document.getElementById('chartQtyLabelsAbove');
             if (qtyLabelsEl) {
+                const totalExpensesAmt = monthlyExpenses.reduce((s, v) => s + v, 0);
+                const totalPaymentsAmt = monthlyPayments.reduce((s, v) => s + v, 0);
                 qtyLabelsEl.innerHTML = `
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'صافي المبيعات (علب)':'Net Sales (boxes)'}</span><br><span style="color:#00d4ff;font-size:1.6rem;font-weight:800;">${Math.max(0, totalQty - totalReturnsQty)}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span><br><span style="color:#ff4444;font-size:1.6rem;font-weight:800;">${totalReturnsQty}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات (علب)':'Sales (boxes)'}</span><br><span style="color:#00d4ff;font-size:1.5rem;font-weight:800;">${netQty}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span><br><span style="color:#ff4444;font-size:1.5rem;font-weight:800;">${totalReturnsQty}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات (فلوس)':'Sales (amount)'}</span><br><span style="color:#00e676;font-size:1.5rem;font-weight:800;">${fmtMoney(totalSales)}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المصروفات (فلوس)':'Expenses'}</span><br><span style="color:#ff9100;font-size:1.5rem;font-weight:800;">${fmtMoney(totalExpensesAmt)}</span></div>
+                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'السداد (فلوس)':'Payments'}</span><br><span style="color:#7b2ff7;font-size:1.5rem;font-weight:800;">${fmtMoney(totalPaymentsAmt)}</span></div>
                 `;
             }
             // --- Rep Ranking ---
