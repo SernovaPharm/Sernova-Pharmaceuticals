@@ -4639,6 +4639,7 @@ function sharePDF() {
                             <div class="d-flex gap-1" id="chartTypeSelector">
                                 <button class="btn btn-sm chart-type-btn active" data-charttype="bar" onclick="changeSalesChartType('bar')" title="${lang==='ar'?'أعمدة':'Bar'}"><i class="fas fa-chart-bar"></i></button>
                                 <button class="btn btn-sm chart-type-btn" data-charttype="line" onclick="changeSalesChartType('line')" title="${lang==='ar'?'خط':'Line'}"><i class="fas fa-chart-line"></i></button>
+                                <button class="btn btn-sm" onclick="window.downloadChartAsImage()" title="${lang==='ar'?'حفظ صورة الرسم':'Download Chart'}" style="background:rgba(0,212,255,0.15);color:#00d4ff;border:1px solid rgba(0,212,255,0.3);border-radius:8px;"><i class="fas fa-camera"></i></button>
                             </div>
                         </div>
                         <div class="d-flex gap-3 mb-2 flex-wrap" id="chartSeriesCheckboxes" style="padding:8px 4px 6px 4px;background:rgba(255,255,255,0.03);border-radius:12px;">
@@ -4713,6 +4714,14 @@ function sharePDF() {
         function clearSalesChartFilters() {
             window.salesChartFilters = { year: "", productId: "", salesManager: "", customerId: "", chartType: "bar" };
             renderSalesChartContent();
+        }
+
+        window.downloadChartAsImage = function() {
+            if (!window.mySalesChart) return;
+            var link = document.createElement('a');
+            link.download = 'رسم_بياني_' + new Date().toISOString().slice(0,10) + '.png';
+            link.href = window.mySalesChart.toBase64Image('image/png', 1);
+            link.click();
         }
 
         function changeSalesChartType(type) {
