@@ -4652,7 +4652,7 @@ function sharePDF() {
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#00e676;font-weight:600;">
                                 <input type="checkbox" id="chkShowSalesAmount" onchange="renderSalesChartData()" style="accent-color:#00e676;width:15px;height:15px;">
-                                <span>${lang==='ar'?'اجمالي المبيعات )':'Total Sales (amount)'}</span>
+                                <span>${lang==='ar'?'اجمالي المبيعات':'Total Sales (amount)'}</span>
                             </label>
                             <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ff9100;font-weight:600;">
                                 <input type="checkbox" id="chkShowExpenses" onchange="renderSalesChartData()" style="accent-color:#ff9100;width:15px;height:15px;">
@@ -4822,7 +4822,7 @@ function sharePDF() {
                     pointRadius: isLine ? 4 : 0, pointHoverRadius: isLine ? 7 : 5,
                     pointHoverBackgroundColor: '#ffffff', pointHoverBorderColor: '#00d4ff',
                     borderRadius: isLine ? 0 : 6, barPercentage: 0.55, yAxisID: 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
                 if (showReturns) mainDatasets.push({
                     label: lang==='ar'?'المرتجع (علب)':'Returns (boxes)', data: returnsQtyValues,
@@ -4831,7 +4831,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(255,68,68,0.65)',
                     tension: 0.4, pointBackgroundColor: '#ff4444', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
                 if (showSalesAmount) mainDatasets.push({
                     label: lang==='ar'?'اجمالي المبيعات ':'Total Sales (amount)', data: monthlySalesAmount,
@@ -4840,7 +4840,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(0,230,118,0.7)',
                     tension: 0.45, pointBackgroundColor: '#00e676', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 6, barPercentage: 0.55, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 if (showExpenses) mainDatasets.push({
                     label: lang==='ar'?'اجمالي المصروفات ':'Total Expenses', data: monthlyExpenses,
@@ -4849,7 +4849,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(255,145,0,0.7)',
                     tension: 0.45, pointBackgroundColor: '#ff9100', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 if (showPayments) mainDatasets.push({
                     label: lang==='ar'?'اجمالي السداد ':'Total Payments', data: monthlyPayments,
@@ -4858,7 +4858,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(123,47,247,0.7)',
                     tension: 0.45, pointBackgroundColor: '#7b2ff7', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 4, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 var scalesConfig = {
                     x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 8 } },
@@ -4873,11 +4873,11 @@ function sharePDF() {
                 }
                 mainOptions = {
                     responsive: true, maintainAspectRatio: false,
-                    layout: { padding: { top: 60, left: 8, right: 8 } },
+                    layout: { padding: { top: 70, left: 8, right: 8 } },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'end', offset: 6, font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
-                        legend: { position: 'top', labels: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 40, usePointStyle: true, boxWidth: 10 } },
+                        datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
+                        legend: { display: false },
                         tooltip: {
                             bodyFont: { family: 'Tajawal', size: 12 }, titleFont: { family: 'Tajawal', size: 13, weight: 'bold' },
                             backgroundColor: 'rgba(15,15,35,0.95)', borderColor: 'rgba(0,212,255,0.3)', borderWidth: 1, padding: 14, cornerRadius: 12,
