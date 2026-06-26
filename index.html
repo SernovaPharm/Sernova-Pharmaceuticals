@@ -4639,7 +4639,7 @@ function sharePDF() {
                             <div class="d-flex gap-1" id="chartTypeSelector">
                                 <button class="btn btn-sm chart-type-btn active" data-charttype="bar" onclick="changeSalesChartType('bar')" title="${lang==='ar'?'أعمدة':'Bar'}"><i class="fas fa-chart-bar"></i></button>
                                 <button class="btn btn-sm chart-type-btn" data-charttype="line" onclick="changeSalesChartType('line')" title="${lang==='ar'?'خط':'Line'}"><i class="fas fa-chart-line"></i></button>
-                                <button class="btn btn-sm" onclick="window.downloadChartAsImage()" title="${lang==='ar'?'حفظ صورة الرسم':'Download Chart'}" style="background:rgba(0,212,255,0.15);color:#00d4ff;border:1px solid rgba(0,212,255,0.3);border-radius:8px;"><i class="fas fa-camera"></i></button>
+                                <button class="btn btn-sm" onclick="shareChartWhatsApp()" title="${lang==='ar'?'مشاركة عبر واتساب':'Share via WhatsApp'}" style="background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3);border-radius:8px;"><i class="fab fa-whatsapp"></i></button>
                             </div>
                         </div>
                         <div class="d-flex gap-3 mb-2 flex-wrap" id="chartSeriesCheckboxes" style="padding:8px 4px 6px 4px;background:rgba(255,255,255,0.03);border-radius:12px;">
@@ -4716,20 +4716,70 @@ function sharePDF() {
             renderSalesChartContent();
         }
 
-        window.downloadChartAsImage = function() {
+        window.shareChartWhatsApp = function() {
             if (!window.mySalesChart) return;
+            var lng = window.currentLang || 'ar';
+            var items = [];
+            var elS = document.getElementById('chkShowSales'); if (elS && elS.checked) items.push({text: lng==='ar'?'المبيعات (علب)':'Sales (boxes)', color:'#00d4ff'});
+            var elR = document.getElementById('chkShowReturns'); if (elR && elR.checked) items.push({text: lng==='ar'?'المرتجع (علب)':'Returns (boxes)', color:'#ff4444'});
+            var elA = document.getElementById('chkShowSalesAmount'); if (elA && elA.checked) items.push({text: lng==='ar'?'اجمالي المبيعات':'Total Sales', color:'#00e676'});
+            var elE = document.getElementById('chkShowExpenses'); if (elE && elE.checked) items.push({text: lng==='ar'?'المصروفات':'Expenses', color:'#ff9100'});
+            var elP = document.getElementById('chkShowPayments'); if (elP && elP.checked) items.push({text: lng==='ar'?'السداد':'Payments', color:'#7b2ff7'});
             var canvas = window.mySalesChart.canvas;
             var exportCanvas = document.createElement('canvas');
+            var titleHeight = 80;
             exportCanvas.width = canvas.width;
-            exportCanvas.height = canvas.height;
+            exportCanvas.height = canvas.height + titleHeight;
             var ectx = exportCanvas.getContext('2d');
             ectx.fillStyle = '#0f0f23';
             ectx.fillRect(0, 0, exportCanvas.width, exportCanvas.height);
-            ectx.drawImage(canvas, 0, 0);
-            var link = document.createElement('a');
-            link.download = 'رسم_بياني_' + new Date().toISOString().slice(0,10) + '.png';
-            link.href = exportCanvas.toDataURL('image/png', 1);
-            link.click();
+            if (items.length > 0) {
+                var totalWidth = 0;
+                var parts = [];
+                ectx.font = 'bold 26px Tajawal, Arial';
+                items.forEach(function(item, i) {
+                    var w = ectx.measureText(item.text).width;
+                    parts.push({text: item.text, color: item.color, w: w});
+                    totalWidth += w;
+                });
+                var gap = 30;
+                totalWidth += gap * (parts.length - 1);
+                var x = (exportCanvas.width - totalWidth) / 2;
+                parts.forEach(function(p) {
+                    ectx.fillStyle = p.color;
+                    ectx.fillText(p.text, x, 48);
+                    x += p.w + gap;
+                });
+            } else {
+                ectx.fillStyle = '#00d4ff';
+                ectx.font = 'bold 28px Tajawal, Arial';
+                ectx.textAlign = 'center';
+                ectx.fillText(lng==='ar'?'المبيعات الشهرية':'Monthly Sales', exportCanvas.width / 2, 48);
+                ectx.textAlign = 'start';
+            }
+            ectx.drawImage(canvas, 0, titleHeight);
+            exportCanvas.toBlob(function(blob) {
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [new File([blob], 'chart.png', {type:'image/png'})] })) {
+                    var file = new File([blob], 'chart.png', {type:'image/png'});
+                    navigator.share({ files: [file], title: 'chart' });
+                } else {
+                    var url = exportCanvas.toDataURL('image/png', 1);
+                    var isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+                    if (isMobile) {
+                        var link = document.createElement('a');
+                        link.download = 'رسم_بياني.png';
+                        link.href = url;
+                        link.click();
+                    } else {
+                        var tempImg = document.createElement('img');
+                        tempImg.src = url;
+                        tempImg.style.display = 'none';
+                        document.body.appendChild(tempImg);
+                        window.open('https://web.whatsapp.com/send?text=' + encodeURIComponent('رسم بياني'), '_blank');
+                        document.body.removeChild(tempImg);
+                    }
+                }
+            }, 'image/png', 1);
         }
 
         function changeSalesChartType(type) {
