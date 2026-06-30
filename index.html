@@ -1240,26 +1240,28 @@
             }
         }
         .evo-card {
-            background: rgba(15,15,35,0.5);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 24px;
-            transition: all 0.4s;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+            padding: 0;
         }
         .evo-card:hover {
-            border-color: rgba(0,212,255,0.15);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+            border-color: rgba(255,255,255,0.1);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
         }
         .evo-kpi {
-            background: rgba(15,15,35,0.45);
+            background: var(--glass-bg);
             backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 18px 22px;
-            border: 1px solid rgba(255,255,255,0.06);
-            transition: all 0.4s;
+            border-radius: 16px;
+            padding: 20px 24px;
+            border: 1px solid var(--glass-border);
+            transition: all 0.3s ease;
             position: relative;
             overflow: hidden;
-            min-height: 110px;
+            min-height: 100px;
+            text-align: center;
         }
         .evo-kpi::before {
             content: '';
@@ -1280,14 +1282,16 @@
             box-shadow: 0 12px 35px rgba(0,0,0,0.5);
         }
         .evo-kpi .value {
-            font-size: 1.7rem;
+            font-size: 2rem;
             font-weight: 800;
             letter-spacing: -0.5px;
+            color: var(--text);
         }
         .evo-kpi .label {
-            font-size: 0.8rem;
+            font-size: 0.85rem;
             color: var(--text-light);
             font-weight: 600;
+            margin-top: 4px;
         }
         .year-chip {
             padding: 8px 22px;
@@ -1296,9 +1300,9 @@
             font-size: 0.85rem;
             cursor: pointer;
             transition: all 0.35s;
-            border: 2px solid rgba(255,255,255,0.1);
+            border: 2px solid var(--glass-border);
             background: rgba(255,255,255,0.03);
-            color: #a0a0b8;
+            color: var(--text-light);
             position: relative;
         }
         .year-chip:hover {
@@ -1313,10 +1317,10 @@
             box-shadow: 0 4px 20px rgba(0,212,255,0.3);
         }
         .insight-card {
-            background: rgba(255,255,255,0.02);
+            background: var(--glass-bg);
             border-radius: 20px;
             padding: 20px;
-            border: 1px solid rgba(255,255,255,0.06);
+            border: 1px solid var(--glass-border);
             height: 100%;
             transition: all 0.3s;
         }
@@ -1345,9 +1349,9 @@
             padding: 4px 10px;
             border-radius: 8px;
             font-size: 0.75rem;
-            border: 1px solid rgba(255,255,255,0.1);
+            border: 1px solid var(--glass-border);
             background: rgba(255,255,255,0.03);
-            color: #a0a0b8;
+            color: var(--text-light);
             transition: all 0.3s;
         }
         .chart-type-btn:hover {
@@ -1362,10 +1366,10 @@
         .evo-select {
             border-radius: 50px !important;
             background: rgba(255,255,255,0.08) !important;
-            border: 1px solid rgba(255,255,255,0.12) !important;
+            border: 1px solid var(--glass-border) !important;
             padding: 8px 16px !important;
             font-size: 0.85rem !important;
-            color: #ffffff !important;
+            color: var(--text) !important;
             appearance: none !important;
             -webkit-appearance: none !important;
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 01.753 1.659l-4.796 5.48a1 1 0 01-1.506 0z'/%3E%3C/svg%3E") !important;
@@ -1514,6 +1518,691 @@
         .backup-step.active { color: #00d4ff; }
         .backup-step.done { color: #00e676; }
         .backup-step i { width: 20px; text-align: center; }
+
+        /* ===== THEME TOGGLE BUTTON ===== */
+        #themeToggleBtn {
+            position: fixed;
+            top: 10px;
+            right: 58px;
+            z-index: 100000;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5856D6, #007AFF);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+            transition: all 0.3s ease;
+        }
+        #themeToggleBtn:hover { transform: scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
+        html[dir="ltr"] #themeToggleBtn { right: 58px; }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .evo-animate {
+            animation: fadeSlideUp 0.5s ease forwards;
+        }
+        .chart-type-btn {
+            padding: 4px 10px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            border: 1px solid var(--glass-border);
+            background: rgba(255,255,255,0.03);
+            color: var(--text-light);
+            transition: all 0.3s;
+        }
+        .chart-type-btn:hover {
+            border-color: rgba(0,212,255,0.3);
+            color: #fff;
+        }
+        .chart-type-btn.active {
+            background: rgba(0,212,255,0.15);
+            border-color: #00d4ff;
+            color: #00d4ff;
+        }
+        .evo-select {
+            border-radius: 50px !important;
+            background: rgba(255,255,255,0.08) !important;
+            border: 1px solid var(--glass-border) !important;
+            padding: 8px 16px !important;
+            font-size: 0.85rem !important;
+            color: var(--text) !important;
+            appearance: none !important;
+            -webkit-appearance: none !important;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23a0a0b8' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 01.753 1.659l-4.796 5.48a1 1 0 01-1.506 0z'/%3E%3C/svg%3E") !important;
+            background-repeat: no-repeat !important;
+            background-position: left 12px center !important;
+            cursor: pointer !important;
+            transition: all 0.3s !important;
+        }
+        .evo-select:focus {
+            border-color: rgba(0,212,255,0.4) !important;
+            box-shadow: 0 0 0 2px rgba(0,212,255,0.1) !important;
+            outline: none !important;
+        }
+        .evo-select option {
+            background: #1a1a2e !important;
+            color: #ffffff !important;
+            padding: 8px !important;
+        }
+
+        /* Close Button */
+        #appCloseBtn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 100000;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            border: 2px solid rgba(255,255,255,0.3);
+            color: #fff;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255,0,0,0.4);
+            transition: all 0.3s;
+        }
+        #appCloseBtn:hover {
+            transform: scale(1.15);
+            box-shadow: 0 6px 25px rgba(255,0,0,0.6);
+        }
+        html[dir="ltr"] #appCloseBtn { left: auto; right: 10px; }
+
+        /* Backup Progress Modal */
+        #backupProgressOverlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(8,8,13,0.95);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+        }
+        #backupProgressOverlay.show { display: flex; }
+        .backup-progress-container {
+            background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+            border: 1px solid rgba(0,212,255,0.2);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 480px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.8), 0 0 40px rgba(0,212,255,0.1);
+            animation: backupPulseIn 0.5s ease;
+        }
+        @keyframes backupPulseIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .backup-icon-anim {
+            font-size: 56px;
+            background: linear-gradient(135deg, #00d4ff, #7b2ff7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: backupSpin 2s linear infinite;
+            display: inline-block;
+            margin-bottom: 16px;
+        }
+        @keyframes backupSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(0.8); }
+        }
+        .backup-title {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .backup-subtitle {
+            color: #a0a0b8;
+            font-size: 0.9rem;
+            margin-bottom: 24px;
+        }
+        .backup-progress-bar-track {
+            width: 100%;
+            height: 12px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 16px;
+        }
+        .backup-progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #00d4ff, #7b2ff7, #00e676);
+            background-size: 200% 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+            animation: backupBarShimmer 1.5s ease-in-out infinite;
+        }
+        @keyframes backupBarShimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .backup-percent {
+            color: #00d4ff;
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+        .backup-status {
+            color: #00e676;
+            font-size: 0.85rem;
+            min-height: 20px;
+        }
+        .backup-steps {
+            text-align: right;
+            margin-top: 16px;
+            direction: rtl;
+        }
+        .backup-step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            color: #a0a0b8;
+            font-size: 0.82rem;
+            transition: all 0.3s;
+        }
+        .backup-step.active { color: #00d4ff; }
+        .backup-step.done { color: #00e676; }
+        .backup-step i { width: 20px; text-align: center; }
+
+        /* ===== THEME TOGGLE BUTTON ===== */
+        #themeToggleBtn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #5856D6, #007AFF);
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,122,255,0.3);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        #themeToggleBtn:hover { transform: scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
+
+        /* ===== LIGHT MODE - PREMIUM & MODERN ===== */
+        body.light-mode {
+            --primary: #ffffff;
+            --primary-dark: #f8fafc;
+            --secondary: #f1f5f9;
+            --accent: #3b82f6;
+            --accent2: #6366f1;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --light-bg: #f8fafc;
+            --card-bg: rgba(255, 255, 255, 0.85);
+            --glass-bg: rgba(255, 255, 255, 0.75);
+            --glass-border: rgba(226, 232, 240, 0.8);
+            --glass-shadow: 0 8px 32px rgba(148, 163, 184, 0.08);
+            --text: #000000;
+            --text-light: #000000;
+            --text-white: #ffffff;
+            --shadow-sm: 0 2px 8px rgba(148, 163, 184, 0.05);
+            --shadow-md: 0 10px 30px rgba(148, 163, 184, 0.08);
+            --shadow-lg: 0 20px 40px rgba(148, 163, 184, 0.12);
+            background: #f8fafc;
+            color: #000000;
+        }
+        body.light-mode::before {
+            background:
+                radial-gradient(ellipse at 20% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 20%, rgba(99, 102, 241, 0.05) 0%, transparent 60%),
+                radial-gradient(ellipse at 50% 80%, rgba(59, 130, 246, 0.03) 0%, transparent 60%),
+                radial-gradient(ellipse at 60% 40%, rgba(245, 158, 11, 0.03) 0%, transparent 50%) !important;
+            animation: gradientBg 15s ease-in-out infinite;
+        }
+        body.light-mode .sidebar {
+            background: rgba(255, 255, 255, 0.8);
+            color: #0f172a;
+            box-shadow: 5px 0 25px rgba(148, 163, 184, 0.08);
+            border-left: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body.light-mode .sidebar::before {
+            background: linear-gradient(180deg, rgba(59, 130, 246, 0.03) 0%, rgba(99, 102, 241, 0.03) 50%, rgba(59, 130, 246, 0.02) 100%) !important;
+            animation: sidebarGlow 8s ease-in-out infinite;
+        }
+        body.light-mode .sidebar .nav-link {
+            color: #475569;
+            background: rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(226, 232, 240, 0.5);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        body.light-mode .sidebar .nav-link::before {
+            background: linear-gradient(180deg, #3b82f6, #6366f1);
+        }
+        body.light-mode .sidebar .nav-link:hover {
+            background: rgba(59, 130, 246, 0.06);
+            color: #3b82f6;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.15);
+        }
+        body.light-mode .sidebar .nav-link.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(99, 102, 241, 0.1) 100%);
+            color: #3b82f6;
+            font-weight: 700;
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.12);
+            border-color: rgba(59, 130, 246, 0.25);
+        }
+        body.light-mode #sidebar .neon-text {
+            color: #0f172a !important;
+            text-shadow: none !important;
+        }
+        body.light-mode .top-bar {
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(148, 163, 184, 0.06);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body.light-mode .top-bar::before {
+            background: conic-gradient(from 0deg, transparent, rgba(59, 130, 246, 0.02), transparent, rgba(99, 102, 241, 0.02), transparent) !important;
+            animation: rotateGlow 20s linear infinite;
+        }
+        body.light-mode .company-name-animated {
+            background: linear-gradient(90deg, #3b82f6, #6366f1, #f59e0b, #3b82f6) !important;
+            background-size: 300% 100% !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            -webkit-text-fill-color: transparent !important;
+            animation: gradientShift 5s ease infinite, floatText 3s ease-in-out infinite !important;
+            filter: drop-shadow(0 2px 8px rgba(59, 130, 246, 0.15)) !important;
+        }
+        body.light-mode .stat-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 8px 30px rgba(148, 163, 184, 0.06);
+        }
+        body.light-mode .stat-card::before {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), transparent, rgba(99, 102, 241, 0.15));
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        body.light-mode .stat-card:hover::before {
+            opacity: 1;
+        }
+        body.light-mode .stat-card:hover {
+            box-shadow: 0 16px 40px rgba(148, 163, 184, 0.12), 0 0 25px rgba(59, 130, 246, 0.04);
+            border-color: rgba(59, 130, 246, 0.2);
+        }
+        body.light-mode .stat-card .value {
+            color: #0f172a;
+            text-shadow: none;
+        }
+        body.light-mode .stat-card .label {
+            color: #64748b;
+        }
+        body.light-mode .stat-card-mini {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 18px rgba(148, 163, 184, 0.05);
+        }
+        body.light-mode .stat-card-mini::before {
+            background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
+        }
+        body.light-mode .stat-card-mini:hover {
+            box-shadow: 0 12px 30px rgba(148, 163, 184, 0.1), 0 0 15px rgba(59, 130, 246, 0.04);
+            border-color: rgba(226, 232, 240, 1);
+        }
+        body.light-mode .stat-card-mini small,
+        body.light-mode .stat-card-mini small.d-block {
+            color: #475569 !important;
+        }
+        body.light-mode .stat-card-mini div {
+            text-shadow: none !important;
+        }
+        body.light-mode .table-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 40px rgba(148, 163, 184, 0.06);
+        }
+        body.light-mode .table thead th {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+            color: #1e293b !important;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+            font-weight: 700;
+        }
+        body.light-mode .table tbody td {
+            color: #1e293b;
+            background: transparent;
+            border-color: rgba(226, 232, 240, 0.5);
+            font-weight: 600;
+        }
+        body.light-mode .table tbody tr:hover td {
+            background: rgba(59, 130, 246, 0.03);
+        }
+        body.light-mode .btn-primary {
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+        }
+        body.light-mode .btn-primary:hover {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.25);
+        }
+        body.light-mode .btn-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.15);
+        }
+        body.light-mode .btn-success:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.25);
+        }
+        body.light-mode .btn-info {
+            background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+        }
+        body.light-mode .btn-info:hover {
+            background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.25);
+        }
+        body.light-mode .btn-outline-light {
+            border-color: rgba(71, 85, 105, 0.3) !important;
+            color: #475569 !important;
+        }
+        body.light-mode .btn-outline-light:hover {
+            background: rgba(71, 85, 105, 0.08) !important;
+            color: #1e293b !important;
+        }
+        body.light-mode .modal-content {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 1);
+            color: #0f172a;
+            box-shadow: 0 25px 50px -12px rgba(148, 163, 184, 0.25);
+        }
+        body.light-mode .modal-header {
+            background: rgba(248, 250, 252, 1);
+            color: #0f172a;
+            border-bottom: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body.light-mode .modal-body { color: #0f172a; }
+        body.light-mode .modal-body p { color: #475569; }
+        body.light-mode .modal-body label { color: #334155; }
+        body.light-mode .modal-body strong { color: #0f172a; }
+        body.light-mode .modal-footer { border-top: 1px solid rgba(226, 232, 240, 0.8); }
+        body.light-mode .search-box input {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(226, 232, 240, 1);
+            color: #0f172a;
+        }
+        body.light-mode .search-box input:focus {
+            border-color: #3b82f6;
+            background: #ffffff;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 0 15px rgba(59, 130, 246, 0.05);
+        }
+        body.light-mode .search-box i { color: #64748b; }
+        body.light-mode .search-box input:focus ~ i { color: #3b82f6; }
+        body.light-mode .form-control, body.light-mode .form-select {
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(226, 232, 240, 1);
+            color: #0f172a !important;
+        }
+        body.light-mode .form-control:focus, body.light-mode .form-select:focus {
+            background: #ffffff;
+            border-color: #3b82f6;
+            color: #0f172a !important;
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), 0 0 15px rgba(59, 130, 246, 0.05);
+        }
+        body.light-mode .form-control::placeholder { color: #94a3b8 !important; }
+        body.light-mode .invoice-items-header {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+            color: #1e293b;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 15px rgba(148, 163, 184, 0.04);
+        }
+        body.light-mode .invoice-item-row {
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid rgba(226, 232, 240, 0.6);
+        }
+        body.light-mode .invoice-item-row:hover {
+            background: rgba(255, 255, 255, 0.8);
+            border-color: rgba(59, 130, 246, 0.2);
+            box-shadow: 0 6px 20px rgba(148, 163, 184, 0.06);
+        }
+        body.light-mode .invoice-item-row label { color: #1e293b !important; }
+        body.light-mode .summary-input-white { color: #0f172a !important; }
+        body.light-mode .summary-input-green { color: #10b981 !important; }
+        body.light-mode .summary-input-red { color: #ef4444 !important; }
+        body.light-mode .filter-section {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        body.light-mode .filter-section label { color: #475569; }
+        body.light-mode .input-group-text {
+            background: rgba(241, 245, 249, 0.9);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            color: #475569;
+        }
+        body.light-mode .payment-customer-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 2px 8px rgba(148, 163, 184, 0.04);
+        }
+        body.light-mode .payment-customer-card:hover { background: rgba(248, 250, 252, 1); }
+        body.light-mode .payment-customer-card.selected {
+            background: rgba(59, 130, 246, 0.08);
+            border-left: 3px solid #3b82f6;
+        }
+        body.light-mode .payment-history-item {
+            background: rgba(248, 250, 252, 0.9);
+            border-right: 3px solid #10b981;
+        }
+        body.light-mode .report-type-btn {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            color: #475569;
+        }
+        body.light-mode .report-type-btn:hover { background: rgba(248, 250, 252, 1); }
+        body.light-mode .report-type-btn.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.08) 0%, rgba(99, 102, 241, 0.08) 100%);
+            border-color: rgba(59, 130, 246, 0.25);
+            color: #3b82f6;
+        }
+        body.light-mode .report-dashboard-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body.light-mode .report-dashboard-card:hover { background: rgba(255, 255, 255, 0.95); }
+        body.light-mode .employee-report-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body.light-mode .employee-report-card:hover { background: rgba(255, 255, 255, 0.95); }
+        body.light-mode .overview-filter-section {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.85);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+        body.light-mode .overview-filter-section label { color: #475569; }
+        body.light-mode .page-title-animated { border-left-color: #3b82f6; color: #0f172a; }
+        body.light-mode .bottom-nav {
+            background: rgba(255, 255, 255, 0.9);
+            border-top: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 -4px 20px rgba(148, 163, 184, 0.05);
+        }
+        body.light-mode .bottom-nav-item { color: #94a3b8; }
+        body.light-mode .bottom-nav-item.active { color: #3b82f6; }
+        body.light-mode .evo-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 15px rgba(148, 163, 184, 0.04);
+        }
+        body.light-mode .evo-card:hover { box-shadow: 0 8px 25px rgba(148, 163, 184, 0.08); }
+        body.light-mode .evo-kpi {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 4px 15px rgba(148, 163, 184, 0.04);
+        }
+        body.light-mode .evo-kpi::before { opacity: 0; }
+        body.light-mode .evo-kpi .value { color: #0f172a; }
+        body.light-mode .evo-kpi .label { color: #64748b; }
+        body.light-mode .year-chip {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.85);
+            color: #475569;
+        }
+        body.light-mode .year-chip:hover { border-color: #3b82f6; color: #3b82f6; }
+        body.light-mode .year-chip.active {
+            background: #3b82f6;
+            border-color: #3b82f6;
+            color: #fff;
+        }
+        body.light-mode .insight-card {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(226, 232, 240, 0.8);
+        }
+        body.light-mode .chart-type-btn {
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            background: rgba(255, 255, 255, 0.85);
+            color: #475569;
+        }
+        body.light-mode .chart-type-btn:hover { border-color: #3b82f6; color: #3b82f6; }
+        body.light-mode .chart-type-btn.active {
+            background: rgba(59, 130, 246, 0.08);
+            border-color: rgba(59, 130, 246, 0.25);
+            color: #3b82f6;
+        }
+        body.light-mode .evo-select {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(226, 232, 240, 1) !important;
+            color: #0f172a !important;
+        }
+        body.light-mode .evo-select option { background: #fff !important; color: #0f172a !important; }
+        body.light-mode .select2-container--default .select2-selection--single {
+            background: rgba(255, 255, 255, 0.9) !important;
+            border-color: rgba(226, 232, 240, 1) !important;
+        }
+        body.light-mode .select2-container--default .select2-selection--single .select2-selection__rendered { color: #0f172a !important; }
+        body.light-mode .select2-container--default .select2-selection--single .select2-selection__arrow b { border-color: #64748b transparent transparent transparent !important; }
+        body.light-mode .select2-dropdown {
+            background: #fff !important;
+            border-color: rgba(226, 232, 240, 1) !important;
+        }
+        body.light-mode .select2-container--default .select2-results__option { color: #0f172a !important; }
+        body.light-mode .select2-container--default .select2-results__option--highlighted[aria-selected] { background: rgba(59, 130, 246, 0.08) !important; color: #3b82f6 !important; }
+        body.light-mode .select2-container--default .select2-search--dropdown .select2-search__field {
+            background: rgba(248, 250, 252, 0.9) !important;
+            border-color: rgba(226, 232, 240, 1) !important;
+            color: #0f172a !important;
+        }
+        body.light-mode .select2-container--default .select2-search--dropdown .select2-search__field:focus {
+            border-color: #3b82f6 !important;
+            box-shadow: none !important;
+        }
+        body.light-mode #backupProgressOverlay { background: rgba(248, 250, 252, 0.95); }
+        body.light-mode .backup-progress-container {
+            background: #ffffff;
+            border: 1px solid rgba(226, 232, 240, 1);
+            box-shadow: 0 10px 40px rgba(148, 163, 184, 0.12);
+        }
+        body.light-mode .backup-title { color: #0f172a; }
+        body.light-mode .backup-subtitle { color: #64748b; }
+        body.light-mode .backup-progress-bar-track { background: rgba(226, 232, 240, 0.8); }
+        body.light-mode .backup-icon-anim { background: linear-gradient(135deg, #3b82f6, #6366f1); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: none !important; }
+        body.light-mode .backup-percent { color: #3b82f6; }
+        body.light-mode .backup-status { color: #10b981; }
+        body.light-mode .backup-step { color: #64748b; }
+        body.light-mode .backup-step.active { color: #3b82f6; }
+        body.light-mode .backup-step.done { color: #10b981; }
+        body.light-mode .table-responsive::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
+        body.light-mode .table-responsive::-webkit-scrollbar-track { background: transparent; }
+        body.light-mode #themeToggleBtn {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            box-shadow: 0 4px 15px rgba(245, 158, 11, 0.25);
+        }
+        body.light-mode #themeToggleBtn:hover {
+            background: linear-gradient(135deg, #d97706, #b45309);
+        }
+        body.light-mode #appCloseBtn { border: none; }
+        body.light-mode .badge { color: #1e293b; }
+        body.light-mode h5, body.light-mode h6 { color: #000000 !important; font-weight: 800 !important; }
+        body.light-mode label { color: #000000 !important; }
+        body.light-mode p { color: #000000 !important; }
+        body.light-mode strong { color: #000000 !important; }
+        body.light-mode .text-white { color: #000000 !important; }
+        body.light-mode .text-white-50 { color: #000000 !important; }
+        body.light-mode #sidebarOverlay { background: rgba(15, 23, 42, 0.3); }
+        body.light-mode #pageTitle { color: #000000 !important; }
+        body.light-mode #dateTime { color: #000000 !important; text-shadow: none !important; }
+        body.light-mode .neon-text { color: #000000 !important; text-shadow: none !important; }
+        body.light-mode .neon-border { box-shadow: none !important; }
+
+        /* force all standard text elements to black in light mode */
+        body.light-mode,
+        body.light-mode h1, body.light-mode h2, body.light-mode h3, body.light-mode h4,
+        body.light-mode td, body.light-mode th, body.light-mode input, body.light-mode select,
+        body.light-mode .sidebar .nav-link, body.light-mode .company-name-animated {
+            color: #000000 !important;
+            -webkit-text-fill-color: #000000 !important;
+            text-shadow: none !important;
+        }
+        body.light-mode .sidebar .nav-link i, body.light-mode .sidebar .nav-link.active i {
+            color: #000000 !important;
+        }
+        body.light-mode .stat-card-mini small, body.light-mode .stat-card-mini div {
+            color: #000000 !important;
+            text-shadow: none !important;
+        }
+        body.light-mode .employee-report-card small {
+            color: #000000 !important;
+        }
+        body.light-mode .input-group-text {
+            color: #000000 !important;
+        }
+        body.light-mode .btn-close {
+            filter: brightness(0) invert(0) !important;
+            opacity: 0.75 !important;
+        }
+        body.light-mode .btn-close:hover {
+            opacity: 1 !important;
+        }
+
+        body .sidebar, body.light-mode .sidebar,
+        body .top-bar, body.light-mode .top-bar,
+        body .stat-card, body.light-mode .stat-card,
+        body .stat-card-mini, body.light-mode .stat-card-mini,
+        body .table-card, body.light-mode .table-card,
+        body .modal-content, body.light-mode .modal-content,
+        body .form-control, body.light-mode .form-control,
+        body .form-select, body.light-mode .form-select,
+        body .evo-card, body.light-mode .evo-card,
+        body .evo-kpi, body.light-mode .evo-kpi,
+        body .search-box input, body.light-mode .search-box input,
+        body .btn, body.light-mode .btn,
+        body .report-type-btn, body.light-mode .report-type-btn,
+        body .filter-section, body.light-mode .filter-section,
+        body .invoice-item-row, body.light-mode .invoice-item-row,
+        body .payment-customer-card, body.light-mode .payment-customer-card,
+        body .bottom-nav, body.light-mode .bottom-nav {
+            transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease;
+        }
     </style>
 </head>
 <body>
@@ -1655,6 +2344,9 @@
                             <i class="fas fa-bars"></i>
                         </button>
                         <h4 id="pageTitle" class="fw-bold mb-0 page-title-animated" style="color: #ffffff;">التقارير</h4>
+                        <button id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">
+                            <i class="fas fa-moon" id="themeIcon"></i>
+                        </button>
                     </div>
                     <div class="company-name-animated" id="companyNameDisplay">Sernova Pharmaceuticals</div>
                     <div class="d-flex align-items-center gap-3">
@@ -1830,6 +2522,26 @@
                 applyColors: 'Apply Colors'
             }
         };
+
+        // Theme Toggle
+        function toggleTheme() {
+            document.body.classList.toggle('light-mode');
+            const isLight = document.body.classList.contains('light-mode');
+            localStorage.setItem('erpTheme', isLight ? 'light' : 'dark');
+            var icon = document.getElementById('themeIcon');
+            if (icon) icon.className = isLight ? 'fas fa-sun' : 'fas fa-moon';
+            if (window.mySalesChart) { try { renderSalesChartData(); } catch(e) {} }
+        }
+        (function() {
+            var saved = localStorage.getItem('erpTheme');
+            if (saved === 'light') {
+                document.body.classList.add('light-mode');
+                document.addEventListener('DOMContentLoaded', function() {
+                    var icon = document.getElementById('themeIcon');
+                    if (icon) icon.className = 'fas fa-sun';
+                });
+            }
+        })();
 
         let currentLang = 'ar';
 
@@ -4591,16 +5303,16 @@ function sharePDF() {
             const managerOptions = [...new Set(appData.salesInvoices.map(inv => inv.salesManager).filter(m => m))].map(m => `<option value="${m}" ${filters.salesManager === m ? 'selected' : ''}>${m}</option>`).join('');
             const html = `
             <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 p-3 rounded-3 evo-card" style="padding:18px 24px!important;">
-                <h4 style="color: #ffffff; margin: 0; font-weight: 800; font-size:1.3rem;"><i class="fas fa-chart-line" style="background:linear-gradient(135deg,#00d4ff,#7b2ff7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-left:10px;"></i> ${lang==='ar'?'تطور المبيعات والأداء المالي':'Sales Evolution & Financial Performance'}</h4>
+                <h4 style="color: var(--text); margin: 0; font-weight: 800; font-size: 1.3rem;"><i class="fas fa-chart-line" style="color: var(--accent); margin-left: 10px;"></i> ${lang==='ar'?'تطور المبيعات والأداء المالي':'Sales Evolution & Financial Performance'}</h4>
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge px-3 py-2 rounded-pill" style="font-size:0.8rem;background:rgba(0,212,255,0.12);color:#00d4ff;border:1px solid rgba(0,212,255,0.2);" id="chartSummaryBadge"></span>
-                    <button class="btn btn-sm rounded-pill px-3" style="background:rgba(255,255,255,0.06);color:#a0a0b8;border:1px solid rgba(255,255,255,0.08);" onclick="clearSalesChartFilters()" title="${lang==='ar'?'إعادة تعيين':'Reset'}"><i class="fas fa-redo-alt"></i></button>
+                    <span class="badge px-3 py-2 rounded-pill" style="font-size:0.8rem; background: rgba(0,122,255,0.1); color: var(--accent); border: 1px solid rgba(0,122,255,0.15);" id="chartSummaryBadge"></span>
+                    <button class="btn btn-sm rounded-pill px-3" style="background: rgba(255,255,255,0.06); color: var(--text-light); border: 1px solid var(--glass-border);" onclick="clearSalesChartFilters()" title="${lang==='ar'?'إعادة تعيين':'Reset'}"><i class="fas fa-redo-alt"></i></button>
                 </div>
             </div>
             <div class="row g-3 mb-4">
                 <div class="col-lg-3">
-                    <div style="background:rgba(15,15,35,0.4);border-radius:20px;padding:16px 20px;border:1px solid rgba(255,255,255,0.05);height:100%;">
-                        <label class="fw-bold mb-2" style="font-size:0.78rem;color:#a0a0b8;letter-spacing:0.3px;"><i class="fas fa-calendar-alt" style="color:#00d4ff;margin-left:6px;"></i> ${lang==='ar'?'السنة':'Year'}</label>
+                    <div style="background: var(--glass-bg); border-radius: 16px; padding: 16px 20px; border: 1px solid var(--glass-border); height: 100%;">
+                        <label class="fw-bold mb-2" style="font-size:0.85rem;color:var(--text-light);letter-spacing:0.3px;"><i class="fas fa-calendar-alt" style="color:var(--accent);margin-left:6px;"></i> ${lang==='ar'?'السنة':'Year'}</label>
                         <select class="evo-select" id="yearFilterSelect" onchange="updateSalesChartYearFilter(this.value)">
                             <option value="" ${activeYear === '' ? 'selected' : ''}>${lang==='ar'?'-- اختر سنة --':'-- Select Year --'}</option>
                             ${[2025,2026,2027,2028,2029,2030].map(y => `<option value="${y}" ${activeYear == y ? 'selected' : ''}>${y}</option>`).join('')}
@@ -4608,8 +5320,8 @@ function sharePDF() {
                     </div>
                 </div>
                 <div class="col-lg-3">
-                    <div style="background:rgba(15,15,35,0.4);border-radius:20px;padding:16px 20px;border:1px solid rgba(255,255,255,0.05);height:100%;">
-                        <label class="fw-bold mb-2" style="font-size:0.78rem;color:#a0a0b8;letter-spacing:0.3px;"><i class="fas fa-boxes" style="color:#00d4ff;margin-left:6px;"></i> ${lang==='ar'?'الصنف':'Product'}</label>
+                    <div style="background: var(--glass-bg); border-radius: 16px; padding: 16px 20px; border: 1px solid var(--glass-border); height: 100%;">
+                        <label class="fw-bold mb-2" style="font-size:0.85rem;color:var(--text-light);letter-spacing:0.3px;"><i class="fas fa-boxes" style="color:var(--accent);margin-left:6px;"></i> ${lang==='ar'?'الصنف':'Product'}</label>
                         <select class="evo-select" id="chartProductFilter">
                             <option value="">${lang==='ar'?'كل الأصناف':'All Products'}</option>
                             ${productOptions}
@@ -4617,8 +5329,8 @@ function sharePDF() {
                     </div>
                 </div>
                 <div class="col-lg-3">
-                    <div style="background:rgba(15,15,35,0.4);border-radius:20px;padding:16px 20px;border:1px solid rgba(255,255,255,0.05);height:100%;">
-                        <label class="fw-bold mb-2" style="font-size:0.78rem;color:#a0a0b8;letter-spacing:0.3px;"><i class="fas fa-user-tie" style="color:#00d4ff;margin-left:6px;"></i> Sales Rep</label>
+                    <div style="background: var(--glass-bg); border-radius: 16px; padding: 16px 20px; border: 1px solid var(--glass-border); height: 100%;">
+                        <label class="fw-bold mb-2" style="font-size:0.85rem;color:var(--text-light);letter-spacing:0.3px;"><i class="fas fa-user-tie" style="color:var(--accent);margin-left:6px;"></i> Sales Rep</label>
                         <select class="evo-select" id="chartManagerFilter">
                             <option value="">${lang==='ar'?'كل المناديب':'All Reps'}</option>
                             ${managerOptions}
@@ -4626,8 +5338,8 @@ function sharePDF() {
                     </div>
                 </div>
                 <div class="col-lg-3">
-                    <div style="background:rgba(15,15,35,0.4);border-radius:20px;padding:16px 20px;border:1px solid rgba(255,255,255,0.05);height:100%;">
-                        <label class="fw-bold mb-2" style="font-size:0.78rem;color:#a0a0b8;letter-spacing:0.3px;"><i class="fas fa-users" style="color:#00d4ff;margin-left:6px;"></i> ${lang==='ar'?'العميل':'Customer'}</label>
+                    <div style="background: var(--glass-bg); border-radius: 16px; padding: 16px 20px; border: 1px solid var(--glass-border); height: 100%;">
+                        <label class="fw-bold mb-2" style="font-size:0.85rem;color:var(--text-light);letter-spacing:0.3px;"><i class="fas fa-users" style="color:var(--accent);margin-left:6px;"></i> ${lang==='ar'?'العميل':'Customer'}</label>
                         <select class="evo-select" id="chartCustomerFilter">
                             <option value="">${lang==='ar'?'كل العملاء':'All Customers'}</option>
                             ${customerOptions}
@@ -4640,37 +5352,37 @@ function sharePDF() {
                 <div class="col-12">
                     <div class="evo-card" style="padding: 22px;">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0 text-white fw-bold" style="font-size:0.95rem;"><i class="fas fa-chart-area" style="color:#00d4ff;margin-left:8px;"></i> ${lang==='ar'?'المبيعات الشهرية':'Monthly Sales'}</h6>
+                            <h6 class="mb-0 fw-bold" style="color: var(--text); font-size: 1rem;"><i class="fas fa-chart-area" style="color:var(--accent);margin-left:8px;"></i> ${lang==='ar'?'المبيعات الشهرية':'Monthly Sales'}</h6>
                             <div class="d-flex gap-1" id="chartTypeSelector">
                                 <button class="btn btn-sm chart-type-btn active" data-charttype="bar" onclick="changeSalesChartType('bar')" title="${lang==='ar'?'أعمدة':'Bar'}"><i class="fas fa-chart-bar"></i></button>
                                 <button class="btn btn-sm chart-type-btn" data-charttype="line" onclick="changeSalesChartType('line')" title="${lang==='ar'?'خط':'Line'}"><i class="fas fa-chart-line"></i></button>
                                 <button class="btn btn-sm" onclick="shareChartWhatsApp()" title="${lang==='ar'?'مشاركة عبر واتساب':'Share via WhatsApp'}" style="background:rgba(37,211,102,0.15);color:#25d366;border:1px solid rgba(37,211,102,0.3);border-radius:8px;"><i class="fab fa-whatsapp"></i></button>
                             </div>
                         </div>
-                        <div class="d-flex gap-3 mb-2 flex-wrap" id="chartSeriesCheckboxes" style="padding:8px 4px 6px 4px;background:rgba(255,255,255,0.03);border-radius:12px;">
-                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#00d4ff;font-weight:600;">
+                        <div class="d-flex gap-3 mb-2 flex-wrap" id="chartSeriesCheckboxes" style="padding:10px 12px;background: var(--glass-bg);border: 1px solid var(--glass-border);border-radius:12px;">
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:var(--text);font-weight:600;">
                                 <input type="checkbox" id="chkShowSales" checked onchange="renderSalesChartData()" style="accent-color:#00d4ff;width:15px;height:15px;">
                                 <span>${lang==='ar'?'المبيعات (علب)':'Sales (boxes)'}</span>
                             </label>
-                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ff4444;font-weight:600;">
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:var(--text);font-weight:600;">
                                 <input type="checkbox" id="chkShowReturns" checked onchange="renderSalesChartData()" style="accent-color:#ff4444;width:15px;height:15px;">
                                 <span>${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span>
                             </label>
-                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#00e676;font-weight:600;">
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:var(--text);font-weight:600;">
                                 <input type="checkbox" id="chkShowSalesAmount" onchange="renderSalesChartData()" style="accent-color:#00e676;width:15px;height:15px;">
                                 <span>${lang==='ar'?'اجمالي المبيعات':'Total Sales (amount)'}</span>
                             </label>
-                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ff9100;font-weight:600;">
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:var(--text);font-weight:600;">
                                 <input type="checkbox" id="chkShowExpenses" onchange="renderSalesChartData()" style="accent-color:#ff9100;width:15px;height:15px;">
                                 <span>${lang==='ar'?'اجمالي المصروفات ':'Total Expenses (amount)'}</span>
                             </label>
-                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#7b2ff7;font-weight:600;">
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:var(--text);font-weight:600;">
                                 <input type="checkbox" id="chkShowPayments" onchange="renderSalesChartData()" style="accent-color:#7b2ff7;width:15px;height:15px;">
                                 <span>${lang==='ar'?'اجمالي السداد ':'Total Payments (amount)'}</span>
                             </label>
-                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:#ffffff;font-weight:600;margin-right:auto;">
+                            <label class="d-flex align-items-center gap-1" style="cursor:pointer;font-size:0.8rem;color:var(--text);font-weight:600;margin-right:auto;">
                                 <input type="checkbox" id="chkShowDataLabels" checked onchange="renderSalesChartData()" style="accent-color:#7b2ff7;width:15px;height:15px;">
-                                <span style="color:#a0a0b8;">${lang==='ar'?'أرقام على الرسم':'Labels'}</span>
+                                <span style="color:var(--text-light);">${lang==='ar'?'أرقام على الرسم':'Labels'}</span>
                             </label>
                         </div>
                         <div style="position: relative; height:450px; width:100%;"><canvas id="salesEvolutionChart"></canvas></div>
@@ -4681,7 +5393,7 @@ function sharePDF() {
             <div class="row mb-3">
                 <div class="col-12">
                     <div class="evo-card" style="padding: 22px; overflow: hidden;">
-                        <h6 class="mb-3 text-white fw-bold" style="font-size:0.95rem;"><i class="fas fa-trophy" style="color:#ff9100;margin-left:8px;"></i> ${lang==='ar'?'ترتيب المناديب':'Rep Ranking'}</h6>
+                        <h6 class="mb-3 fw-bold" style="color: var(--text); font-size: 1rem;"><i class="fas fa-trophy" style="color:var(--warning);margin-left:8px;"></i> ${lang==='ar'?'ترتيب المناديب':'Rep Ranking'}</h6>
                         <div id="salesRepGridContainer"></div>
                     </div>
                 </div>
@@ -4820,6 +5532,12 @@ function sharePDF() {
 
         function renderSalesChartData() {
             const lang = currentLang;
+            const isLight = document.body.classList.contains('light-mode');
+            const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+            const tickColor = isLight ? '#000000' : '#ffffff';
+            const labelColor = isLight ? '#000000' : '#a0a0c0';
+            const dataLabelColor = isLight ? '#000000' : '#ffffff';
+
             const filters = window.salesChartFilters;
             const monthlyData = getSalesEvolutionData(filters.year, filters.productId, filters.salesManager, filters.customerId);
             const monthsArabic = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
@@ -4897,11 +5615,11 @@ function sharePDF() {
             const showDataLabels = document.getElementById('chkShowDataLabels') ? document.getElementById('chkShowDataLabels').checked : true;
             const hasMoneySeries = showSalesAmount || showExpenses || showPayments;
             var kpisHtml = `
-            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'صافي المبيعات (علب)':'Net Sales (boxes)'}</div><div class="value" style="color:#00e676;font-size:1.15rem;">${netQty} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-cubes" style="color:#00e676;font-size:0.9rem;"></i></div></div></div>
-            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</div><div class="value" style="color:#ff4444;font-size:1.15rem;">${totalReturnsQty} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(255,68,68,0.12);flex-shrink:0;"><i class="fas fa-undo" style="color:#ff4444;font-size:0.9rem;"></i></div></div></div>
-            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'اجمالي المبيعات (جنيه)':'Sales (EGP)'}</div><div class="value" style="color:#00e676;font-size:1.15rem;">${fmtMoney(totalSales)} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-coins" style="color:#00e676;font-size:0.9rem;"></i></div></div></div>
-            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'المصروفات (جنيه)':'Expenses (EGP)'}</div><div class="value" style="color:#ff9100;font-size:1.15rem;">${fmtMoney(monthlyExpenses.reduce((s,v)=>s+v,0))} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(255,145,0,0.12);flex-shrink:0;"><i class="fas fa-money-bill-wave" style="color:#ff9100;font-size:0.9rem;"></i></div></div></div>
-            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:10px 12px;"><div><div class="label" style="font-size:0.7rem;">${lang==='ar'?'السداد (جنيه)':'Payments (EGP)'}</div><div class="value" style="color:#7b2ff7;font-size:1.15rem;">${fmtMoney(monthlyPayments.reduce((s,v)=>s+v,0))} <span style="font-size:0.7rem;font-weight:400;color:#a0a0b8;">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:36px;height:36px;background:rgba(123,47,247,0.12);flex-shrink:0;"><i class="fas fa-hand-holding-usd" style="color:#7b2ff7;font-size:0.9rem;"></i></div></div></div>`;
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:18px 16px;"><div><div class="label" style="font-size:0.8rem;">${lang==='ar'?'صافي المبيعات (علب)':'Net Sales (boxes)'}</div><div class="value" style="color:#00e676;font-size:1.8rem;">${netQty} <span style="font-size:0.8rem;font-weight:400;color:var(--text-light);">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-cubes" style="color:#00e676;font-size:1rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:18px 16px;"><div><div class="label" style="font-size:0.8rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</div><div class="value" style="color:#ff4444;font-size:1.8rem;">${totalReturnsQty} <span style="font-size:0.8rem;font-weight:400;color:var(--text-light);">${lang==='ar'?'علبة':'boxes'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:rgba(255,68,68,0.12);flex-shrink:0;"><i class="fas fa-undo" style="color:#ff4444;font-size:1rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:18px 16px;"><div><div class="label" style="font-size:0.8rem;">${lang==='ar'?'اجمالي المبيعات (جنيه)':'Sales (EGP)'}</div><div class="value" style="color:#00e676;font-size:1.8rem;">${fmtMoney(totalSales)} <span style="font-size:0.8rem;font-weight:400;color:var(--text-light);">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:rgba(0,230,118,0.12);flex-shrink:0;"><i class="fas fa-coins" style="color:#00e676;font-size:1rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:18px 16px;"><div><div class="label" style="font-size:0.8rem;">${lang==='ar'?'المصروفات (جنيه)':'Expenses (EGP)'}</div><div class="value" style="color:#ff9100;font-size:1.8rem;">${fmtMoney(monthlyExpenses.reduce((s,v)=>s+v,0))} <span style="font-size:0.8rem;font-weight:400;color:var(--text-light);">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:rgba(255,145,0,0.12);flex-shrink:0;"><i class="fas fa-money-bill-wave" style="color:#ff9100;font-size:1rem;"></i></div></div></div>
+            <div class="col mb-2"><div class="evo-kpi d-flex align-items-center justify-content-between" style="padding:18px 16px;"><div><div class="label" style="font-size:0.8rem;">${lang==='ar'?'السداد (جنيه)':'Payments (EGP)'}</div><div class="value" style="color:#7b2ff7;font-size:1.8rem;">${fmtMoney(monthlyPayments.reduce((s,v)=>s+v,0))} <span style="font-size:0.8rem;font-weight:400;color:var(--text-light);">${lang==='ar'?'جنيه':'EGP'}</span></div></div><div class="rounded-circle d-flex align-items-center justify-content-center" style="width:40px;height:40px;background:rgba(123,47,247,0.12);flex-shrink:0;"><i class="fas fa-hand-holding-usd" style="color:#7b2ff7;font-size:1rem;"></i></div></div></div>`;
             document.getElementById('salesChartKpisContainer').innerHTML = kpisHtml;
             var mainDatasets = [];
             var mainOptions = {};
@@ -4913,11 +5631,11 @@ function sharePDF() {
                     type: isLine ? 'line' : 'bar',
                     borderColor: '#00d4ff', borderWidth: isLine ? 3.5 : 1.5,
                     fill: false, backgroundColor: 'rgba(0,212,255,0.7)',
-                    tension: 0.45, pointBackgroundColor: '#00d4ff', pointBorderColor: '#1a1a2e', pointBorderWidth: 2,
+                    tension: 0.45, pointBackgroundColor: '#00d4ff', pointBorderColor: isLight ? '#ffffff' : '#1a1a2e', pointBorderWidth: 2,
                     pointRadius: isLine ? 4 : 0, pointHoverRadius: isLine ? 7 : 5,
                     pointHoverBackgroundColor: '#ffffff', pointHoverBorderColor: '#00d4ff',
                     borderRadius: isLine ? 0 : 6, barPercentage: 0.55, yAxisID: 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    datalabels: { display: showDataLabels, color: dataLabelColor, clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
                 if (showReturns) mainDatasets.push({
                     label: lang==='ar'?'المرتجع (علب)':'Returns (boxes)', data: returnsQtyValues,
@@ -4926,7 +5644,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(255,68,68,0.65)',
                     tension: 0.4, pointBackgroundColor: '#ff4444', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
+                    datalabels: { display: showDataLabels, color: dataLabelColor, clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? v : '' }
                 });
                 if (showSalesAmount) mainDatasets.push({
                     label: lang==='ar'?'اجمالي المبيعات ':'Total Sales (amount)', data: monthlySalesAmount,
@@ -4935,7 +5653,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(0,230,118,0.7)',
                     tension: 0.45, pointBackgroundColor: '#00e676', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 6, barPercentage: 0.55, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: dataLabelColor, clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 if (showExpenses) mainDatasets.push({
                     label: lang==='ar'?'اجمالي المصروفات ':'Total Expenses', data: monthlyExpenses,
@@ -4944,7 +5662,7 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(255,145,0,0.7)',
                     tension: 0.45, pointBackgroundColor: '#ff9100', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: dataLabelColor, clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 if (showPayments) mainDatasets.push({
                     label: lang==='ar'?'اجمالي السداد ':'Total Payments', data: monthlyPayments,
@@ -4953,16 +5671,16 @@ function sharePDF() {
                     fill: false, backgroundColor: 'rgba(123,47,247,0.7)',
                     tension: 0.45, pointBackgroundColor: '#7b2ff7', pointRadius: isLine ? 3 : 0, pointHoverRadius: isLine ? 6 : 4,
                     borderRadius: isLine ? 0 : 4, barPercentage: 0.4, yAxisID: hasMoneySeries ? 'y1' : 'y',
-                    datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
+                    datalabels: { display: showDataLabels, color: dataLabelColor, clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: v => v > 0 ? fmtMoney(v) : '' }
                 });
                 var scalesConfig = {
-                    x: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { color: '#ffffff', font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 8 } },
-                    y: { position: 'left', grid: { color: 'rgba(255,255,255,0.06)' }, display: showSales || showReturns, ticks: { display: false }, title: { display: showSales || showReturns, text: lang==='ar'?'عدد العلب':'Qty (boxes)', color: '#a0a0c0', font: { family: 'Tajawal', size: 11 } }, beginAtZero: true }
+                    x: { grid: { color: gridColor }, ticks: { color: tickColor, font: { family: 'Tajawal', size: 11, weight: 'bold' }, padding: 8 } },
+                    y: { position: 'left', grid: { color: gridColor }, display: showSales || showReturns, ticks: { display: false }, title: { display: showSales || showReturns, text: lang==='ar'?'عدد العلب':'Qty (boxes)', color: labelColor, font: { family: 'Tajawal', size: 11 } }, beginAtZero: true }
                 };
                 if (hasMoneySeries) {
                     scalesConfig.y1 = {
                         position: 'right', grid: { drawOnChartArea: false },
-                        ticks: { display: false }, title: { display: true, text: lang==='ar'?'المبالغ (جنيه)':'Amount (EGP)', color: '#a0a0c0', font: { family: 'Tajawal', size: 11 } },
+                        ticks: { display: false }, title: { display: true, text: lang==='ar'?'المبالغ (جنيه)':'Amount (EGP)', color: labelColor, font: { family: 'Tajawal', size: 11 } },
                         beginAtZero: true
                     };
                 }
@@ -4971,7 +5689,7 @@ function sharePDF() {
                     layout: { padding: { top: 70, left: 8, right: 8 } },
                     interaction: { mode: 'index', intersect: false },
                     plugins: {
-                        datalabels: { display: showDataLabels, color: '#ffffff', clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
+                        datalabels: { display: showDataLabels, color: dataLabelColor, clip: false, anchor: 'end', align: 'top', offset: 8, textAlign: 'center', font: { family: 'Tajawal', size: 14, weight: 'bold' }, formatter: function(v, ctx) { if (!v || v <= 0) return ''; var lbl = ctx.dataset.label || ''; if (lbl.indexOf('فلوس') !== -1 || lbl.indexOf('amount') !== -1) return fmtMoney(v); return v; } },
                         legend: { display: false },
                         tooltip: { enabled: false }
                     },
@@ -4990,11 +5708,11 @@ function sharePDF() {
                 const totalExpensesAmt = monthlyExpenses.reduce((s, v) => s + v, 0);
                 const totalPaymentsAmt = monthlyPayments.reduce((s, v) => s + v, 0);
                 qtyLabelsEl.innerHTML = `
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات (علب)':'Sales (boxes)'}</span><br><span style="color:#00d4ff;font-size:1.5rem;font-weight:800;">${netQty}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span><br><span style="color:#ff4444;font-size:1.5rem;font-weight:800;">${totalReturnsQty}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المبيعات ':'Sales (amount)'}</span><br><span style="color:#00e676;font-size:1.5rem;font-weight:800;">${fmtMoney(totalSales)}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'المصروفات ':'Expenses'}</span><br><span style="color:#ff9100;font-size:1.5rem;font-weight:800;">${fmtMoney(totalExpensesAmt)}</span></div>
-                    <div style="text-align:center;"><span style="color:#a0a0b8;font-size:0.75rem;">${lang==='ar'?'السداد ':'Payments'}</span><br><span style="color:#7b2ff7;font-size:1.5rem;font-weight:800;">${fmtMoney(totalPaymentsAmt)}</span></div>
+                    <div style="text-align:center;"><span style="color:var(--text-light);font-size:0.8rem;">${lang==='ar'?'المبيعات (علب)':'Sales (boxes)'}</span><br><span style="color:#00d4ff;font-size:1.4rem;font-weight:800;">${netQty}</span></div>
+                    <div style="text-align:center;"><span style="color:var(--text-light);font-size:0.8rem;">${lang==='ar'?'المرتجع (علب)':'Returns (boxes)'}</span><br><span style="color:#ff4444;font-size:1.4rem;font-weight:800;">${totalReturnsQty}</span></div>
+                    <div style="text-align:center;"><span style="color:var(--text-light);font-size:0.8rem;">${lang==='ar'?'المبيعات ':'Sales (amount)'}</span><br><span style="color:#00e676;font-size:1.4rem;font-weight:800;">${fmtMoney(totalSales)}</span></div>
+                    <div style="text-align:center;"><span style="color:var(--text-light);font-size:0.8rem;">${lang==='ar'?'المصروفات ':'Expenses'}</span><br><span style="color:#ff9100;font-size:1.4rem;font-weight:800;">${fmtMoney(totalExpensesAmt)}</span></div>
+                    <div style="text-align:center;"><span style="color:var(--text-light);font-size:0.8rem;">${lang==='ar'?'السداد ':'Payments'}</span><br><span style="color:#7b2ff7;font-size:1.4rem;font-weight:800;">${fmtMoney(totalPaymentsAmt)}</span></div>
                 `;
             }
             // --- Rep Ranking ---
@@ -5025,29 +5743,29 @@ function sharePDF() {
             }).filter(r => r.invoicesCount > 0 || r.netQty > 0).sort((a, b) => b.netQty - a.netQty);
             const repGrid = document.getElementById('salesRepGridContainer');
             if (managerMatrixData.length === 0) {
-                repGrid.innerHTML = `<div class="text-center text-white-50 py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</div>`;
+                repGrid.innerHTML = `<div class="text-center py-4" style="color:var(--text-light);">${lang==='ar'?'لا توجد بيانات':'No data'}</div>`;
             } else {
                 const maxNS = Math.max(...managerMatrixData.map(r => r.netQty), 1);
                 repGrid.innerHTML = managerMatrixData.map((rep, ri) => {
                     const pct = (rep.netQty / maxNS) * 100;
                     const medal = ri === 0 ? '🥇' : ri === 1 ? '🥈' : ri === 2 ? '🥉' : `${ri + 1}`;
-                    return `<div style="display:flex;align-items:center;padding:8px 4px;border-bottom:1px solid rgba(255,255,255,0.04);gap:10px;">
+                    return `<div style="display:flex;align-items:center;padding:8px 4px;border-bottom:1px solid var(--glass-border);gap:10px;">
                         <span style="font-size:0.8rem;min-width:22px;text-align:center;">${medal}</span>
-                        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:#ffffff;font-weight:600;font-size:0.8rem;">${rep.name}</span><span style="color:#00e676;font-weight:700;font-size:0.8rem;">${rep.netQty} ${lang==='ar'?'علبة':'boxes'}</span></div>
-                        <div class="progress" style="height:4px;background:rgba(255,255,255,0.08);border-radius:4px;margin-top:4px;"><div class="progress-bar" style="width:${pct}%;background:linear-gradient(90deg,#00d4ff,#00e676);border-radius:4px;"></div></div></div>
+                        <div style="flex:1;min-width:0;"><div style="display:flex;justify-content:space-between;align-items:center;"><span style="color:var(--text);font-weight:600;font-size:0.8rem;">${rep.name}</span><span style="color:#00e676;font-weight:700;font-size:0.8rem;">${rep.netQty} ${lang==='ar'?'علبة':'boxes'}</span></div>
+                        <div class="progress" style="height:4px;background:var(--glass-border);border-radius:4px;margin-top:4px;"><div class="progress-bar" style="width:${pct}%;background:linear-gradient(90deg,#00d4ff,#00e676);border-radius:4px;"></div></div></div>
                     </div>`;
                 }).join('');
             }
             // --- Detailed Monthly Breakdown table (dynamic based on checkboxes) ---
-            let tableHtml = `<div class="evo-card" style="padding:18px 22px;"><div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0 text-white fw-bold" style="font-size:0.9rem;"><i class="fas fa-table" style="color:#7b2ff7;margin-left:8px;"></i> ${lang==='ar'?'الجدول الشهري التفصيلي':'Monthly Breakdown'}</h6><span style="color:#a0a0b8;font-size:0.75rem;">${activeMonths} ${lang==='ar'?'شهور نشطة':'active months'}</span></div><div class="table-responsive"><table class="table align-middle" style="font-family:'Tajawal';margin-bottom:0;"><thead><tr>
-                <th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;">${lang==='ar'?'الشهر':'Month'}</th>`;
-            if (showSales) tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:center;">${lang==='ar'?'المبيعات (علب)':'Sold (boxes)'}</th>`;
-            if (showReturns) tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:center;">${lang==='ar'?'مرتجع (علب)':'Returns (boxes)'}</th>`;
-            if (showSales) tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'صافي (علب)':'Net (boxes)'}</th>`;
-            if (showSalesAmount) tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'اجمالي المبيعات (جنيه)':'Sales (EGP)'}</th>`;
-            if (showExpenses) tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'المصروفات (جنيه)':'Expenses (EGP)'}</th>`;
-            if (showPayments) tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'السداد (جنيه)':'Payments (EGP)'}</th>`;
-            tableHtml += `<th style="color:#a0a0c0;font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:center;">${lang==='ar'?'النمو':'Growth'}</th>`;
+            let tableHtml = `<div class="evo-card" style="padding:18px 22px;"><div class="d-flex justify-content-between align-items-center mb-3"><h6 class="mb-0 fw-bold" style="color: var(--text); font-size: 0.95rem;"><i class="fas fa-table" style="color:#7b2ff7;margin-left:8px;"></i> ${lang==='ar'?'الجدول الشهري التفصيلي':'Monthly Breakdown'}</h6><span style="color:var(--text-light);font-size:0.75rem;">${activeMonths} ${lang==='ar'?'شهور نشطة':'active months'}</span></div><div class="table-responsive"><table class="table align-middle" style="font-family:'Tajawal';margin-bottom:0;"><thead><tr>
+                <th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;">${lang==='ar'?'الشهر':'Month'}</th>`;
+            if (showSales) tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:center;">${lang==='ar'?'المبيعات (علب)':'Sold (boxes)'}</th>`;
+            if (showReturns) tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:center;">${lang==='ar'?'مرتجع (علب)':'Returns (boxes)'}</th>`;
+            if (showSales) tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'صافي (علب)':'Net (boxes)'}</th>`;
+            if (showSalesAmount) tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'اجمالي المبيعات (جنيه)':'Sales (EGP)'}</th>`;
+            if (showExpenses) tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'المصروفات (جنيه)':'Expenses (EGP)'}</th>`;
+            if (showPayments) tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:end;">${lang==='ar'?'السداد (جنيه)':'Payments (EGP)'}</th>`;
+            tableHtml += `<th style="color:var(--text-light);font-weight:700;border:none;font-size:0.78rem;padding:8px;text-align:center;">${lang==='ar'?'النمو':'Growth'}</th>`;
             tableHtml += `</tr></thead><tbody>`;
             monthlyData.forEach((m, idx) => {
                 const netM = Math.max(0, m.quantitySold - m.returnsQty);
@@ -5061,7 +5779,7 @@ function sharePDF() {
                     } else if (netM > 0) growthCell = `<span style="color:#00d4ff;font-weight:700;font-size:0.78rem;">New</span>`;
                 }
                 const barW = totalQty > 0 ? (m.quantitySold / totalQty) * 100 : 0;
-                tableHtml += `<tr style="border:none;border-bottom:1px solid rgba(255,255,255,0.04);"><td style="border:none;padding:10px 8px;"><strong style="color:#ffffff;font-size:0.82rem;">${monthLabels[idx]}</strong><div style="width:60px;height:3px;background:rgba(0,212,255,0.15);border-radius:2px;margin-top:3px;"><div style="height:100%;width:${barW}%;background:#00d4ff;border-radius:2px;"></div></div></td>`;
+                tableHtml += `<tr style="border:none;border-bottom:1px solid var(--glass-border);"><td style="border:none;padding:10px 8px;"><strong style="color:var(--text);font-size:0.82rem;">${monthLabels[idx]}</strong><div style="width:60px;height:3px;background:rgba(0,212,255,0.15);border-radius:2px;margin-top:3px;"><div style="height:100%;width:${barW}%;background:#00d4ff;border-radius:2px;"></div></div></td>`;
                 if (showSales) tableHtml += `<td style="text-align:center;border:none;padding:10px 8px;"><span style="color:#00d4ff;font-weight:600;font-size:0.82rem;">${m.quantitySold}</span></td>`;
                 if (showReturns) tableHtml += `<td style="text-align:center;border:none;padding:10px 8px;"><span style="color:#ff4444;font-size:0.82rem;">${m.returnsQty > 0 ? m.returnsQty : '-'}</span></td>`;
                 if (showSales) tableHtml += `<td style="text-align:end;border:none;padding:10px 8px;"><span style="color:#00e676;font-weight:700;font-size:0.82rem;">${netM}</span></td>`;
@@ -5150,37 +5868,37 @@ function sharePDF() {
             }
             var html = '<div class="evo-card" style="padding:22px;">' +
                 '<div class="d-flex justify-content-between align-items-center mb-4">' +
-                    '<h6 class="mb-0 text-white fw-bold" style="font-size:0.95rem;"><i class="fas fa-microchip" style="color:#7b2ff7;margin-left:8px;"></i> ' + (lang==='ar'?'تحليل الأداء':'Performance Analytics') + '</h6>' +
-                    '<span style="font-size:0.75rem;color:#a0a0b8;">' + growthArrow + ' ' + growthText + '</span>' +
+                    '<h6 class="mb-0 fw-bold" style="color: var(--text); font-size: 0.95rem;"><i class="fas fa-microchip" style="color:#7b2ff7;margin-left:8px;"></i> ' + (lang==='ar'?'تحليل الأداء':'Performance Analytics') + '</h6>' +
+                    '<span style="font-size:0.75rem;color:var(--text-light);">' + growthArrow + ' ' + growthText + '</span>' +
                 '</div>' +
                 '<div class="row g-3">' +
                     '<div class="col-lg-3 col-md-6"><div class="insight-card text-center"><i class="fas fa-layer-group" style="color:#00d4ff;font-size:1.3rem;margin-bottom:6px;display:block;"></i>' +
-                        '<div style="font-size:0.7rem;color:#a0a0b8;font-weight:600;">' + (lang==='ar'?'مقارنة نصفية':'H1 vs H2') + '</div>' +
-                        '<div style="font-size:1rem;font-weight:700;color:#ffffff;margin-top:2px;">' + (lang==='ar'?'النصف الأول':'H1') + ': ' + h1 + ' ' + (lang==='ar'?'علبة':'boxes') + '</div>' +
-                        '<div style="font-size:1rem;font-weight:700;color:#ffffff;">' + (lang==='ar'?'النصف الثاني':'H2') + ': ' + h2 + ' ' + (lang==='ar'?'علبة':'boxes') + '</div>' +
+                        '<div style="font-size:0.7rem;color:var(--text-light);font-weight:600;">' + (lang==='ar'?'مقارنة نصفية':'H1 vs H2') + '</div>' +
+                        '<div style="font-size:1rem;font-weight:700;color:var(--text);margin-top:2px;">' + (lang==='ar'?'النصف الأول':'H1') + ': ' + h1 + ' ' + (lang==='ar'?'علبة':'boxes') + '</div>' +
+                        '<div style="font-size:1rem;font-weight:700;color:var(--text);">' + (lang==='ar'?'النصف الثاني':'H2') + ': ' + h2 + ' ' + (lang==='ar'?'علبة':'boxes') + '</div>' +
                         '<div style="font-size:0.85rem;font-weight:700;color:' + (hDir === 'up' ? '#00e676' : hDir === 'down' ? '#ff4444' : '#ff9100') + ';margin-top:2px;">' + (hGrowth >= 0 ? '+' : '') + hGrowth.toFixed(1) + '%</div>' +
                     '</div></div>' +
                     '<div class="col-lg-3 col-md-6"><div class="insight-card text-center"><i class="fas fa-chart-simple" style="color:#ff9100;font-size:1.3rem;margin-bottom:6px;display:block;"></i>' +
-                        '<div style="font-size:0.7rem;color:#a0a0b8;font-weight:600;">' + (lang==='ar'?'مؤشرات المبيعات':'Sales KPIs') + '</div>' +
-                        '<div style="font-size:0.85rem;margin-top:4px;display:flex;justify-content:space-between;padding:0 4px;"><span style="color:#a0a0c0;">' + (lang==='ar'?'متوسط الفاتورة':'Avg/Invoice') + '</span><span style="color:#00e676;font-weight:700;">' + Math.round(avgPerInvoice) + ' ' + (lang==='ar'?'علبة':'boxes') + '</span></div>' +
-                        '<div style="font-size:0.85rem;display:flex;justify-content:space-between;padding:0 4px;"><span style="color:#a0a0c0;">' + (lang==='ar'?'متوسط الشهر':'Avg/Month') + '</span><span style="color:#00d4ff;font-weight:700;">' + (activeMonths.length > 0 ? Math.round(netQty/activeMonths.length) : 0) + ' ' + (lang==='ar'?'علبة':'boxes') + '</span></div>' +
-                        '<div style="font-size:0.85rem;display:flex;justify-content:space-between;padding:0 4px;"><span style="color:#a0a0c0;">' + (lang==='ar'?'المرتجع':'Return Rate') + '</span><span style="color:' + (returnRate > 10 ? '#ff4444' : '#ff9100') + ';font-weight:700;">' + returnRate.toFixed(1) + '%</span></div>' +
+                        '<div style="font-size:0.7rem;color:var(--text-light);font-weight:600;">' + (lang==='ar'?'مؤشرات المبيعات':'Sales KPIs') + '</div>' +
+                        '<div style="font-size:0.85rem;margin-top:4px;display:flex;justify-content:space-between;padding:0 4px;"><span style="color:var(--text-light);">' + (lang==='ar'?'متوسط الفاتورة':'Avg/Invoice') + '</span><span style="color:#00e676;font-weight:700;">' + Math.round(avgPerInvoice) + ' ' + (lang==='ar'?'علبة':'boxes') + '</span></div>' +
+                        '<div style="font-size:0.85rem;display:flex;justify-content:space-between;padding:0 4px;"><span style="color:var(--text-light);">' + (lang==='ar'?'متوسط الشهر':'Avg/Month') + '</span><span style="color:#00d4ff;font-weight:700;">' + (activeMonths.length > 0 ? Math.round(netQty/activeMonths.length) : 0) + ' ' + (lang==='ar'?'علبة':'boxes') + '</span></div>' +
+                        '<div style="font-size:0.85rem;display:flex;justify-content:space-between;padding:0 4px;"><span style="color:var(--text-light);">' + (lang==='ar'?'المرتجع':'Return Rate') + '</span><span style="color:' + (returnRate > 10 ? '#ff4444' : '#ff9100') + ';font-weight:700;">' + returnRate.toFixed(1) + '%</span></div>' +
                     '</div></div>' +
                     '<div class="col-lg-3 col-md-6"><div class="insight-card text-center"><i class="fas fa-trophy" style="color:#ffab00;font-size:1.3rem;margin-bottom:6px;display:block;"></i>' +
-                        '<div style="font-size:0.7rem;color:#a0a0b8;font-weight:600;">' + (lang==='ar'?'أفضل شهر':'Best Month') + '</div>' +
-                        '<div style="font-size:1.1rem;font-weight:700;color:#ffffff;margin-top:4px;">' + (bestMonthIdx >= 0 ? monthLabels[bestMonthIdx] : '---') + '</div>' +
+                        '<div style="font-size:0.7rem;color:var(--text-light);font-weight:600;">' + (lang==='ar'?'أفضل شهر':'Best Month') + '</div>' +
+                        '<div style="font-size:1.1rem;font-weight:700;color:var(--text);margin-top:4px;">' + (bestMonthIdx >= 0 ? monthLabels[bestMonthIdx] : '---') + '</div>' +
                         '<div style="font-size:0.9rem;font-weight:600;color:#ffab00;">' + (bestMonthIdx >= 0 ? bestMonthQty + ' ' + (lang==='ar'?'علبة':'boxes') : '---') + '</div>' +
-                        '<div style="font-size:0.7rem;color:#a0a0b8;margin-top:2px;">' + totalInvs + ' ' + (lang==='ar'?'فاتورة':'invoices') + '</div>' +
+                        '<div style="font-size:0.7rem;color:var(--text-light);margin-top:2px;">' + totalInvs + ' ' + (lang==='ar'?'فاتورة':'invoices') + '</div>' +
                     '</div></div>' +
                     '<div class="col-lg-3 col-md-6"><div class="insight-card text-center"><i class="fas fa-arrow-right-arrow-left" style="color:#00e676;font-size:1.3rem;margin-bottom:6px;display:block;"></i>' +
-                        '<div style="font-size:0.7rem;color:#a0a0b8;font-weight:600;">' + (lang==='ar'?'الشهر الأخير':'Last Month') + '</div>' +
-                        '<div style="font-size:1rem;font-weight:700;color:#ffffff;margin-top:4px;">' + (lastM ? monthLabels[monthlyData.indexOf(lastM)] : '---') + '</div>' +
-                        '<div style="font-size:0.85rem;font-weight:700;color:' + (momDir === 'up' ? '#00e676' : momDir === 'down' ? '#ff4444' : '#a0a0b8') + ';margin-top:2px;">' + (momDir === 'up' ? '<i class="fas fa-caret-up"></i> +' + mom.toFixed(1) + '%' : momDir === 'down' ? '<i class="fas fa-caret-down"></i> ' + mom.toFixed(1) + '%' : (lang==='ar'?'مستقر':'Stable')) + '</div>' +
+                        '<div style="font-size:0.7rem;color:var(--text-light);font-weight:600;">' + (lang==='ar'?'الشهر الأخير':'Last Month') + '</div>' +
+                        '<div style="font-size:1rem;font-weight:700;color:var(--text);margin-top:4px;">' + (lastM ? monthLabels[monthlyData.indexOf(lastM)] : '---') + '</div>' +
+                        '<div style="font-size:0.85rem;font-weight:700;color:' + (momDir === 'up' ? '#00e676' : momDir === 'down' ? '#ff4444' : 'var(--text-light)') + ';margin-top:2px;">' + (momDir === 'up' ? '<i class="fas fa-caret-up"></i> +' + mom.toFixed(1) + '%' : momDir === 'down' ? '<i class="fas fa-caret-down"></i> ' + mom.toFixed(1) + '%' : (lang==='ar'?'مستقر':'Stable')) + '</div>' +
                     '</div></div>' +
                 '</div>' +
-                '<div class="mt-3 p-3 rounded-3" style="background:rgba(255,255,255,0.02);border:1px solid rgba(255,255,255,0.05);">' +
-                    '<p style="margin:0;font-size:0.85rem;color:#d0d0e0;font-weight:500;">' +
-                        '<i class="fas fa-info-circle" style="color:#00d4ff;margin-left:6px;"></i> ' + insightText +
+                '<div class="mt-3 p-3 rounded-3" style="background:rgba(255,255,255,0.02);border:1px solid var(--glass-border);">' +
+                    '<p style="margin:0;font-size:0.85rem;color:var(--text);font-weight:500;">' +
+                        '<i class="fas fa-info-circle" style="color:var(--accent);margin-left:6px;"></i> ' + insightText +
                     '</p>' +
                 '</div>' +
             '</div>';
