@@ -1703,11 +1703,6 @@
 
         /* ===== THEME TOGGLE BUTTON ===== */
         #themeToggleBtn {
-            position: absolute;
-            left: 20px;
-            top: 50%;
-            transform: translateY(-50%);
-            z-index: 100;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -1721,12 +1716,9 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,122,255,0.3);
             transition: all 0.3s ease;
+            position: relative;
         }
-        #themeToggleBtn:hover { transform: translateY(-50%) scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
-        html[dir="ltr"] #themeToggleBtn {
-            left: auto;
-            right: 20px;
-        }
+        #themeToggleBtn:hover { transform: scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
 
         /* ===== LIGHT MODE - PREMIUM & MODERN ===== */
         body.light-mode {
@@ -2332,16 +2324,16 @@
                         </button>
                         <h4 id="pageTitle" class="fw-bold mb-0 page-title-animated" style="color: #ffffff;">التقارير</h4>
                     </div>
-                    <div class="company-name-animated" id="companyNameDisplay">Sernova Pharmaceuticals</div>
+                    <div class="company-name-animated d-none d-sm-block" id="companyNameDisplay">Sernova Pharmaceuticals</div>
                     <div class="d-flex align-items-center gap-3">
                         <div id="topBarAuthInfo" class="d-none d-md-flex align-items-center"></div>
                         <div class="d-none d-sm-block">
                             <span id="dateTime" class="fw-bold" style="color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.3);"></span>
                         </div>
+                        <button id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">
+                            <i class="fas fa-moon" id="themeIcon"></i>
+                        </button>
                     </div>
-                    <button id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">
-                        <i class="fas fa-moon" id="themeIcon"></i>
-                    </button>
                 </div>
 
                 <div id="pageContent">
