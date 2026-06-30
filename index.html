@@ -1519,28 +1519,7 @@
         .backup-step.done { color: #00e676; }
         .backup-step i { width: 20px; text-align: center; }
 
-        /* ===== THEME TOGGLE BUTTON ===== */
-        #themeToggleBtn {
-            position: fixed;
-            top: 10px;
-            right: 58px;
-            z-index: 100000;
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #5856D6, #007AFF);
-            border: none;
-            color: #fff;
-            font-size: 16px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,122,255,0.3);
-            transition: all 0.3s ease;
-        }
-        #themeToggleBtn:hover { transform: scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
-        html[dir="ltr"] #themeToggleBtn { right: 58px; }
+
         @keyframes fadeSlideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -1724,6 +1703,11 @@
 
         /* ===== THEME TOGGLE BUTTON ===== */
         #themeToggleBtn {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
             width: 40px;
             height: 40px;
             border-radius: 50%;
@@ -1737,9 +1721,12 @@
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0,122,255,0.3);
             transition: all 0.3s ease;
-            position: relative;
         }
-        #themeToggleBtn:hover { transform: scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
+        #themeToggleBtn:hover { transform: translateY(-50%) scale(1.15); box-shadow: 0 6px 25px rgba(0,122,255,0.5); }
+        html[dir="ltr"] #themeToggleBtn {
+            left: auto;
+            right: 20px;
+        }
 
         /* ===== LIGHT MODE - PREMIUM & MODERN ===== */
         body.light-mode {
@@ -2344,9 +2331,6 @@
                             <i class="fas fa-bars"></i>
                         </button>
                         <h4 id="pageTitle" class="fw-bold mb-0 page-title-animated" style="color: #ffffff;">التقارير</h4>
-                        <button id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">
-                            <i class="fas fa-moon" id="themeIcon"></i>
-                        </button>
                     </div>
                     <div class="company-name-animated" id="companyNameDisplay">Sernova Pharmaceuticals</div>
                     <div class="d-flex align-items-center gap-3">
@@ -2355,6 +2339,9 @@
                             <span id="dateTime" class="fw-bold" style="color: #00d4ff; text-shadow: 0 0 10px rgba(0,212,255,0.3);"></span>
                         </div>
                     </div>
+                    <button id="themeToggleBtn" onclick="toggleTheme()" title="تبديل الوضع">
+                        <i class="fas fa-moon" id="themeIcon"></i>
+                    </button>
                 </div>
 
                 <div id="pageContent">
