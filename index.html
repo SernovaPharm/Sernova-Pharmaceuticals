@@ -2937,6 +2937,10 @@
                         updateCounters();
                         updateLogoDisplay();
                         updateCompanyNameDisplay();
+                        if (currentUser && appData.accounts) {
+                            const freshUser = appData.accounts.find(a => a.username === currentUser.username);
+                            if (freshUser) currentUser = freshUser;
+                        }
                         currentLang = appData.settings.language || 'ar';
                         applyLanguageDirection();
                         applyThemeColors();
@@ -2958,6 +2962,10 @@
             updateCounters();
             updateLogoDisplay();
             updateCompanyNameDisplay();
+            if (currentUser && appData.accounts) {
+                const freshUser = appData.accounts.find(a => a.username === currentUser.username);
+                if (freshUser) currentUser = freshUser;
+            }
             currentLang = appData.settings.language || 'ar';
             applyLanguageDirection();
             applyThemeColors();
@@ -3158,6 +3166,14 @@
         }
 
         function formatReportNumber(num) { return Math.round(num || 0); }
+
+        function getUserReportDateBounds() {
+            if (!currentUser) return { minDate: '', maxDate: '' };
+            return {
+                minDate: currentUser.reportDateFrom || '',
+                maxDate: currentUser.reportDateTo || ''
+            };
+        }
 
         function getProductSoldQty(productId, salesInvoiceList) {
             const invs = salesInvoiceList || appData.salesInvoices;
@@ -4726,6 +4742,21 @@ function sharePDF() {
             filter = filter || { searchTerm: '', dateFrom: '', dateTo: '', status: 'all', employeeId: null, customerId: null, selectedInvoiceId: null, selectedCustomerId: null, selectedProductId: null, expenseTypeFilter: 'all', productFilterId: null, overviewProductFilterId: null, overviewYear: '', overviewMonth: '', monthlyYear: '', monthlyMonth: '' };
             const lang = currentLang;
 
+            const userBounds = getUserReportDateBounds();
+            let effectiveDateFrom = filter.dateFrom || '';
+            let effectiveDateTo = filter.dateTo || '';
+
+            if (userBounds.minDate) {
+                if (!effectiveDateFrom || effectiveDateFrom < userBounds.minDate) {
+                    effectiveDateFrom = userBounds.minDate;
+                }
+            }
+            if (userBounds.maxDate) {
+                if (!effectiveDateTo || effectiveDateTo > userBounds.maxDate) {
+                    effectiveDateTo = userBounds.maxDate;
+                }
+            }
+
             switch (tabType) {
                 case 'sales': {
                     data.title = lang === 'ar' ? 'تقرير المبيعات' : 'Sales Report';
@@ -4735,14 +4766,14 @@ function sharePDF() {
 })
                     if (filter.selectedInvoiceId) { filteredSales = filteredSales.filter(inv => inv.id == filter.selectedInvoiceId); } else if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredSales = filteredSales.filter(inv => { const c = appData.customers.find(c => c.id === inv.customerId); return (inv.invoiceNumber || '').toLowerCase().includes(term) || (c?.name || '').toLowerCase().includes(term) || (inv.salesManager || '').toLowerCase().includes(term); }); }
-                    if (filter.dateFrom) filteredSales = filteredSales.filter(inv => inv.date >= filter.dateFrom);
-                    if (filter.dateTo) filteredSales = filteredSales.filter(inv => inv.date <= filter.dateTo);
+                    if (effectiveDateFrom) filteredSales = filteredSales.filter(inv => inv.date >= effectiveDateFrom);
+                    if (effectiveDateTo) filteredSales = filteredSales.filter(inv => inv.date <= effectiveDateTo);
                     if (filter.status === 'paid') filteredSales = filteredSales.filter(inv => inv.due === 0);
                     if (filter.status === 'unpaid') filteredSales = filteredSales.filter(inv => inv.due > 0);
                     if (filter.selectedProductId) { filteredSales = filteredSales.filter(inv => inv.items.some(item => item.productId == filter.selectedProductId)); }
                     let filteredReturns = appData.returns || [];
-                    if (filter.dateFrom) filteredReturns = filteredReturns.filter(r => r.date >= filter.dateFrom);
-                    if (filter.dateTo) filteredReturns = filteredReturns.filter(r => r.date <= filter.dateTo);
+                    if (effectiveDateFrom) filteredReturns = filteredReturns.filter(r => r.date >= effectiveDateFrom);
+                    if (effectiveDateTo) filteredReturns = filteredReturns.filter(r => r.date <= effectiveDateTo);
                     if (filter.selectedProductId) filteredReturns = filteredReturns.filter(r => r.productId == filter.selectedProductId);
                     
                     const totalReturnsValue = filteredReturns.reduce((s, r) => s + r.totalValue, 0);
@@ -4811,8 +4842,8 @@ function sharePDF() {
                     if (filter.productFilterId) { filteredExp = filteredExp.filter(exp => exp.productId == filter.productFilterId); }
                     if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredExp = filteredExp.filter(exp => { return (exp.description || '').toLowerCase().includes(term) || (exp.expenseNumber || '').toLowerCase().includes(term); }); }
-                    if (filter.dateFrom) filteredExp = filteredExp.filter(exp => exp.date >= filter.dateFrom);
-                    if (filter.dateTo) filteredExp = filteredExp.filter(exp => exp.date <= filter.dateTo);
+                    if (effectiveDateFrom) filteredExp = filteredExp.filter(exp => exp.date >= effectiveDateFrom);
+                    if (effectiveDateTo) filteredExp = filteredExp.filter(exp => exp.date <= effectiveDateTo);
                     const totalExp = filteredExp.reduce((s, exp) => s + (exp.amount || 0), 0);
                     const totalExpPaid = filteredExp.reduce((s, exp) => s + (exp.paid || 0), 0);
                     const totalExpDue = filteredExp.reduce((s, exp) => s + (exp.due || 0), 0);
@@ -4844,13 +4875,17 @@ function sharePDF() {
                     data.title = lang === 'ar' ? 'تقرير المنتجات' : 'Products Report';
                     data.hasFilter = true;
                     let filteredProd = [...appData.products].sort((a, b) => b.id - a.id);
+                    let allowedInvs = [...appData.salesInvoices];
+                    if (effectiveDateFrom) allowedInvs = allowedInvs.filter(inv => inv.date >= effectiveDateFrom);
+                    if (effectiveDateTo) allowedInvs = allowedInvs.filter(inv => inv.date <= effectiveDateTo);
+
                     let selectedProduct = null;
                     if (filter.selectedProductId) { filteredProd = filteredProd.filter(p => p.id == filter.selectedProductId);
                         selectedProduct = filteredProd.length === 1 ? filteredProd[0] : null; } else if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredProd = filteredProd.filter(p => p.name.toLowerCase().includes(term) || (p.batchNumber || '').toLowerCase().includes(term)); }
                     if (selectedProduct) {
-                        const productInvoices = appData.salesInvoices.filter(inv => inv.items.some(item => parseInt(item.productId) === selectedProduct.id));
-                        const soldQty = getProductSoldQty(selectedProduct.id);
+                        const productInvoices = allowedInvs.filter(inv => inv.items.some(item => parseInt(item.productId) === selectedProduct.id));
+                        const soldQty = getProductSoldQty(selectedProduct.id, allowedInvs);
                         let totalProductSales = 0; let totalProductPaid = 0; let totalProductDue = 0;
                         productInvoices.forEach(inv => { const productItems = inv.items.filter(item => item.productId === selectedProduct.id); const productTotalInInv = productItems.reduce((s, item) => s + (item.totalAfterDiscount || item.total), 0); const invTotal = inv.total || 1; const share = invTotal > 0 ? productTotalInInv / invTotal : 0;
                             totalProductSales += productTotalInInv;
@@ -4865,17 +4900,17 @@ function sharePDF() {
                         ];
                     } else {
                         const totalStock = filteredProd.reduce((s, p) => s + p.quantity, 0);
-                        const totalSold = filteredProd.reduce((s, p) => s + getProductSoldQty(p.id), 0);
+                        const totalSold = filteredProd.reduce((s, p) => s + getProductSoldQty(p.id, allowedInvs), 0);
                         data.summaryCards = [
                             { icon: 'fa-warehouse', color: '#00e676', label: lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', value: formatReportNumber(totalStock), type: 'prodStock', filteredData: filteredProd },
                             { icon: 'fa-truck', color: '#ff9100', label: lang === 'ar' ? 'المباع' : 'Sold', value: formatReportNumber(totalSold), type: 'prodSold', filteredData: filteredProd },
-                            { icon: 'fa-dollar-sign', color: '#00d4ff', label: lang === 'ar' ? 'إجمالي المبيعات' : 'Total Sales', value: formatReportCurrency(appData.salesInvoices.reduce((s, inv) => s + inv.total, 0)), type: 'prodTotal', filteredData: appData.salesInvoices },
-                            { icon: 'fa-check-circle', color: '#7b2ff7', label: t('paid'), value: formatReportCurrency(appData.salesInvoices.reduce((s, inv) => s + inv.paid, 0)), type: 'prodPaid', filteredData: appData.salesInvoices },
-                            { icon: 'fa-credit-card', color: '#ff4444', label: t('due'), value: formatReportCurrency(appData.salesInvoices.reduce((s, inv) => s + inv.due, 0)), type: 'prodDue', filteredData: appData.salesInvoices }
+                            { icon: 'fa-dollar-sign', color: '#00d4ff', label: lang === 'ar' ? 'إجمالي المبيعات' : 'Total Sales', value: formatReportCurrency(allowedInvs.reduce((s, inv) => s + inv.total, 0)), type: 'prodTotal', filteredData: allowedInvs },
+                            { icon: 'fa-check-circle', color: '#7b2ff7', label: t('paid'), value: formatReportCurrency(allowedInvs.reduce((s, inv) => s + inv.paid, 0)), type: 'prodPaid', filteredData: allowedInvs },
+                            { icon: 'fa-credit-card', color: '#ff4444', label: t('due'), value: formatReportCurrency(allowedInvs.reduce((s, inv) => s + inv.due, 0)), type: 'prodDue', filteredData: allowedInvs }
                         ];
                     }
                     data.tableHeaders = [lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'تاريخ الانتهاء' : 'Expiry', lang === 'ar' ? 'المخزون الابتدائي' : 'Initial Stock', lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', lang === 'ar' ? 'المباع' : 'Sold', t('status')];
-                    data.tableRows = filteredProd.map(p => { const sold = getProductSoldQty(p.id); return [p.name, p.batchNumber || '---', fmtExpiry(p.expiryDate) || '---', p.initialQuantity || p.quantity, p.quantity, `<span style="color:#ff4444;">${sold>0?sold:0}</span>`, p.quantity <= 0 ? `<span class="badge bg-danger badge-status">${lang==='ar'?'نفذ':'Out'}</span>` : `<span class="badge bg-success badge-status">${lang==='ar'?'متوفر':'Available'}</span>`]; });
+                    data.tableRows = filteredProd.map(p => { const sold = getProductSoldQty(p.id, allowedInvs); return [p.name, p.batchNumber || '---', fmtExpiry(p.expiryDate) || '---', p.initialQuantity || p.quantity, p.quantity, `<span style="color:#ff4444;">${sold>0?sold:0}</span>`, p.quantity <= 0 ? `<span class="badge bg-danger badge-status">${lang==='ar'?'نفذ':'Out'}</span>` : `<span class="badge bg-success badge-status">${lang==='ar'?'متوفر':'Available'}</span>`]; });
                     data.filteredData = filteredProd;
                     data.listboxOptions = appData.products.map(p => ({ id: p.id, text: `${p.name}${p.batchNumber?' ('+p.batchNumber+')':''}`, type: 'product' }));
                     break;
@@ -4884,14 +4919,20 @@ function sharePDF() {
                     data.title = lang === 'ar' ? 'تقرير العملاء' : 'Customers Report';
                     const customers = appData.customers.filter(c => c.type === 'customer' || !c.type).sort((a, b) => b.id - a.id);
                     let filteredCust = [...customers];
+                    let allowedInvs = [...appData.salesInvoices];
+                    if (effectiveDateFrom) allowedInvs = allowedInvs.filter(inv => inv.date >= effectiveDateFrom);
+                    if (effectiveDateTo) allowedInvs = allowedInvs.filter(inv => inv.date <= effectiveDateTo);
+
+                    const getCustDueInPeriod = (cId) => allowedInvs.filter(i => i.customerId === cId).reduce((s, i) => s + i.due, 0);
+
                     if (filter.selectedCustomerId) { filteredCust = filteredCust.filter(c => c.id == filter.selectedCustomerId); } else if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredCust = filteredCust.filter(c => c.name.toLowerCase().includes(term) || c.code.toLowerCase().includes(term)); }
-                    if (filter.status === 'paid') filteredCust = filteredCust.filter(c => getCustomerDue(c.id) <= 0);
-                    if (filter.status === 'unpaid') filteredCust = filteredCust.filter(c => getCustomerDue(c.id) > 0);
-                    const totalCustDue = filteredCust.reduce((s, c) => s + getCustomerDue(c.id), 0);
-                    const totalCustInvoices = appData.salesInvoices.filter(i => filteredCust.find(c => c.id === i.customerId)).length;
-                    const totalCustTotal = filteredCust.reduce((s, c) => { const invs = appData.salesInvoices.filter(i => i.customerId === c.id); return s + invs.reduce((si, inv) => si + inv.total, 0); }, 0);
-                    const totalCustPaid = filteredCust.reduce((s, c) => { const invs = appData.salesInvoices.filter(i => i.customerId === c.id); return s + invs.reduce((si, inv) => si + inv.paid, 0); }, 0);
+                    if (filter.status === 'paid') filteredCust = filteredCust.filter(c => getCustDueInPeriod(c.id) <= 0);
+                    if (filter.status === 'unpaid') filteredCust = filteredCust.filter(c => getCustDueInPeriod(c.id) > 0);
+                    const totalCustDue = filteredCust.reduce((s, c) => s + getCustDueInPeriod(c.id), 0);
+                    const totalCustInvoices = allowedInvs.filter(i => filteredCust.find(c => c.id === i.customerId)).length;
+                    const totalCustTotal = filteredCust.reduce((s, c) => { const invs = allowedInvs.filter(i => i.customerId === c.id); return s + invs.reduce((si, inv) => si + inv.total, 0); }, 0);
+                    const totalCustPaid = filteredCust.reduce((s, c) => { const invs = allowedInvs.filter(i => i.customerId === c.id); return s + invs.reduce((si, inv) => si + inv.paid, 0); }, 0);
                     data.summaryCards = [
                         { icon: 'fa-users', color: '#7b2ff7', label: lang === 'ar' ? 'عدد العملاء' : 'Customer Count', value: filteredCust.length, type: 'custCount', filteredData: filteredCust },
                         { icon: 'fa-file-invoice', color: '#ff9100', label: lang === 'ar' ? 'عدد الفواتير' : 'Invoice Count', value: totalCustInvoices, type: 'custInvoices', filteredData: filteredCust },
@@ -4901,7 +4942,7 @@ function sharePDF() {
                     ];
                     data.hasFilter = true;
                     data.tableHeaders = [lang === 'ar' ? 'الكود' : 'Code', lang === 'ar' ? 'الاسم' : 'Name', t('phone'), lang === 'ar' ? 'عدد الفواتير' : 'Invoice Count', t('total'), t('paid'), t('due'), lang === 'ar' ? 'عرض الفواتير' : 'View Invoices'];
-                    data.tableRows = filteredCust.map(c => { const invs = appData.salesInvoices.filter(i => i.customerId === c.id); return [c.code, c.name, c.phone, `<button class="btn btn-sm btn-outline-info rounded-pill" onclick="showCustomerInvoicesModal(${c.id})">${invs.length} <i class="fas fa-external-link-alt"></i></button>`, formatCurrency(invs.reduce((s, i) => s + i.total, 0)), `<span style="color:#00e676;">${formatCurrency(invs.reduce((s,i)=>s+i.paid,0))}</span>`, `<span style="color:#ff4444;font-weight:bold;">${formatCurrency(invs.reduce((s,i)=>s+i.due,0))}</span>`, `<button class="btn btn-sm btn-info rounded-pill" onclick="showCustomerInvoicesModal(${c.id})"><i class="fas fa-eye"></i></button>`]; });
+                    data.tableRows = filteredCust.map(c => { const invs = allowedInvs.filter(i => i.customerId === c.id); return [c.code, c.name, c.phone, `<button class="btn btn-sm btn-outline-info rounded-pill" onclick="showCustomerInvoicesModal(${c.id})">${invs.length} <i class="fas fa-external-link-alt"></i></button>`, formatCurrency(invs.reduce((s, i) => s + i.total, 0)), `<span style="color:#00e676;">${formatCurrency(invs.reduce((s,i)=>s+i.paid,0))}</span>`, `<span style="color:#ff4444;font-weight:bold;">${formatCurrency(invs.reduce((s,i)=>s+i.due,0))}</span>`, `<button class="btn btn-sm btn-info rounded-pill" onclick="showCustomerInvoicesModal(${c.id})"><i class="fas fa-eye"></i></button>`]; });
                     data.filteredData = filteredCust;
                     data.listboxOptions = customers.map(c => ({ id: c.id, text: `${c.name} (${c.code})`, type: 'customer' }));
                     break;
@@ -4910,11 +4951,14 @@ function sharePDF() {
                     data.title = lang === 'ar' ? 'تقرير الموظفين - أداء المبيعات' : 'Employees Report - Sales Performance';
                     data.isEmployeeReport = true;
                     const emps = (appData.employees || []).sort((a, b) => b.id - a.id);
-                    let employeePerformance = emps.map(emp => { const empInvoices = appData.salesInvoices.filter(inv => inv.salesManager === emp.name); const empTotalSales = empInvoices.reduce((s, inv) => s + inv.total, 0); const empTotalPaid = empInvoices.reduce((s, inv) => s + inv.paid, 0); const empTotalDue = empInvoices.reduce((s, inv) => s + inv.due, 0); const empSoldQty = empInvoices.reduce((s, inv) => s + inv.items.reduce((si, item) => si + Math.max(0, (item.originalQty || item.quantity) - (item.returnedQty || 0)), 0), 0); return { emp: emp, invoices: empInvoices, totalSales: empTotalSales, totalPaid: empTotalPaid, totalDue: empTotalDue, soldQty: empSoldQty, totalInvoices: empInvoices.length }; });
+                    let allowedInvs = [...appData.salesInvoices];
+                    if (effectiveDateFrom) allowedInvs = allowedInvs.filter(inv => inv.date >= effectiveDateFrom);
+                    if (effectiveDateTo) allowedInvs = allowedInvs.filter(inv => inv.date <= effectiveDateTo);
+
+                    let employeePerformance = emps.map(emp => { const empInvoices = allowedInvs.filter(inv => inv.salesManager === emp.name); const empTotalSales = empInvoices.reduce((s, inv) => s + inv.total, 0); const empTotalPaid = empInvoices.reduce((s, inv) => s + inv.paid, 0); const empTotalDue = empInvoices.reduce((s, inv) => s + inv.due, 0); const empSoldQty = empInvoices.reduce((s, inv) => s + inv.items.reduce((si, item) => si + Math.max(0, (item.originalQty || item.quantity) - (item.returnedQty || 0)), 0), 0); return { emp: emp, invoices: empInvoices, totalSales: empTotalSales, totalPaid: empTotalPaid, totalDue: empTotalDue, soldQty: empSoldQty, totalInvoices: empInvoices.length }; });
                     if (filter.employeeId) { employeePerformance = employeePerformance.filter(ep => ep.emp.id == filter.employeeId); }
                     if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         employeePerformance = employeePerformance.filter(ep => ep.emp.name.toLowerCase().includes(term) || ep.emp.code.toLowerCase().includes(term)); }
-                    if (filter.dateFrom || filter.dateTo) { employeePerformance = employeePerformance.map(ep => { let filteredInvs = [...ep.invoices]; if (filter.dateFrom) filteredInvs = filteredInvs.filter(inv => inv.date >= filter.dateFrom); if (filter.dateTo) filteredInvs = filteredInvs.filter(inv => inv.date <= filter.dateTo); const newSoldQty = filteredInvs.reduce((s, inv) => s + inv.items.reduce((si, item) => si + Math.max(0, (item.originalQty || item.quantity) - (item.returnedQty || 0)), 0), 0); return { ...ep, invoices: filteredInvs, totalSales: filteredInvs.reduce((s, inv) => s + inv.total, 0), totalPaid: filteredInvs.reduce((s, inv) => s + inv.paid, 0), totalDue: filteredInvs.reduce((s, inv) => s + inv.due, 0), soldQty: newSoldQty, totalInvoices: filteredInvs.length }; }); }
                     const totalEmpSales = employeePerformance.reduce((s, ep) => s + ep.totalSales, 0);
                     const totalEmpPaid = employeePerformance.reduce((s, ep) => s + ep.totalPaid, 0);
                     const totalEmpDue = employeePerformance.reduce((s, ep) => s + ep.totalDue, 0);
@@ -4940,6 +4984,8 @@ function sharePDF() {
                     let filteredFB = [...fbs];
                     if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredFB = filteredFB.filter(b => b.activeIngredient.toLowerCase().includes(term)); }
+                    if (effectiveDateFrom) filteredFB = filteredFB.filter(b => !b.inventoryDate || b.inventoryDate >= effectiveDateFrom);
+                    if (effectiveDateTo) filteredFB = filteredFB.filter(b => !b.inventoryDate || b.inventoryDate <= effectiveDateTo);
                     const expiringMaterials = filteredFB.filter(b => b.expiryDate && new Date(b.expiryDate) <= new Date(Date.now() + 90 * 24 * 60 * 60 * 1000));
                     data.summaryCards = [
                         { icon: 'fa-industry', color: '#7b2ff7', label: lang === 'ar' ? 'عدد المواد' : 'Material Count', value: filteredFB.length, type: 'fbCount', filteredData: filteredFB },
@@ -4959,8 +5005,8 @@ function sharePDF() {
                     let filteredPayments = [...allPaymentsReport];
                     filteredPayments = filteredPayments.filter(p => { const inv = appData.salesInvoices.find(i => i.id === p.referenceId); return inv !== undefined; });
                     if (filter.customerId) { filteredPayments = filteredPayments.filter(p => { const inv = appData.salesInvoices.find(i => i.id === p.referenceId); return inv && inv.customerId == filter.customerId; }); }
-                    if (filter.dateFrom) filteredPayments = filteredPayments.filter(p => p.date >= filter.dateFrom);
-                    if (filter.dateTo) filteredPayments = filteredPayments.filter(p => p.date <= filter.dateTo);
+                    if (effectiveDateFrom) filteredPayments = filteredPayments.filter(p => p.date >= effectiveDateFrom);
+                    if (effectiveDateTo) filteredPayments = filteredPayments.filter(p => p.date <= effectiveDateTo);
                     if (filter.searchTerm) { const term = filter.searchTerm.toLowerCase();
                         filteredPayments = filteredPayments.filter(p => { const inv = appData.salesInvoices.find(i => i.id === p.referenceId); const c = inv ? appData.customers.find(c => c.id === inv.customerId) : null; return (inv?.invoiceNumber || '').toLowerCase().includes(term) || (c?.name || '').toLowerCase().includes(term); }); }
                     const totalPaymentsAmount = filteredPayments.reduce((s, p) => s + p.amount, 0);
@@ -4981,15 +5027,15 @@ function sharePDF() {
                     let filteredProductsM = [...appData.products];
                     let filteredPaymentsM = (appData.payments || []).filter(p => p.type === 'sales');
                     filteredPaymentsM = filteredPaymentsM.filter(p => { const inv = appData.salesInvoices.find(i => i.id === p.referenceId); return inv !== undefined; });
-                    if (filter.dateFrom) {
-                        filteredSalesM = filteredSalesM.filter(inv => inv.date >= filter.dateFrom);
-                        filteredExpensesM = filteredExpensesM.filter(exp => exp.date >= filter.dateFrom);
-                        filteredPaymentsM = filteredPaymentsM.filter(p => p.date >= filter.dateFrom);
+                    if (effectiveDateFrom) {
+                        filteredSalesM = filteredSalesM.filter(inv => inv.date >= effectiveDateFrom);
+                        filteredExpensesM = filteredExpensesM.filter(exp => exp.date >= effectiveDateFrom);
+                        filteredPaymentsM = filteredPaymentsM.filter(p => p.date >= effectiveDateFrom);
                     }
-                    if (filter.dateTo) {
-                        filteredSalesM = filteredSalesM.filter(inv => inv.date <= filter.dateTo);
-                        filteredExpensesM = filteredExpensesM.filter(exp => exp.date <= filter.dateTo);
-                        filteredPaymentsM = filteredPaymentsM.filter(p => p.date <= filter.dateTo);
+                    if (effectiveDateTo) {
+                        filteredSalesM = filteredSalesM.filter(inv => inv.date <= effectiveDateTo);
+                        filteredExpensesM = filteredExpensesM.filter(exp => exp.date <= effectiveDateTo);
+                        filteredPaymentsM = filteredPaymentsM.filter(p => p.date <= effectiveDateTo);
                     }
                     if (filter.customerId) {
                         filteredSalesM = filteredSalesM.filter(inv => inv.customerId == filter.customerId);
@@ -5019,6 +5065,14 @@ function sharePDF() {
                     let filteredExpensesO = [...(appData.expenses || [])];
                     let filteredProductsO = [...appData.products];
                     let filteredCustomersO = appData.customers.filter(c => c.type === 'customer' || !c.type);
+                    if (effectiveDateFrom) {
+                        filteredSalesO = filteredSalesO.filter(inv => inv.date >= effectiveDateFrom);
+                        filteredExpensesO = filteredExpensesO.filter(exp => exp.date >= effectiveDateFrom);
+                    }
+                    if (effectiveDateTo) {
+                        filteredSalesO = filteredSalesO.filter(inv => inv.date <= effectiveDateTo);
+                        filteredExpensesO = filteredExpensesO.filter(exp => exp.date <= effectiveDateTo);
+                    }
                     if (filter.overviewProductFilterId) { filteredSalesO = filteredSalesO.filter(inv => inv.items.some(item => item.productId == filter.overviewProductFilterId));
                         filteredExpensesO = filteredExpensesO.filter(exp => exp.productId == filter.overviewProductFilterId);
                         filteredProductsO = filteredProductsO.filter(p => p.id == filter.overviewProductFilterId); const custIdsWithProduct = filteredSalesO.map(inv => inv.customerId).filter(id => id);
@@ -5028,6 +5082,8 @@ function sharePDF() {
                     if (filter.overviewMonth) { const m = parseInt(filter.overviewMonth); filteredSalesO = filteredSalesO.filter(inv => new Date(inv.date).getMonth() + 1 === m);
                         filteredExpensesO = filteredExpensesO.filter(exp => new Date(exp.date).getMonth() + 1 === m); }
                     let filteredReturnsO = appData.returns || [];
+                    if (effectiveDateFrom) filteredReturnsO = filteredReturnsO.filter(r => r.date >= effectiveDateFrom);
+                    if (effectiveDateTo) filteredReturnsO = filteredReturnsO.filter(r => r.date <= effectiveDateTo);
                     if (filter.overviewProductFilterId) { filteredReturnsO = filteredReturnsO.filter(r => r.productId == filter.overviewProductFilterId); }
                     if (filter.overviewYear) { const y = parseInt(filter.overviewYear); filteredReturnsO = filteredReturnsO.filter(r => new Date(r.date).getFullYear() === y); }
                     if (filter.overviewMonth) { const m = parseInt(filter.overviewMonth); filteredReturnsO = filteredReturnsO.filter(r => new Date(r.date).getMonth() + 1 === m); }
@@ -5082,7 +5138,11 @@ function sharePDF() {
         function showCustomerInvoicesModal(customerId) {
             const customer = appData.customers.find(c => c.id === customerId);
             if (!customer) return;
-            const invoices = appData.salesInvoices.filter(inv => inv.customerId === customerId).sort((a, b) => new Date(b.date) - new Date(a.date));
+            const userBounds = getUserReportDateBounds();
+            let invoices = appData.salesInvoices.filter(inv => inv.customerId === customerId);
+            if (userBounds.minDate) invoices = invoices.filter(inv => inv.date >= userBounds.minDate);
+            if (userBounds.maxDate) invoices = invoices.filter(inv => inv.date <= userBounds.maxDate);
+            invoices.sort((a, b) => new Date(b.date) - new Date(a.date));
             const lang = currentLang;
             const modalHtml = `<div class="modal fade" id="customerInvoicesModal" tabindex="-1"><div class="modal-dialog modal-xl"><div class="modal-content"><div class="modal-header"><h5>${lang==='ar'?'فواتير':'Invoices of'} ${customer.name} (${customer.code})</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body">${invoices.length>0?`<table class="table"><thead><tr><th>${lang==='ar'?'رقم الفاتورة':'Invoice #'}</th><th>${t('date')}</th><th>${lang==='ar'?'المندوب':'Sales Rep'}</th><th>${t('total')}</th><th>${t('paid')}</th><th>${t('due')}</th><th>${t('status')}</th><th>${lang==='ar'?'تفاصيل':'Details'}</th></tr></thead><tbody>${invoices.map(inv=>`<tr><td><strong>${inv.invoiceNumber}</strong></td><td>${new Date(inv.date).toLocaleDateString(lang==='ar'?'ar':'en')}</td><td>${inv.salesManager||'---'}</td><td>${formatCurrency(inv.total)}</td><td>${formatCurrency(inv.paid)}</td><td style="color:#ff4444;font-weight:bold;">${formatCurrency(inv.due)}</td><td>${inv.due===0?`<span class="badge bg-success">${lang==='ar'?'مسددة':'Paid'}</span>`:`<span class="badge bg-warning">${lang==='ar'?'غير مسددة':'Unpaid'}</span>`}</td><td><button class="btn btn-sm btn-info rounded-pill" onclick="showInvoiceProductDetails('بيع',${inv.id})"><i class="fas fa-eye"></i></button></td></tr>`).join('')}</tbody></table>`:`<p class="text-center py-4">${lang==='ar'?'لا توجد فواتير':'No invoices'}</p>`}</div></div></div></div>`; showModal(modalHtml, 'customerInvoicesModal'); }
 
@@ -5118,6 +5178,10 @@ function sharePDF() {
             }
             const data = getReportTabData(currentReportTab, reportsFilter);
             const lang = currentLang;
+            const userBounds = getUserReportDateBounds();
+            const minAttr = userBounds.minDate ? `min="${userBounds.minDate}"` : '';
+            const maxAttr = userBounds.maxDate ? `max="${userBounds.maxDate}"` : '';
+
             let filterHtml = '';
             if (currentReportTab === 'overview') {
                 filterHtml = `
@@ -5145,11 +5209,11 @@ function sharePDF() {
                 <div class="filter-section mb-4"><div class="row g-3">
                     <div class="col-md-3">
                         <label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label>
-                        <input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;">
+                        <input type="date" class="form-control" id="reportDateFrom" ${minAttr} ${maxAttr} value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;">
                     </div>
                     <div class="col-md-3">
                         <label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label>
-                        <input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;">
+                        <input type="date" class="form-control" id="reportDateTo" ${minAttr} ${maxAttr} value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;">
                     </div>
                     <div class="col-md-6 d-flex align-items-end gap-2">
                         <button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button>
@@ -5158,16 +5222,16 @@ function sharePDF() {
             } else if (data.hasFilter && !data.isEmployeeReport && !data.isPaymentReport) {
                 const isExpenseReport = currentReportTab === 'expenses';
                 filterHtml = `
-                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-3"><label><i class="fas fa-search"></i> ${lang==='ar'?'اختر من القائمة':'Select from list'}</label><select class="form-control select2-search" id="reportListboxSearch" data-placeholder="${lang==='ar'?'ابحث واختر...':'Search & Select...'}" style="width:100%;border-radius:10px;" onchange="onReportListboxSelect(this.value)"><option value="">-- ${lang==='ar'?'الكل':'All'} --</option>${data.listboxOptions.map(opt=>`<option value="${opt.type}_${opt.id}" ${(reportsFilter[opt.type+'Id']==opt.id||reportsFilter.expenseTypeFilter==opt.id)?'selected':''}>${opt.text}</option>`).join('')}</select></div>${isExpenseReport?`<div class="col-md-3"><label><i class="fas fa-box"></i> ${lang==='ar'?'بحث بالصنف':'Search by Product'}</label><select class="form-control select2-search" id="reportProductFilter" data-placeholder="${lang==='ar'?'ابحث عن منتج...':'Search product...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('productFilterId',this.value)"><option value="">-- ${lang==='ar'?'كل المنتجات':'All Products'} --</option>${appData.products.map(p=>`<option value="${p.id}" ${reportsFilter.productFilterId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div>`:''}<div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-check-circle"></i> ${t('status')}</label><select class="form-control" id="reportStatusFilter" onchange="updateReportFilterContent('status',this.value)" style="border-radius:10px;"><option value="all" ${reportsFilter.status==='all'?'selected':''}>${lang==='ar'?'الكل':'All'}</option><option value="paid" ${reportsFilter.status==='paid'?'selected':''}>${lang==='ar'?'مسددة':'Paid'}</option><option value="unpaid" ${reportsFilter.status==='unpaid'?'selected':''}>${lang==='ar'?'غير مسددة':'Unpaid'}</option></select></div></div><div class="row mt-3"><div class="col-12 d-flex gap-2"><button class="btn btn-success rounded-pill" onclick="exportCurrentReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
+                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-3"><label><i class="fas fa-search"></i> ${lang==='ar'?'اختر من القائمة':'Select from list'}</label><select class="form-control select2-search" id="reportListboxSearch" data-placeholder="${lang==='ar'?'ابحث واختر...':'Search & Select...'}" style="width:100%;border-radius:10px;" onchange="onReportListboxSelect(this.value)"><option value="">-- ${lang==='ar'?'الكل':'All'} --</option>${data.listboxOptions.map(opt=>`<option value="${opt.type}_${opt.id}" ${(reportsFilter[opt.type+'Id']==opt.id||reportsFilter.expenseTypeFilter==opt.id)?'selected':''}>${opt.text}</option>`).join('')}</select></div>${isExpenseReport?`<div class="col-md-3"><label><i class="fas fa-box"></i> ${lang==='ar'?'بحث بالصنف':'Search by Product'}</label><select class="form-control select2-search" id="reportProductFilter" data-placeholder="${lang==='ar'?'ابحث عن منتج...':'Search product...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('productFilterId',this.value)"><option value="">-- ${lang==='ar'?'كل المنتجات':'All Products'} --</option>${appData.products.map(p=>`<option value="${p.id}" ${reportsFilter.productFilterId==p.id?'selected':''}>${p.name}</option>`).join('')}</select></div>`:''}<div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" ${minAttr} ${maxAttr} value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" ${minAttr} ${maxAttr} value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-check-circle"></i> ${t('status')}</label><select class="form-control" id="reportStatusFilter" onchange="updateReportFilterContent('status',this.value)" style="border-radius:10px;"><option value="all" ${reportsFilter.status==='all'?'selected':''}>${lang==='ar'?'الكل':'All'}</option><option value="paid" ${reportsFilter.status==='paid'?'selected':''}>${lang==='ar'?'مسددة':'Paid'}</option><option value="unpaid" ${reportsFilter.status==='unpaid'?'selected':''}>${lang==='ar'?'غير مسددة':'Unpaid'}</option></select></div></div><div class="row mt-3"><div class="col-12 d-flex gap-2"><button class="btn btn-success rounded-pill" onclick="exportCurrentReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
             }
             if (data.isPaymentReport) {
                 filterHtml = `
-                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-4"><label><i class="fas fa-search"></i> ${lang==='ar'?'ابحث عن عميل':'Search Customer'}</label><select class="form-control select2-search" id="reportPaymentCustomerSearch" data-placeholder="${lang==='ar'?'ابحث عن عميل...':'Search customer...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('customerId',this.value)"><option value="">-- ${lang==='ar'?'كل العملاء':'All Customers'} --</option>${appData.customers.filter(c=>c.type==='customer'||!c.type).map(c=>`<option value="${c.id}" ${reportsFilter.customerId==c.id?'selected':''}>${c.name} (${c.code})</option>`).join('')}</select></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-4 d-flex align-items-end gap-2"><button class="btn btn-success rounded-pill" onclick="exportPaymentReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
+                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-4"><label><i class="fas fa-search"></i> ${lang==='ar'?'ابحث عن عميل':'Search Customer'}</label><select class="form-control select2-search" id="reportPaymentCustomerSearch" data-placeholder="${lang==='ar'?'ابحث عن عميل...':'Search customer...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('customerId',this.value)"><option value="">-- ${lang==='ar'?'كل العملاء':'All Customers'} --</option>${appData.customers.filter(c=>c.type==='customer'||!c.type).map(c=>`<option value="${c.id}" ${reportsFilter.customerId==c.id?'selected':''}>${c.name} (${c.code})</option>`).join('')}</select></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" ${minAttr} ${maxAttr} value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" ${minAttr} ${maxAttr} value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-4 d-flex align-items-end gap-2"><button class="btn btn-success rounded-pill" onclick="exportPaymentReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
                 setTimeout(() => { if ($('#reportPaymentCustomerSearch').length && !$('#reportPaymentCustomerSearch').hasClass('select2-hidden-accessible')) { $('#reportPaymentCustomerSearch').select2({ placeholder: lang === 'ar' ? 'ابحث عن عميل...' : 'Search customer...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); } }, 200);
             }
             if (data.isEmployeeReport) {
                 filterHtml = `
-                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-4"><label><i class="fas fa-user-tie"></i> ${lang==='ar'?'اختر الموظف':'Select Employee'}</label><select class="form-control select2-search" id="reportEmployeeSelect" data-placeholder="${lang==='ar'?'ابحث عن موظف...':'Search employee...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('employeeId',this.value)"><option value="">-- ${lang==='ar'?'كل الموظفين':'All Employees'} --</option>${(appData.employees||[]).map(emp=>`<option value="${emp.id}" ${reportsFilter.employeeId==emp.id?'selected':''}>${emp.name} (${emp.code}) - ${emp.position}</option>`).join('')}</select></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-4 d-flex align-items-end gap-2"><button class="btn btn-success rounded-pill" onclick="exportEmployeeReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
+                <div class="filter-section mb-4"><div class="row g-3"><div class="col-md-4"><label><i class="fas fa-user-tie"></i> ${lang==='ar'?'اختر الموظف':'Select Employee'}</label><select class="form-control select2-search" id="reportEmployeeSelect" data-placeholder="${lang==='ar'?'ابحث عن موظف...':'Search employee...'}" style="width:100%;border-radius:10px;" onchange="updateReportFilterContent('employeeId',this.value)"><option value="">-- ${lang==='ar'?'كل الموظفين':'All Employees'} --</option>${(appData.employees||[]).map(emp=>`<option value="${emp.id}" ${reportsFilter.employeeId==emp.id?'selected':''}>${emp.name} (${emp.code}) - ${emp.position}</option>`).join('')}</select></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'من تاريخ':'From Date'}</label><input type="date" class="form-control" id="reportDateFrom" ${minAttr} ${maxAttr} value="${reportsFilter.dateFrom}" onchange="updateReportFilterContent('dateFrom',this.value)" style="border-radius:10px;"></div><div class="col-md-2"><label><i class="fas fa-calendar"></i> ${lang==='ar'?'إلى تاريخ':'To Date'}</label><input type="date" class="form-control" id="reportDateTo" ${minAttr} ${maxAttr} value="${reportsFilter.dateTo}" onchange="updateReportFilterContent('dateTo',this.value)" style="border-radius:10px;"></div><div class="col-md-4 d-flex align-items-end gap-2"><button class="btn btn-success rounded-pill" onclick="exportEmployeeReportToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button><button class="btn btn-outline-light rounded-pill" onclick="clearReportFilters()"><i class="fas fa-redo"></i> ${lang==='ar'?'مسح الفلاتر':'Clear Filters'}</button></div></div></div>`;
                 setTimeout(() => { if ($('#reportEmployeeSelect').length && !$('#reportEmployeeSelect').hasClass('select2-hidden-accessible')) { $('#reportEmployeeSelect').select2({ placeholder: lang === 'ar' ? 'ابحث عن موظف...' : 'Search employee...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); } }, 200);
             }
             setTimeout(() => { if ($('#reportListboxSearch').length && !$('#reportListboxSearch').hasClass('select2-hidden-accessible')) { $('#reportListboxSearch').select2({ placeholder: lang === 'ar' ? 'ابحث واختر...' : 'Search & Select...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); } if ($('#reportProductFilter').length && !$('#reportProductFilter').hasClass('select2-hidden-accessible')) { $('#reportProductFilter').select2({ placeholder: lang === 'ar' ? 'ابحث عن منتج...' : 'Search product...', allowClear: true, width: '100%', dir: currentLang === 'ar' ? 'rtl' : 'ltr', minimumInputLength: 0 }); } }, 200);
@@ -5209,8 +5273,12 @@ function sharePDF() {
 
             if (selectedYears.length === 0) return monthlyData;
 
+            const userBounds = getUserReportDateBounds();
+
             let filteredInvoices = appData.salesInvoices.filter(inv => {
                 const invDate = new Date(inv.date);
+                if (userBounds.minDate && inv.date < userBounds.minDate) return false;
+                if (userBounds.maxDate && inv.date > userBounds.maxDate) return false;
                 if (selectedYears.length > 0 && !selectedYears.includes(invDate.getFullYear())) return false;
                 if (cId && parseInt(inv.customerId) !== cId) return false;
                 if (salesManager && inv.salesManager !== salesManager) return false;
@@ -5242,6 +5310,8 @@ function sharePDF() {
 
             let filteredReturns = (appData.returns || []).filter(r => {
                 const rDate = new Date(r.date);
+                if (userBounds.minDate && r.date < userBounds.minDate) return false;
+                if (userBounds.maxDate && r.date > userBounds.maxDate) return false;
                 if (selectedYears.length > 0 && !selectedYears.includes(rDate.getFullYear())) return false;
                 if (cId && parseInt(r.customerId) !== cId) return false;
                 if (pId && parseInt(r.productId) !== pId) return false;
@@ -5917,9 +5987,12 @@ function sharePDF() {
         function handleReportCardClick(type) {
             const lang = currentLang;
             if (type === 'monExp') {
+                const userBounds = getUserReportDateBounds();
+                const effFrom = reportsFilter.dateFrom || userBounds.minDate;
+                const effTo = reportsFilter.dateTo || userBounds.maxDate;
                 let exps = [...(appData.expenses || [])];
-                if (reportsFilter.dateFrom) exps = exps.filter(e => e.date >= reportsFilter.dateFrom);
-                if (reportsFilter.dateTo) exps = exps.filter(e => e.date <= reportsFilter.dateTo);
+                if (effFrom) exps = exps.filter(e => e.date >= effFrom);
+                if (effTo) exps = exps.filter(e => e.date <= effTo);
                 const title = lang === 'ar' ? 'تفاصيل المصروفات' : 'Expense Details';
                 const contentHtml = exps && exps.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'رقم المصروف':'Expense #'}</th><th>${lang==='ar'?'النوع':'Type'}</th><th>${lang==='ar'?'الصنف':'Product'}</th><th>${lang==='ar'?'البيان':'Description'}</th><th>${t('date')}</th><th>${lang==='ar'?'التكلفة':'Cost'}</th><th>${t('paid')}</th><th>${t('due')}</th></tr></thead><tbody>${exps.map(exp=>{const p=exp.productId?appData.products.find(pr=>pr.id===exp.productId):null;return`<tr><td>${exp.expenseNumber||'---'}</td><td>${exp.expenseType||'مصروفات تشغيلية'}</td><td>${p?p.name:'---'}</td><td>${exp.description||'---'}</td><td>${exp.date?new Date(exp.date).toLocaleDateString(lang==='ar'?'ar':'en'):'---'}</td><td>${formatCurrency(exp.amount||0)}</td><td style="color:#00e676;">${formatCurrency(exp.paid||0)}</td><td style="color:#ff4444;">${formatCurrency(exp.due||0)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`;
                 const modalHtml = `<div class="modal fade" id="reportDetailModal" tabindex="-1"><div class="modal-dialog modal-fullscreen-sm-down modal-xl"><div class="modal-content"><div class="modal-header"><h5>${title}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive">${contentHtml}</div></div></div></div></div>`; showModal(modalHtml, 'reportDetailModal');
@@ -5939,10 +6012,23 @@ function sharePDF() {
             const lang = currentLang;
             const wb = XLSX.utils.book_new();
             const filteredProductId = reportsFilter.overviewProductFilterId;
+            const userBounds = getUserReportDateBounds();
+            const effFrom = reportsFilter.dateFrom || userBounds.minDate;
+            const effTo = reportsFilter.dateTo || userBounds.maxDate;
+
             let filteredSalesO = [...appData.salesInvoices];
             let filteredExpensesO = [...(appData.expenses || [])];
             let filteredProductsO = [...appData.products];
             let filteredCustomersO = appData.customers.filter(c => c.type === 'customer' || !c.type);
+
+            if (effFrom) {
+                filteredSalesO = filteredSalesO.filter(inv => inv.date >= effFrom);
+                filteredExpensesO = filteredExpensesO.filter(exp => exp.date >= effFrom);
+            }
+            if (effTo) {
+                filteredSalesO = filteredSalesO.filter(inv => inv.date <= effTo);
+                filteredExpensesO = filteredExpensesO.filter(exp => exp.date <= effTo);
+            }
             if (filteredProductId) { filteredSalesO = filteredSalesO.filter(inv => inv.items.some(item => item.productId == filteredProductId));
                 filteredExpensesO = filteredExpensesO.filter(exp => exp.productId == filteredProductId);
                 filteredProductsO = filteredProductsO.filter(p => p.id == filteredProductId); const custIdsWithProduct = filteredSalesO.map(inv => inv.customerId).filter(id => id);
@@ -6755,7 +6841,7 @@ function sharePDF() {
                                 <td><strong>${acc.username}</strong></td>
                                 <td>${statusHtml}</td>
                                 <td><span class="badge bg-${acc.role === 'admin' ? 'danger' : 'info'}">${acc.role}</span></td>
-                                <td>${(acc.permissions || []).map(p => t(p) || p).join(', ')}</td>
+                                <td>${(acc.permissions || []).map(p => t(p) || p).join(', ')}${acc.reportDateFrom || acc.reportDateTo ? `<br><small style="color:var(--accent);"><i class="fas fa-calendar-alt"></i> ${acc.reportDateFrom || '...'} ⬅ ${acc.reportDateTo || '...'}</small>` : ''}</td>
                                 <td>
                                     <button class="btn btn-sm btn-warning rounded-pill" onclick="showAccountModal(${idx})"><i class="fas fa-edit"></i></button>
                                     ${acc.role !== 'admin' ? `<button class="btn btn-sm btn-danger rounded-pill" onclick="deleteAccountRequest(${idx})"><i class="fas fa-trash"></i></button>` : ''}
@@ -6818,6 +6904,20 @@ function sharePDF() {
                         </div>
                         `).join('')}
                     </div>
+                </div>
+                <div class="mt-3 mb-3">
+                    <label class="fw-bold"><i class="fas fa-calendar-alt" style="color:var(--accent);"></i> ${lang==='ar'?'نطاق تواريخ التقارير (من - إلى)':'Report Date Range Filter (From - To)'}</label>
+                    <div class="row g-2 mt-1">
+                        <div class="col-6">
+                            <small class="text-white-50">${lang==='ar'?'من تاريخ':'From Date'}</small>
+                            <input type="date" id="accReportDateFrom" class="form-control" value="${acc ? (acc.reportDateFrom || '') : ''}">
+                        </div>
+                        <div class="col-6">
+                            <small class="text-white-50">${lang==='ar'?'إلى تاريخ':'To Date'}</small>
+                            <input type="date" id="accReportDateTo" class="form-control" value="${acc ? (acc.reportDateTo || '') : ''}">
+                        </div>
+                    </div>
+                    <small style="color: var(--accent); font-size: 0.75rem;" class="d-block mt-1">${lang==='ar'?'إذا تم تحديد تاريخ، يظهر للمستخدم في التقارير فقط البيانات المندرجة في هذا النطاق وما قبله يحجب.':'If specified, only reports within this date range will be visible to the user.'}</small>
                 </div>` : ''}
             </div>
             <div class="modal-footer">
@@ -6836,19 +6936,25 @@ function sharePDF() {
             
             let role = 'user';
             let permissions = [];
+            let reportDateFrom = '';
+            let reportDateTo = '';
             const roleEl = document.getElementById('accRole');
             if (roleEl) {
                 role = roleEl.value;
                 document.querySelectorAll('.acc-permission:checked').forEach(cb => permissions.push(cb.value));
+                if (document.getElementById('accReportDateFrom')) reportDateFrom = document.getElementById('accReportDateFrom').value;
+                if (document.getElementById('accReportDateTo')) reportDateTo = document.getElementById('accReportDateTo').value;
             } else if (idx !== '') {
                 role = appData.accounts[parseInt(idx)].role;
                 permissions = appData.accounts[parseInt(idx)].permissions;
+                reportDateFrom = appData.accounts[parseInt(idx)].reportDateFrom || '';
+                reportDateTo = appData.accounts[parseInt(idx)].reportDateTo || '';
             }
 
             if (idx === '') {
                 if (!password) return alert(lang === 'ar' ? 'أدخل كلمة المرور' : 'Enter password');
                 if (appData.accounts.some(a => a.username === username)) return alert(lang === 'ar' ? 'اسم المستخدم موجود مسبقاً' : 'Username already exists');
-                appData.accounts.push({ username, password, role, permissions });
+                appData.accounts.push({ username, password, role, permissions, reportDateFrom, reportDateTo });
                 logActivity('إضافة', 'إدارة الحسابات', 'إضافة حساب جديد: ' + username);
             } else {
                 const acc = appData.accounts[parseInt(idx)];
@@ -6856,6 +6962,8 @@ function sharePDF() {
                     acc.username = username;
                     acc.role = role;
                     acc.permissions = permissions;
+                    acc.reportDateFrom = reportDateFrom;
+                    acc.reportDateTo = reportDateTo;
                 }
                 if (password) acc.password = password;
                 logActivity('تعديل', 'إدارة الحسابات', 'تعديل حساب: ' + acc.username);
@@ -6865,6 +6973,8 @@ function sharePDF() {
             renderCurrentPage();
             
             if (currentUser && currentUser.username === username) {
+                const fresh = appData.accounts.find(a => a.username === username);
+                if (fresh) currentUser = fresh;
                 updateSidebarPermissions(currentUser);
             }
         }
