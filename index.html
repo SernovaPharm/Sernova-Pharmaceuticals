@@ -2874,7 +2874,7 @@
             data.settings.currency = '';
             data.settings.maxDiscountPercent = data.settings.maxDiscountPercent || 30;
             data.customers.forEach(c => { if (!c.code) c.code = generateCustomerCode(c.id); });
-            data.products.forEach(p => { if (!p.batchNumber) p.batchNumber = ''; if (!p.expiryDate) p.expiryDate = ''; });
+            data.products.forEach(p => { if (!p.batchNumber) p.batchNumber = ''; if (!p.expiryDate) p.expiryDate = ''; if (!p.costPrice) p.costPrice = 0; });
             if (!data.expenses) data.expenses = [];
             data.expenses.forEach(e => {
                 if (!e.expenseType) e.expenseType = 'مصروفات تشغيلية';
@@ -3333,7 +3333,7 @@
             </div>
             <div class="search-box"><i class="fas fa-search"></i><input type="text" class="form-control" id="productSearch" placeholder="${lang==='ar'?'بحث بالاسم أو رقم التشغيلة...':'Search by name or batch number...'}" onkeyup="filterTableContains('productsTable', 'productSearch')"></div>
             <div class="table-card"><div class="d-flex justify-content-end mb-3"><button class="btn btn-success rounded-pill" onclick="exportProductsToExcel()"><i class="fas fa-file-excel"></i> ${t('export')} Excel</button></div>
-            <div class="table-responsive"><table class="table" id="productsTable"><thead><tr><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th><th>${lang==='ar'?'تاريخ الانتهاء':'Expiry'}</th><th>${lang==='ar'?'سعر البيع':'Sell Price'}</th><th>${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</th><th>${lang==='ar'?'المخزون الحالي':'Current Stock'}</th><th>${lang==='ar'?'الحالة':'Status'}</th><th>${t('actions')}</th></tr></thead><tbody>${sortedProducts.map(p=>`<tr data-search="${p.name} ${p.batchNumber}"><td><strong>${p.name}</strong></td><td><span class="badge bg-secondary">${p.batchNumber||'---'}</span></td><td>${p.expiryDate?`<span style="color:${new Date(p.expiryDate+'-01')<new Date()?'#ff4444':'#00e676'};font-size:0.8rem;">${fmtExpiry(p.expiryDate)}</span>`:'<span style="color:#808090;">---</span>'}</td><td>${formatCurrency(p.sellPrice)}</td><td><input type="number" class="form-control form-control-sm" style="width:80px;display:inline-block;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" value="${p.initialQuantity||p.quantity}" onchange="updateProductInitialQuantity(${p.id}, this.value)"></td><td><input type="number" class="form-control form-control-sm" style="width:80px;display:inline-block;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" value="${p.quantity}" onchange="updateProductQuantity(${p.id}, this.value)"></td><td>${p.quantity<=0?`<span class="badge bg-danger">${lang==='ar'?'نفذ':'Out'}</span>`:`<span class="badge bg-success">${lang==='ar'?'متوفر':'Available'}</span>`}</td><td><button class="btn btn-sm btn-info" onclick="showDeleteConfirm('product',${p.id},function(){editProduct(${p.id})},'edit')"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteProductRequest(${p.id})"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
+            <div class="table-responsive"><table class="table" id="productsTable"><thead><tr><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th><th>${lang==='ar'?'تاريخ الانتهاء':'Expiry'}</th><th>${lang==='ar'?'سعر البيع':'Sell Price'}</th><th>${lang==='ar'?'سعر التكلفة':'Cost Price'}</th><th>${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</th><th>${lang==='ar'?'المخزون الحالي':'Current Stock'}</th><th>${lang==='ar'?'الحالة':'Status'}</th><th>${t('actions')}</th></tr></thead><tbody>${sortedProducts.map(p=>`<tr data-search="${p.name} ${p.batchNumber}"><td><strong>${p.name}</strong></td><td><span class="badge bg-secondary">${p.batchNumber||'---'}</span></td><td>${p.expiryDate?`<span style="color:${new Date(p.expiryDate+'-01')<new Date()?'#ff4444':'#00e676'};font-size:0.8rem;">${fmtExpiry(p.expiryDate)}</span>`:'<span style="color:#808090;">---</span>'}</td><td>${formatCurrency(p.sellPrice)}</td><td>${formatCurrency(p.costPrice||0)}</td><td><input type="number" class="form-control form-control-sm" style="width:80px;display:inline-block;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" value="${p.initialQuantity||p.quantity}" onchange="updateProductInitialQuantity(${p.id}, this.value)"></td><td><input type="number" class="form-control form-control-sm" style="width:80px;display:inline-block;background:rgba(255,255,255,0.1);color:#fff;border:1px solid rgba(255,255,255,0.2);" value="${p.quantity}" onchange="updateProductQuantity(${p.id}, this.value)"></td><td>${p.quantity<=0?`<span class="badge bg-danger">${lang==='ar'?'نفذ':'Out'}</span>`:`<span class="badge bg-success">${lang==='ar'?'متوفر':'Available'}</span>`}</td><td><button class="btn btn-sm btn-info" onclick="showDeleteConfirm('product',${p.id},function(){editProduct(${p.id})},'edit')"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-danger" onclick="deleteProductRequest(${p.id})"><i class="fas fa-trash"></i></button></td></tr>`).join('')}</tbody></table></div></div>`;
             document.getElementById('pageContent').innerHTML = html;
             document.getElementById('pageTitle').innerHTML = '📦 ' + t('products');
         }
@@ -3360,9 +3360,9 @@
                 [company],
                 [lang === 'ar' ? 'تقرير المنتجات' : 'Products Report'],
                 [''],
-                [lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'تاريخ الانتهاء' : 'Expiry', lang === 'ar' ? 'سعر البيع' : 'Sell Price', lang === 'ar' ? 'المخزون الابتدائي' : 'Initial Stock', lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', lang === 'ar' ? 'الحالة' : 'Status']
+                [lang === 'ar' ? 'المنتج' : 'Product', lang === 'ar' ? 'رقم التشغيلة' : 'Batch #', lang === 'ar' ? 'تاريخ الانتهاء' : 'Expiry', lang === 'ar' ? 'سعر البيع' : 'Sell Price', lang === 'ar' ? 'سعر التكلفة' : 'Cost Price', lang === 'ar' ? 'المخزون الابتدائي' : 'Initial Stock', lang === 'ar' ? 'المخزون الحالي' : 'Current Stock', lang === 'ar' ? 'الحالة' : 'Status']
             ];
-            appData.products.forEach(p => { wsData.push([p.name, p.batchNumber || '---', fmtExpiry(p.expiryDate) || '---', p.sellPrice, p.initialQuantity || p.quantity, p.quantity, p.quantity <= 0 ? (lang === 'ar' ? 'نفذ' : 'Out') : (lang === 'ar' ? 'متوفر' : 'Available')]); });
+            appData.products.forEach(p => { wsData.push([p.name, p.batchNumber || '---', fmtExpiry(p.expiryDate) || '---', p.sellPrice, p.costPrice || 0, p.initialQuantity || p.quantity, p.quantity, p.quantity <= 0 ? (lang === 'ar' ? 'نفذ' : 'Out') : (lang === 'ar' ? 'متوفر' : 'Available')]); });
             const ws = XLSX.utils.aoa_to_sheet(wsData);
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, lang === 'ar' ? 'المنتجات' : 'Products');
@@ -4729,9 +4729,9 @@ function sharePDF() {
         function editCustomer(id) { showCustomerModal(id); }
 
         function showProductModal(id = null) { const p = id ? appData.products.find(p => p.id === id) : null; const lang = currentLang; const html = `
-            <div class="modal fade" id="productModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>${p?(lang==='ar'?'تعديل منتج':'Edit Product'):(lang==='ar'?'إضافة منتج':'Add Product')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="productId" value="${p?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'اسم المنتج':'Product Name'}</label><input id="productName" class="form-control" value="${p?.name||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'رقم التشغيلة':'Batch Number'}</label><input id="productBatch" class="form-control" value="${p?.batchNumber||''}" placeholder="${lang==='ar'?'أدخل رقم التشغيلة يدوياً':'Enter batch number manually'}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</label><input id="productExpiry" type="month" class="form-control" value="${p?.expiryDate||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'سعر البيع':'Sell Price'}</label><input id="productSellPrice" type="number" class="form-control" value="${p?.sellPrice||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</label><input id="productInitialQuantity" type="number" class="form-control" value="${p?.initialQuantity||p?.quantity||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الحالي':'Current Stock'}</label><input id="productQuantity" type="number" class="form-control" value="${p?.quantity||0}"></div></div><div class="modal-footer"><button class="btn btn-primary rounded-pill" onclick="saveProduct()">${t('save')}</button><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button></div></div></div></div>`; showModal(html, 'productModal'); }
+            <div class="modal fade" id="productModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5>${p?(lang==='ar'?'تعديل منتج':'Edit Product'):(lang==='ar'?'إضافة منتج':'Add Product')}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><input type="hidden" id="productId" value="${p?.id||''}"><div class="mb-3"><label class="fw-bold">${lang==='ar'?'اسم المنتج':'Product Name'}</label><input id="productName" class="form-control" value="${p?.name||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'رقم التشغيلة':'Batch Number'}</label><input id="productBatch" class="form-control" value="${p?.batchNumber||''}" placeholder="${lang==='ar'?'أدخل رقم التشغيلة يدوياً':'Enter batch number manually'}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</label><input id="productExpiry" type="month" class="form-control" value="${p?.expiryDate||''}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'سعر البيع':'Sell Price'}</label><input id="productSellPrice" type="number" class="form-control" value="${p?.sellPrice||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'سعر التكلفة':'Cost Price'}</label><input id="productCostPrice" type="number" class="form-control" value="${p?.costPrice||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الابتدائي':'Initial Stock'}</label><input id="productInitialQuantity" type="number" class="form-control" value="${p?.initialQuantity||p?.quantity||0}"></div><div class="mb-3"><label class="fw-bold">${lang==='ar'?'المخزون الحالي':'Current Stock'}</label><input id="productQuantity" type="number" class="form-control" value="${p?.quantity||0}"></div></div><div class="modal-footer"><button class="btn btn-primary rounded-pill" onclick="saveProduct()">${t('save')}</button><button class="btn btn-secondary rounded-pill" data-bs-dismiss="modal">${t('cancel')}</button></div></div></div></div>`; showModal(html, 'productModal'); }
 
-        function saveProduct() { const id = document.getElementById('productId').value; const sell = parseFloat(document.getElementById('productSellPrice').value) || 0; let batchNumber = document.getElementById('productBatch').value.trim(); let expiryDate = document.getElementById('productExpiry').value; const initialQty = parseFloat(document.getElementById('productInitialQuantity').value) || 0; const qty = parseFloat(document.getElementById('productQuantity').value) || 0; const data = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('productName').value, batchNumber: batchNumber, expiryDate: expiryDate, sellPrice: sell, quantity: qty, initialQuantity: initialQty }; const lang = currentLang; if (!data.name) return alert(lang === 'ar' ? 'أدخل الاسم' : 'Enter name'); if (id) { const idx = appData.products.findIndex(p => p.id === parseInt(id)); if (idx !== -1) appData.products[idx] = data; } else { appData.products.push(data); } logActivity(id ? 'تعديل' : 'إضافة', 'المنتجات', 'منتج: ' + data.name);
+        function saveProduct() { const id = document.getElementById('productId').value; const sell = parseFloat(document.getElementById('productSellPrice').value) || 0; const cost = parseFloat(document.getElementById('productCostPrice').value) || 0; let batchNumber = document.getElementById('productBatch').value.trim(); let expiryDate = document.getElementById('productExpiry').value; const initialQty = parseFloat(document.getElementById('productInitialQuantity').value) || 0; const qty = parseFloat(document.getElementById('productQuantity').value) || 0; const data = { id: id ? parseInt(id) : Date.now(), name: document.getElementById('productName').value, batchNumber: batchNumber, expiryDate: expiryDate, sellPrice: sell, costPrice: cost, quantity: qty, initialQuantity: initialQty }; const lang = currentLang; if (!data.name) return alert(lang === 'ar' ? 'أدخل الاسم' : 'Enter name'); if (id) { const idx = appData.products.findIndex(p => p.id === parseInt(id)); if (idx !== -1) appData.products[idx] = data; } else { appData.products.push(data); } logActivity(id ? 'تعديل' : 'إضافة', 'المنتجات', 'منتج: ' + data.name);
             bootstrap.Modal.getInstance(document.getElementById('productModal')).hide();
             renderProducts(); }
 
@@ -5050,8 +5050,7 @@ function sharePDF() {
                         { icon: 'fa-truck', color: '#00d4ff', label: lang === 'ar' ? 'المباع' : 'Sold', value: formatReportNumber(totalSoldQtyM), type: 'monSold', filteredData: filteredProductsM },
                         { icon: 'fa-shopping-cart', color: '#7b2ff7', label: lang === 'ar' ? 'إجمالي المبيعات' : 'Total Sales', value: formatReportCurrency(tsM), type: 'monSales', filteredData: filteredSalesM },
                         { icon: 'fa-check-circle', color: '#00e676', label: lang === 'ar' ? 'إجمالي المبالغ المسددة' : 'Total Paid Amount', value: formatReportCurrency(totalPaidFromPaymentsM), type: 'monPaid', filteredData: filteredPaymentsM },
-                        { icon: 'fa-money-bill-wave', color: '#ff9100', label: lang === 'ar' ? 'إجمالي المصروفات' : 'Total Expenses', value: formatReportCurrency(teM), type: 'monExp', filteredData: filteredExpensesM },
-                        { icon: 'fa-balance-scale', color: '#00e676', label: lang === 'ar' ? 'الربح' : 'Profit', value: formatReportCurrency(balanceM), type: 'monBalance', filteredData: [] }
+                        { icon: 'fa-money-bill-wave', color: '#ff9100', label: lang === 'ar' ? 'إجمالي المصروفات' : 'Total Expenses', value: formatReportCurrency(teM), type: 'monExp', filteredData: filteredExpensesM }
                     ];
                     data.hasFilter = true;
                     data.filteredData = [];
@@ -5107,7 +5106,6 @@ function sharePDF() {
                     data.summaryCards = [
                         { icon: 'fa-shopping-cart', color: '#7b2ff7', label: lang === 'ar' ? 'إجمالي المبيعات' : 'Total Sales', value: formatReportCurrency(ts), type: 'overSales', filteredData: filteredSalesO },
                         { icon: 'fa-money-bill-wave', color: '#ff9100', label: lang === 'ar' ? 'إجمالي المصروفات' : 'Total Expenses', value: formatReportCurrency(te), type: 'overExp', filteredData: filteredExpensesO },
-                        { icon: 'fa-balance-scale', color: '#00e676', label: lang === 'ar' ? 'الربح' : 'Profit', value: formatReportCurrency(balance), type: 'overBalance', filteredData: [] },
                         { icon: 'fa-truck', color: '#00d4ff', label: lang === 'ar' ? 'المباع' : 'Sold', value: formatReportNumber(totalSoldQtyOverall), type: 'overSold', filteredData: filteredProductsO },
                         { icon: 'fa-check-circle', color: '#00e676', label: lang === 'ar' ? 'المدفوع' : 'Paid', value: formatReportCurrency(totalPaidOverall), type: 'overPaid', filteredData: filteredSalesO },
                         { icon: 'fa-file-invoice', color: '#ff4444', label: lang === 'ar' ? 'عدد الفواتير' : 'Invoice Count', value: formatReportNumber(totalInvoicesCount), type: 'overInvoices', filteredData: filteredSalesO }
@@ -5131,9 +5129,9 @@ function sharePDF() {
                 contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'رقم المصروف':'Expense #'}</th><th>${lang==='ar'?'النوع':'Type'}</th><th>${lang==='ar'?'الصنف':'Product'}</th><th>${lang==='ar'?'البيان':'Description'}</th><th>${t('date')}</th><th>${lang==='ar'?'التكلفة':'Cost'}</th><th>${t('paid')}</th><th>${t('due')}</th></tr></thead><tbody>${filteredData.map(exp=>{const p=exp.productId?appData.products.find(pr=>pr.id===exp.productId):null;return`<tr><td>${exp.expenseNumber||'---'}</td><td>${exp.expenseType||'مصروفات تشغيلية'}</td><td>${p?p.name:'---'}</td><td>${exp.description||'---'}</td><td>${exp.date?new Date(exp.date).toLocaleDateString(lang==='ar'?'ar':'en'):'---'}</td><td>${formatCurrency(exp.amount||0)}</td><td style="color:#00e676;">${formatCurrency(exp.paid||0)}</td><td style="color:#ff4444;">${formatCurrency(exp.due||0)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('cust')) { title = lang === 'ar' ? 'تفاصيل العملاء' : 'Customer Details';
                 contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'الكود':'Code'}</th><th>${lang==='ar'?'الاسم':'Name'}</th><th>${t('phone')}</th><th>${t('address')}</th><th>${lang==='ar'?'عدد الفواتير':'Invoice Count'}</th><th>${lang==='ar'?'إجمالي المبيعات':'Total Sales'}</th><th>${t('due')}</th></tr></thead><tbody>${filteredData.map(c=>{const invs=appData.salesInvoices.filter(i=>i.customerId===c.id);const totalSales=invs.reduce((s,i)=>s+i.total,0);return`<tr><td>${c.code}</td><td>${c.name}</td><td>${c.phone}</td><td>${c.address||'---'}</td><td>${invs.length}</td><td>${formatCurrency(totalSales)}</td><td style="color:#ff4444;">${formatCurrency(getCustomerDue(c.id))}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('prodStock') || type.includes('prodSold') || type.includes('overSold') || type.includes('monSold')) { title = lang === 'ar' ? 'تفاصيل المنتجات' : 'Product Details'; const prodData = Array.isArray(filteredData) && filteredData.length > 0 && filteredData[0].name ? filteredData : [];
                 contentHtml = prodData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'المنتج':'Product'}</th><th>${lang==='ar'?'رقم التشغيلة':'Batch #'}</th><th>${lang==='ar'?'تاريخ الانتهاء':'Expiry'}</th><th>${lang==='ar'?'المخزون الحالي':'Current Stock'}</th><th>${lang==='ar'?'المباع':'Sold'}</th></tr></thead><tbody>${prodData.map(p=>{const sold=getProductSoldQty(p.id);return`<tr><td>${p.name}</td><td>${p.batchNumber||'---'}</td><td>${fmtExpiry(p.expiryDate)||'---'}</td><td>${p.quantity}</td><td>${sold>0?sold:0}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('emp')) { title = lang === 'ar' ? 'تفاصيل الموظفين' : 'Employee Details'; const empPerfData = Array.isArray(filteredData) && filteredData.length > 0 && filteredData[0].emp ? filteredData : []; if (empPerfData.length > 0) { contentHtml = `<table class="table"><thead><tr><th>${lang==='ar'?'الموظف':'Employee'}</th><th>${lang==='ar'?'الكود':'Code'}</th><th>${lang==='ar'?'الوظيفة':'Position'}</th><th>${lang==='ar'?'عدد الفواتير':'Invoice Count'}</th><th>${lang==='ar'?'إجمالي المبيعات':'Total Sales'}</th><th>${t('paid')}</th><th>${t('due')}</th></tr></thead><tbody>${empPerfData.map(ep=>`<tr><td>${ep.emp.name}</td><td>${ep.emp.code}</td><td>${ep.emp.position}</td><td>${ep.totalInvoices}</td><td>${formatReportCurrency(ep.totalSales)}</td><td style="color:#00e676;">${formatReportCurrency(ep.totalPaid)}</td><td style="color:#ff4444;">${formatReportCurrency(ep.totalDue)}</td></tr>`).join('')}</tbody></table>`; } else { contentHtml = `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } } else if (type.includes('fb')) { title = lang === 'ar' ? 'تفاصيل أرصدة المصنع' : 'Factory Balance Details';
-                contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'المادة الفعالة':'Active Ingredient'}</th><th>${lang==='ar'?'الرصيد':'Balance'}</th><th>${lang==='ar'?'وحدة القياس':'Unit'}</th><th>${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</th></tr></thead><tbody>${filteredData.map(b=>`<tr><td>${b.activeIngredient}</td><td>${b.balance}</td><td>${b.unit||'kg'}</td><td>${fmtExpiry(b.expiryDate)||'---'}</td></tr>`).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('monBalance')) { title = lang === 'ar' ? 'تفاصيل الربح' : 'Profit Details'; let monPayments = (appData.payments || []).filter(p => p.type === 'sales'); monPayments = monPayments.filter(p => { const inv = appData.salesInvoices.find(i => i.id === p.referenceId); return inv !== undefined; }); let monExpenses = [...(appData.expenses || [])]; const f = reportsFilter; if (f.dateFrom) { monPayments = monPayments.filter(p => p.date >= f.dateFrom); monExpenses = monExpenses.filter(exp => exp.date >= f.dateFrom); } if (f.dateTo) { monPayments = monPayments.filter(p => p.date <= f.dateTo); monExpenses = monExpenses.filter(exp => exp.date <= f.dateTo); } const totalPaidM = monPayments.reduce((s, p) => s + (p.amount || 0), 0); const teX = monExpenses.reduce((s, exp) => s + (exp.amount || 0), 0); const profitM = totalPaidM - teX; contentHtml = `<div class="row text-center"><div class="col-md-6 mb-3"><div class="p-3 rounded" style="background:rgba(0,230,118,0.15);"><h5>${lang==='ar'?'إجمالي المبالغ المسددة':'Total Paid Amount'}</h5><h3 style="color:#00e676;">${formatReportCurrency(totalPaidM)}</h3></div></div><div class="col-md-6 mb-3"><div class="p-3 rounded" style="background:rgba(255,145,0,0.15);"><h5>${lang==='ar'?'إجمالي المصروفات':'Total Expenses'}</h5><h3 style="color:#ff9100;">${formatReportCurrency(teX)}</h3></div></div></div><hr><div class="row text-center"><div class="col-md-12"><div class="p-4 rounded" style="background:rgba(0,212,255,0.12);"><h4>${lang==='ar'?'الفرق (الربح)':'Difference (Profit)'}</h4><h2 style="color:${profitM >= 0 ? '#00e676' : '#ff4444'};font-weight:800;">${profitM >= 0 ? '+' : ''}${formatReportCurrency(profitM)}</h2></div></div></div>`; } else if (type.includes('pay') || type.includes('monPaid')) { title = lang === 'ar' ? 'تفاصيل الدفعات' : 'Payment Details';
-                contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${t('date')}</th><th>${lang==='ar'?'الفاتورة':'Invoice'}</th><th>${lang==='ar'?'العميل':'Customer'}</th><th>${t('amount')}</th></tr></thead><tbody>${filteredData.map(p=>{const inv=appData.salesInvoices.find(i=>i.id===p.referenceId);const c=inv?appData.customers.find(c=>c.id===inv.customerId):null;return`<tr><td>${p.date?new Date(p.date).toLocaleDateString(lang==='ar'?'ar':'en'):'---'}</td><td>${inv?.invoiceNumber||'---'}</td><td>${c?.name||'---'}</td><td style="color:#00e676;">${formatReportCurrency(p.amount)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('over')) { title = lang === 'ar' ? 'تفاصيل النظرة العامة' : 'Overview Details'; const ts = appData.salesInvoices.reduce((s, inv) => s + inv.total, 0); const te = (appData.expenses || []).reduce((s, exp) => s + (exp.amount || 0), 0); const balance = ts - te;
-                contentHtml = `<div class="row text-center"><div class="col-md-4 mb-3"><div class="p-3 rounded" style="background:rgba(123,47,247,0.15);"><h6>${lang==='ar'?'إجمالي المبيعات':'Total Sales'}</h6><h3>${formatReportCurrency(ts)}</h3></div></div><div class="col-md-4 mb-3"><div class="p-3 rounded" style="background:rgba(255,145,0,0.15);"><h6>${lang==='ar'?'إجمالي المصروفات':'Total Expenses'}</h6><h3>${formatReportCurrency(te)}</h3></div></div><div class="col-md-4 mb-3"><div class="p-3 rounded" style="background:rgba(0,230,118,0.15);"><h6>${lang==='ar'?'الربح':'Profit'}</h6><h3>${formatReportCurrency(balance)}</h3></div></div></div>`; } const modalHtml = `<div class="modal fade" id="reportDetailModal" tabindex="-1"><div class="modal-dialog modal-fullscreen-sm-down modal-xl"><div class="modal-content"><div class="modal-header"><h5>${title}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive">${contentHtml}</div></div></div></div></div>`; showModal(modalHtml, 'reportDetailModal'); }
+                contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${lang==='ar'?'المادة الفعالة':'Active Ingredient'}</th><th>${lang==='ar'?'الرصيد':'Balance'}</th><th>${lang==='ar'?'وحدة القياس':'Unit'}</th><th>${lang==='ar'?'تاريخ الانتهاء':'Expiry Date'}</th></tr></thead><tbody>${filteredData.map(b=>`<tr><td>${b.activeIngredient}</td><td>${b.balance}</td><td>${b.unit||'kg'}</td><td>${fmtExpiry(b.expiryDate)||'---'}</td></tr>`).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('pay') || type.includes('monPaid')) { title = lang === 'ar' ? 'تفاصيل الدفعات' : 'Payment Details';
+                contentHtml = filteredData && filteredData.length > 0 ? `<table class="table"><thead><tr><th>${t('date')}</th><th>${lang==='ar'?'الفاتورة':'Invoice'}</th><th>${lang==='ar'?'العميل':'Customer'}</th><th>${t('amount')}</th></tr></thead><tbody>${filteredData.map(p=>{const inv=appData.salesInvoices.find(i=>i.id===p.referenceId);const c=inv?appData.customers.find(c=>c.id===inv.customerId):null;return`<tr><td>${p.date?new Date(p.date).toLocaleDateString(lang==='ar'?'ar':'en'):'---'}</td><td>${inv?.invoiceNumber||'---'}</td><td>${c?.name||'---'}</td><td style="color:#00e676;">${formatReportCurrency(p.amount)}</td></tr>`;}).join('')}</tbody></table>` : `<p class="text-center py-4">${lang==='ar'?'لا توجد بيانات':'No data'}</p>`; } else if (type.includes('over')) { title = lang === 'ar' ? 'تفاصيل النظرة العامة' : 'Overview Details'; const ts = appData.salesInvoices.reduce((s, inv) => s + inv.total, 0); const te = (appData.expenses || []).reduce((s, exp) => s + (exp.amount || 0), 0);
+                contentHtml = `<div class="row text-center"><div class="col-md-6 mb-3"><div class="p-3 rounded" style="background:rgba(123,47,247,0.15);"><h6>${lang==='ar'?'إجمالي المبيعات':'Total Sales'}</h6><h3>${formatReportCurrency(ts)}</h3></div></div><div class="col-md-6 mb-3"><div class="p-3 rounded" style="background:rgba(255,145,0,0.15);"><h6>${lang==='ar'?'إجمالي المصروفات':'Total Expenses'}</h6><h3>${formatReportCurrency(te)}</h3></div></div></div>`; } const modalHtml = `<div class="modal fade" id="reportDetailModal" tabindex="-1"><div class="modal-dialog modal-fullscreen-sm-down modal-xl"><div class="modal-content"><div class="modal-header"><h5>${title}</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div><div class="modal-body"><div class="table-responsive">${contentHtml}</div></div></div></div></div>`; showModal(modalHtml, 'reportDetailModal'); }
 
         function showCustomerInvoicesModal(customerId) {
             const customer = appData.customers.find(c => c.id === customerId);
@@ -5148,18 +5146,45 @@ function sharePDF() {
 
         function renderReports() {
             const lang = currentLang;
+            const allTabs = [
+                { id: 'overview', icon: 'fa-chart-pie', label: lang==='ar'?'نظرة عامة':'Overview' },
+                { id: 'monthly', icon: 'fa-calendar-alt', label: lang==='ar'?'تقرير شهري':'Monthly Report' },
+                { id: 'sales', icon: 'fa-shopping-cart', label: lang==='ar'?'المبيعات':'Sales' },
+                { id: 'expenses', icon: 'fa-money-bill-wave', label: lang==='ar'?'المصروفات':'Expenses' },
+                { id: 'inventory', icon: 'fa-boxes', label: lang==='ar'?'المنتجات':'Products' },
+                { id: 'customers', icon: 'fa-users', label: lang==='ar'?'العملاء':'Customers' },
+                { id: 'employees', icon: 'fa-user-tie', label: lang==='ar'?'الموظفين':'Employees' },
+                { id: 'payments', icon: 'fa-hand-holding-usd', label: lang==='ar'?'السداد':'Payments' },
+                { id: 'factory', icon: 'fa-industry', label: lang==='ar'?'أرصدة المصنع':'Factory' },
+                { id: 'sales_chart', icon: 'fa-chart-line', label: lang==='ar'?'تطور المبيعات':'Sales Evolution' }
+            ];
+
+            let allowedTabs = allTabs;
+            if (currentUser && currentUser.role !== 'admin' && currentUser.reportTabs && Array.isArray(currentUser.reportTabs)) {
+                allowedTabs = allTabs.filter(t => currentUser.reportTabs.includes(t.id));
+            }
+
+            if (allowedTabs.length === 0) {
+                document.getElementById('pageContent').innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-lock fa-3x text-warning mb-3"></i>
+                    <h5 class="text-white mt-3">${lang==='ar'?'ليس لديك صلاحية لعرض أي تاب في التقارير':'You do not have permission to view any report tab'}</h5>
+                </div>`;
+                document.getElementById('pageTitle').innerHTML = '📈 ' + t('reports');
+                return;
+            }
+
+            if (!allowedTabs.some(t => t.id === currentReportTab)) {
+                currentReportTab = allowedTabs[0].id;
+            }
+
             let tabsHtml = `
             <div class="report-type-selector">
-                <div class="report-type-btn ${currentReportTab==='overview'?'active':''}" onclick="switchReportTab('overview')"><i class="fas fa-chart-pie"></i> ${lang==='ar'?'نظرة عامة':'Overview'}</div>
-                <div class="report-type-btn ${currentReportTab==='monthly'?'active':''}" onclick="switchReportTab('monthly')"><i class="fas fa-calendar-alt"></i> ${lang==='ar'?'تقرير شهري':'Monthly Report'}</div>
-                <div class="report-type-btn ${currentReportTab==='sales'?'active':''}" onclick="switchReportTab('sales')"><i class="fas fa-shopping-cart"></i> ${lang==='ar'?'المبيعات':'Sales'}</div>
-                <div class="report-type-btn ${currentReportTab==='expenses'?'active':''}" onclick="switchReportTab('expenses')"><i class="fas fa-money-bill-wave"></i> ${lang==='ar'?'المصروفات':'Expenses'}</div>
-                <div class="report-type-btn ${currentReportTab==='inventory'?'active':''}" onclick="switchReportTab('inventory')"><i class="fas fa-boxes"></i> ${lang==='ar'?'المنتجات':'Products'}</div>
-                <div class="report-type-btn ${currentReportTab==='customers'?'active':''}" onclick="switchReportTab('customers')"><i class="fas fa-users"></i> ${lang==='ar'?'العملاء':'Customers'}</div>
-                <div class="report-type-btn ${currentReportTab==='employees'?'active':''}" onclick="switchReportTab('employees')"><i class="fas fa-user-tie"></i> ${lang==='ar'?'الموظفين':'Employees'}</div>
-                <div class="report-type-btn ${currentReportTab==='payments'?'active':''}" onclick="switchReportTab('payments')"><i class="fas fa-hand-holding-usd"></i> ${lang==='ar'?'السداد':'Payments'}</div>
-                <div class="report-type-btn ${currentReportTab==='factory'?'active':''}" onclick="switchReportTab('factory')"><i class="fas fa-industry"></i> ${lang==='ar'?'أرصدة المصنع':'Factory'}</div>
-                <div class="report-type-btn ${currentReportTab==='sales_chart'?'active':''}" onclick="switchReportTab('sales_chart')"><i class="fas fa-chart-line"></i> ${lang==='ar'?'تطور المبيعات':'Sales Evolution'}</div>
+                ${allowedTabs.map(t => `
+                <div class="report-type-btn ${currentReportTab===t.id?'active':''}" onclick="switchReportTab('${t.id}')">
+                    <i class="fas ${t.icon}"></i> ${t.label}
+                </div>
+                `).join('')}
             </div>
             <div id="reportContentArea"></div>`;
             document.getElementById('pageContent').innerHTML = tabsHtml;
@@ -6858,6 +6883,12 @@ function sharePDF() {
             }
         }
 
+        function toggleAllReportTabs() {
+            const cbs = document.querySelectorAll('.acc-report-tab');
+            const anyUnchecked = Array.from(cbs).some(cb => !cb.checked);
+            cbs.forEach(cb => cb.checked = anyUnchecked);
+        }
+
         function showAccountModal(idx = null) {
             const acc = idx !== null ? appData.accounts[idx] : null;
             const lang = currentLang;
@@ -6870,7 +6901,21 @@ function sharePDF() {
                 { id: 'backup', label: t('backup') }, { id: 'settings', label: t('settings') },
                 { id: 'system_management', label: lang==='ar'?'الحسابات والسجل':'Accounts & Log' }
             ];
+            const allReportTabs = [
+                { id: 'overview', label: lang==='ar'?'نظرة عامة':'Overview' },
+                { id: 'monthly', label: lang==='ar'?'تقرير شهري':'Monthly Report' },
+                { id: 'sales', label: lang==='ar'?'المبيعات':'Sales' },
+                { id: 'expenses', label: lang==='ar'?'المصروفات':'Expenses' },
+                { id: 'inventory', label: lang==='ar'?'المنتجات':'Products' },
+                { id: 'customers', label: lang==='ar'?'العملاء':'Customers' },
+                { id: 'employees', label: lang==='ar'?'الموظفين':'Employees' },
+                { id: 'payments', label: lang==='ar'?'السداد':'Payments' },
+                { id: 'factory', label: lang==='ar'?'أرصدة المصنع':'Factory' },
+                { id: 'sales_chart', label: lang==='ar'?'تطور المبيعات':'Sales Evolution' }
+            ];
             const accPermissions = acc ? (acc.permissions || []) : screens.map(s => s.id);
+            const accReportTabs = acc ? (acc.reportTabs || allReportTabs.map(t => t.id)) : allReportTabs.map(t => t.id);
+
             const html = `
             <div class="modal fade" id="accountModal"><div class="modal-dialog"><div class="modal-content"><div class="modal-header">
                 <h5><i class="fas fa-user"></i> ${acc ? (lang==='ar'?'تعديل حساب':'Edit Account') : (lang==='ar'?'إضافة حساب':'Add Account')}</h5>
@@ -6896,12 +6941,30 @@ function sharePDF() {
                 </div>
                 <div class="mb-3">
                     <label class="fw-bold">${lang==='ar'?'الصلاحيات (الشاشات المسموحة)':'Permissions (Allowed Screens)'}</label>
-                    <div style="max-height: 200px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
+                    <div style="max-height: 320px; overflow-y: auto; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 8px;">
                         ${screens.map(s => `
-                        <div class="form-check">
-                            <input class="form-check-input acc-permission" type="checkbox" value="${s.id}" id="perm_${s.id}" ${accPermissions.includes(s.id) ? 'checked' : ''}>
+                        <div class="form-check mb-1">
+                            <input class="form-check-input acc-permission" type="checkbox" value="${s.id}" id="perm_${s.id}" ${accPermissions.includes(s.id) ? 'checked' : ''} ${s.id === 'reports' ? 'onchange="const c=document.getElementById(\'reportTabsContainer\');if(c)c.style.display=this.checked?\'block\':\'none\';"' : ''}>
                             <label class="form-check-label text-white" for="perm_${s.id}">${s.label}</label>
                         </div>
+                        ${s.id === 'reports' ? `
+                        <div id="reportTabsContainer" style="margin-right:20px;margin-top:6px;margin-bottom:10px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;border-right:3px solid var(--accent);${accPermissions.includes('reports')?'':'display:none;'}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <small class="fw-bold" style="color:var(--accent);"><i class="fas fa-layer-group"></i> ${lang==='ar'?'التابات المسموحة في التقارير':'Allowed Report Tabs'}:</small>
+                                <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-2 py-0" style="font-size:0.75rem;" onclick="toggleAllReportTabs()">${lang==='ar'?'تحديد / إلغاء الكل':'Toggle All'}</button>
+                            </div>
+                            <div class="row g-2">
+                                ${allReportTabs.map(t => `
+                                <div class="col-6">
+                                    <div class="form-check">
+                                        <input class="form-check-input acc-report-tab" type="checkbox" value="${t.id}" id="rtab_${t.id}" ${accReportTabs.includes(t.id)?'checked':''}>
+                                        <label class="form-check-label text-white-50" style="font-size:0.85rem;" for="rtab_${t.id}">${t.label}</label>
+                                    </div>
+                                </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        ` : ''}
                         `).join('')}
                     </div>
                 </div>
@@ -6936,17 +6999,20 @@ function sharePDF() {
             
             let role = 'user';
             let permissions = [];
+            let reportTabs = [];
             let reportDateFrom = '';
             let reportDateTo = '';
             const roleEl = document.getElementById('accRole');
             if (roleEl) {
                 role = roleEl.value;
                 document.querySelectorAll('.acc-permission:checked').forEach(cb => permissions.push(cb.value));
+                document.querySelectorAll('.acc-report-tab:checked').forEach(cb => reportTabs.push(cb.value));
                 if (document.getElementById('accReportDateFrom')) reportDateFrom = document.getElementById('accReportDateFrom').value;
                 if (document.getElementById('accReportDateTo')) reportDateTo = document.getElementById('accReportDateTo').value;
             } else if (idx !== '') {
                 role = appData.accounts[parseInt(idx)].role;
                 permissions = appData.accounts[parseInt(idx)].permissions;
+                reportTabs = appData.accounts[parseInt(idx)].reportTabs || [];
                 reportDateFrom = appData.accounts[parseInt(idx)].reportDateFrom || '';
                 reportDateTo = appData.accounts[parseInt(idx)].reportDateTo || '';
             }
@@ -6954,7 +7020,7 @@ function sharePDF() {
             if (idx === '') {
                 if (!password) return alert(lang === 'ar' ? 'أدخل كلمة المرور' : 'Enter password');
                 if (appData.accounts.some(a => a.username === username)) return alert(lang === 'ar' ? 'اسم المستخدم موجود مسبقاً' : 'Username already exists');
-                appData.accounts.push({ username, password, role, permissions, reportDateFrom, reportDateTo });
+                appData.accounts.push({ username, password, role, permissions, reportTabs, reportDateFrom, reportDateTo });
                 logActivity('إضافة', 'إدارة الحسابات', 'إضافة حساب جديد: ' + username);
             } else {
                 const acc = appData.accounts[parseInt(idx)];
@@ -6962,6 +7028,7 @@ function sharePDF() {
                     acc.username = username;
                     acc.role = role;
                     acc.permissions = permissions;
+                    acc.reportTabs = reportTabs;
                     acc.reportDateFrom = reportDateFrom;
                     acc.reportDateTo = reportDateTo;
                 }
